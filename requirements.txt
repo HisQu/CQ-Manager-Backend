@@ -1,6 +1,0 @@
-litestar[standard, structlog, jwt, sqlalchemy]
-aiosmtplib
-aiosqlite 
-pydantic
-pydantic[email]
-advanced-alchemy==0.5.5

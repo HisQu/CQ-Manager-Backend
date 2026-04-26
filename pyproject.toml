@@ -10,6 +10,14 @@ authors = [
 description = "A competency question management API."
 readme = "README.md"
 requires-python = ">=3.10"
+dependencies = [
+    "litestar[standard,structlog,jwt,sqlalchemy]",
+    "aiosmtplib",
+    "aiosqlite",
+    "pydantic",
+    "pydantic[email]",
+    "advanced-alchemy==0.5.5",
+]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
