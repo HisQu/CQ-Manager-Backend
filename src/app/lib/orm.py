@@ -16,14 +16,20 @@ from advanced_alchemy.extensions.litestar.plugins.init.plugin import (
     SQLAlchemyInitPlugin,
 )
 from litestar.config.app import AppConfig
-from litestar.contrib.sqlalchemy.base import UUIDBase
+from advanced_alchemy.base import UUIDBase
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-_engine = create_async_engine(
-    environ.get("CONNECTION_STRING", ""),
+_default_db_path = (
+    pathlib.Path(__file__).resolve().parents[3] / "database" / "cq_manager.db"
 )
 
-_async_session_factory: async_sessionmaker[AsyncSession] = async_sessionmaker(_engine, expire_on_commit=True)
+_engine = create_async_engine(
+    environ.get("CONNECTION_STRING") or f"sqlite+aiosqlite:///{_default_db_path}",
+)
+
+_async_session_factory: async_sessionmaker[AsyncSession] = async_sessionmaker(
+    _engine, expire_on_commit=True
+)
 
 
 @dataclass(frozen=True)
@@ -53,7 +59,10 @@ class AsyncSqlPlugin:
         cwd = pathlib.Path.cwd()
         app = pathlib.Path(__file__).parent.parent
         module_paths = cwd.glob(self.modules_pattern)
-        module_names = map(lambda x: ".".join(x.relative_to(app).parts).replace(".py", ""), module_paths)
+        module_names = map(
+            lambda x: ".".join(x.relative_to(app).parts).replace(".py", ""),
+            module_paths,
+        )
         _, *_ = map(lambda x: importlib.import_module(x), module_names)
 
     def __post_init__(self, dependency_key: str) -> None:

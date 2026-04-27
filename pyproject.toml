@@ -16,7 +16,7 @@ dependencies = [
     "aiosqlite",
     "pydantic",
     "pydantic[email]",
-    "advanced-alchemy==0.5.5",
+    "advanced-alchemy>=1.9.3,<2",
 ]
 classifiers = [
     "Programming Language :: Python :: 3",

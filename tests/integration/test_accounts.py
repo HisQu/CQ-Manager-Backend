@@ -89,6 +89,50 @@ def test_login_new_user(test_client: TestClient[Litestar]) -> None:
         new_user_header = response.headers
 
 
+def test_change_password_wo_login(test_client: TestClient[Litestar]) -> None:
+    with test_client as client:
+        response = client.put(
+            "/users/password",
+            json={
+                "current_password": "12345678Hallo",
+                "new_password": "12345678HalloNeu",
+            },
+        )
+        assert response.status_code == HTTP_401_UNAUTHORIZED
+
+
+def test_change_password_w_login(test_client: TestClient[Litestar]) -> None:
+    with test_client as client:
+        response = client.put(
+            "/users/password",
+            json={
+                "current_password": "12345678Hallo",
+                "new_password": "12345678HalloNeu",
+            },
+            headers=new_user_header,
+        )
+        assert response.status_code == HTTP_204_NO_CONTENT
+
+
+def test_login_new_user_with_old_password(test_client: TestClient[Litestar]) -> None:
+    with test_client as client:
+        response = client.post(
+            "/users/login",
+            json={"email": "dominik@uni-jena.de", "password": "12345678Hallo"},
+        )
+        assert response.status_code == HTTP_401_UNAUTHORIZED
+
+
+def test_login_new_user_with_new_password(test_client: TestClient[Litestar]) -> None:
+    with test_client as client:
+        response = client.post(
+            "/users/login",
+            json={"email": "dominik@uni-jena.de", "password": "12345678HalloNeu"},
+        )
+        assert response.status_code == HTTP_201_CREATED
+        assert response.headers.get("Authorization", None) is not None
+
+
 def test_update_user_wo_admin(test_client: TestClient[Litestar]) -> None:
     with test_client as client:
         response = client.put(f"/users/{new_user_id}", json={"name": "dominik_neu"})
@@ -97,7 +141,9 @@ def test_update_user_wo_admin(test_client: TestClient[Litestar]) -> None:
 
 def test_update_user_w_admin(test_client: TestClient[Litestar]) -> None:
     with test_client as client:
-        response = client.put(f"/users/{new_user_id}", json={"name": "dominik_neu"}, headers=admin_header)
+        response = client.put(
+            f"/users/{new_user_id}", json={"name": "dominik_neu"}, headers=admin_header
+        )
         assert response.status_code == HTTP_200_OK
         assert response.json()["name"] == "dominik_neu"
 

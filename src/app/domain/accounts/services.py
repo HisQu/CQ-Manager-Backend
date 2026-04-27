@@ -7,13 +7,30 @@ from pydantic import EmailStr
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .authentication.exceptions import InvalidPasswordFormatException, InvalidPasswordLengthException
+from .authentication.exceptions import (
+    InvalidPasswordFormatException,
+    InvalidPasswordLengthException,
+)
 from .authentication.services import EncryptionService, PasswordHash
-from .dtos import UserGetDTO, UserLoginDTO, UserRegisterDTO, UserUpdateDTO
-from .exceptions import DelegateHTTPException, EmailInUseException, NameInUseException
+from .dtos import (
+    UserChangePasswordDTO,
+    UserGetDTO,
+    UserLoginDTO,
+    UserRegisterDTO,
+    UserUpdateDTO,
+)
+from .exceptions import (
+    DelegateHTTPException,
+    EmailInUseException,
+    NameInUseException,
+    UnmatchedCredentialsException,
+)
 from .models import User
 
-InvitedUsers = NamedTuple("InvitedUsers", [("existing", Iterable[User]), ("created", Iterable[tuple[User, str]])])
+InvitedUsers = NamedTuple(
+    "InvitedUsers",
+    [("existing", Iterable[User]), ("created", Iterable[tuple[User, str]])],
+)
 
 
 class UserService:
@@ -28,7 +45,10 @@ class UserService:
         """
         try:
             return encryption.hash_password(password)
-        except (InvalidPasswordFormatException, InvalidPasswordLengthException) as exception:
+        except (
+            InvalidPasswordFormatException,
+            InvalidPasswordLengthException,
+        ) as exception:
             raise DelegateHTTPException(exception)
 
     @staticmethod
@@ -66,7 +86,9 @@ class UserService:
         :return: A matching `User` if any.
         """
         if user := await session.scalar(select(User).where(User.email == data.email)):
-            if user.password_hash == encryption.resolve_password(data.password, user.password_salt):
+            if user.password_hash == encryption.resolve_password(
+                data.password, user.password_salt
+            ):
                 return user
         return None
 
@@ -85,16 +107,24 @@ class UserService:
         :param data: Any updates that should be applied to the `User`.
         :return: The updated `User` if found.
         """
-        if data.email and await session.scalar(select(User).where(User.email == data.email)):
+        if data.email and await session.scalar(
+            select(User).where(User.email == data.email)
+        ):
             raise EmailInUseException(data.email)
-        
-        if data.name and await session.scalar(select(User).where(User.name == data.name)):
+
+        if data.name and await session.scalar(
+            select(User).where(User.name == data.name)
+        ):
             raise NameInUseException(data.name)
 
         if user := await session.scalar(select(User).where(User.email == user_email)):
             user.name = data.name if data.name else user.name
-            user.is_system_admin = data.is_system_admin if data.is_system_admin else user.is_system_admin
-            user.is_verified = data.is_verified if data.is_verified else user.is_verified
+            user.is_system_admin = (
+                data.is_system_admin if data.is_system_admin else user.is_system_admin
+            )
+            user.is_verified = (
+                data.is_verified if data.is_verified else user.is_verified
+            )
 
             if data.password:
                 password = UserService._encrypt_password(encryption, data.password)
@@ -115,6 +145,35 @@ class UserService:
         if user := await session.scalar(select(User).where(User.email == user_email)):
             await session.delete(user)
         return True if user else False
+
+    @staticmethod
+    async def change_password(
+        session: AsyncSession,
+        encryption: EncryptionService,
+        user_id: UUID,
+        data: UserChangePasswordDTO,
+    ) -> bool:
+        """Changes the password of a specific `User` by his `id`.
+
+        :param session: An active database session.
+        :param encryption: Encryption service to use for password hashing and verification.
+        :param user_id: The `Users` `id`.
+        :param data: Current and new password.
+        :raises UnmatchedCredentialsException: If the current password is invalid.
+        :return: `True` if the password was updated else `False`.
+        """
+        if user := await session.scalar(select(User).where(User.id == user_id)):
+            current_password_hash = encryption.resolve_password(
+                data.current_password, user.password_salt
+            )
+            if user.password_hash != current_password_hash:
+                raise UnmatchedCredentialsException()
+
+            new_password = UserService._encrypt_password(encryption, data.new_password)
+            user.password_hash = new_password.hash
+            user.password_salt = new_password.salt
+            return True
+        return False
 
     @staticmethod
     async def add_user(
@@ -167,7 +226,9 @@ class UserService:
         return None
 
     @staticmethod
-    def create_temporary_user(encryption: EncryptionService, email: EmailStr) -> tuple[User, str]:
+    def create_temporary_user(
+        encryption: EncryptionService, email: EmailStr
+    ) -> tuple[User, str]:
         name = email
         sequence = [
             *random.sample(string.ascii_lowercase, 4),
@@ -196,11 +257,17 @@ class UserService:
         emails: Iterable[EmailStr],
     ) -> InvitedUsers:
         mails = set(emails)
-        existing_users = await session.scalars(select(User).where(User.email.in_(mails)))
+        existing_users = await session.scalars(
+            select(User).where(User.email.in_(mails))
+        )
         existing_users = existing_users.all()
 
         mails -= set(map(lambda user: user.email, existing_users))
-        invited_users = [*map(lambda mail: UserService.create_temporary_user(encryption, mail), mails)]
+        invited_users = [
+            *map(
+                lambda mail: UserService.create_temporary_user(encryption, mail), mails
+            )
+        ]
         session.add_all([user for user, _ in invited_users])
         await session.commit()
         _ = [await session.refresh(user) for user, _ in invited_users]

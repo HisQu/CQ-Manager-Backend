@@ -25,6 +25,11 @@ class UserUpdateDTO(BaseModel):
     is_verified: bool | None = None
 
 
+class UserChangePasswordDTO(BaseModel):
+    current_password: str
+    new_password: str
+
+
 class UserLoginDTO(BaseModel):
     email: str
     password: str
