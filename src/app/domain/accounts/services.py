@@ -4,6 +4,7 @@ from typing import Iterable, NamedTuple
 from uuid import UUID
 
 from pydantic import EmailStr
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -24,6 +25,7 @@ from .exceptions import (
     EmailInUseException,
     NameInUseException,
     UnmatchedCredentialsException,
+    UserInUseException,
 )
 from .models import User
 
@@ -143,7 +145,11 @@ class UserService:
         :return: `True` if a `User` was removed else `False`.
         """
         if user := await session.scalar(select(User).where(User.email == user_email)):
-            await session.delete(user)
+            try:
+                await session.delete(user)
+                await session.flush()
+            except IntegrityError as error:
+                raise UserInUseException(user_email) from error
         return True if user else False
 
     @staticmethod

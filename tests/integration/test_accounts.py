@@ -8,6 +8,7 @@ from litestar.status_codes import (
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
     HTTP_401_UNAUTHORIZED,
+    HTTP_409_CONFLICT,
 )
 from litestar.testing import TestClient
 
@@ -183,3 +184,9 @@ def test_delete_users_w_admin(test_client: TestClient[Litestar]) -> None:
     with test_client as client:
         response = client.delete(f"/users/{new_user_id}", headers=admin_header)
         assert response.status_code == HTTP_204_NO_CONTENT
+
+
+def test_delete_user_referenced_by_entities(test_client: TestClient[Litestar]) -> None:
+    with test_client as client:
+        response = client.delete("/users/malte@uni-jena.de", headers=admin_header)
+        assert response.status_code == HTTP_409_CONFLICT

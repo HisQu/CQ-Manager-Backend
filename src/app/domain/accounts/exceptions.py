@@ -5,6 +5,7 @@ from litestar.status_codes import (
     HTTP_400_BAD_REQUEST,
     HTTP_401_UNAUTHORIZED,
     HTTP_404_NOT_FOUND,
+    HTTP_409_CONFLICT,
 )
 
 
@@ -43,7 +44,9 @@ class UnmatchedCredentialsException(NotAuthorizedException):
 class DelegateHTTPException(HTTPException):
     """Forwards a basic `Exception` into an `HTTPException`."""
 
-    def __init__(self, exception: Exception, status_code: int = HTTP_400_BAD_REQUEST) -> None:
+    def __init__(
+        self, exception: Exception, status_code: int = HTTP_400_BAD_REQUEST
+    ) -> None:
         super().__init__(detail=exception.args[0], status_code=status_code)
 
 
@@ -61,3 +64,14 @@ class SystemAdministratorRequiredException(NotAuthorizedException):
     def __init__(self) -> None:
         detail = "This route may only be accessed by a system administrator."
         super().__init__(detail=detail, status_code=HTTP_401_UNAUTHORIZED)
+
+
+class UserInUseException(HTTPException):
+    """Raised when a `User` cannot be deleted because it is referenced by other entities."""
+
+    def __init__(self, user_email: str) -> None:
+        detail = (
+            f"The user '{user_email}' is still referenced by other records and cannot be deleted. "
+            "Remove or reassign related records first."
+        )
+        super().__init__(detail=detail, status_code=HTTP_409_CONFLICT)
