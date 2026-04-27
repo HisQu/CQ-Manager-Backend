@@ -38,3 +38,20 @@ class AnnotationRemove(BaseModel):
 
 class AnnotationRemoveDTO(PydanticDTO[AnnotationRemove]):
     config = DTOConfig(rename_strategy="camel")
+
+
+class TermUpdate(BaseModel):
+    content: NonEmptyString
+
+
+class TermUpdateDTO(PydanticDTO[TermUpdate]):
+    config = DTOConfig(rename_strategy="camel")
+
+
+class AnnotationUpdate(BaseModel):
+    term: NonEmptyString
+    passage: NonEmptyString
+
+
+class AnnotationUpdateDTO(PydanticDTO[AnnotationUpdate]):
+    config = DTOConfig(rename_strategy="camel")
