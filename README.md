@@ -36,6 +36,25 @@ For project and group scoped endpoints, the API adds permission headers to respo
 
 These headers are derived from the authenticated user and the `project_id` / `group_id` path context.
 
+## User deletion behavior
+
+`DELETE /users/{user_email}` enforces database referential integrity.
+
+- If the user has no remaining references, deletion succeeds with `204 No Content`.
+- If the user is still referenced by related records, deletion is blocked and returns `409 Conflict`.
+- Error detail explains that related records must be removed or reassigned first.
+
+Typical references that block deletion include:
+
+- `question.author_id`, `question.editor_id`
+- `comment.author_id`
+- `rating.author_id`
+- `version.editor_id`
+- `consolidation.engineer_id`
+- membership/role tables (`group_members`, `project_managers`, `project_engineers`)
+
+This behavior is intentional to prevent orphaned records.
+
 ## To Developers
 
 If you have an IDE like PyCharm you can configure your Run target as follows:
