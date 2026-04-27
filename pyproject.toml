@@ -48,3 +48,8 @@ filterwarnings = [
     "ignore::DeprecationWarning:litestar.utils.*",
     "ignore::DeprecationWarning:litestar.contrib.*",
 ]
+
+[dependency-groups]
+dev = [
+    "openapi-markdown>=0.4.3",
+]
