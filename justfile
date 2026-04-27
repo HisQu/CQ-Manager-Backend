@@ -2,7 +2,7 @@ set shell := ["bash", "-cu"]
 
 app_dir := "src/app"
 app_path := "app:app"
-openapi_file := "openapi_schema.json"
+openapi_file := "openapi.yaml"
 api_docs_file := "API.md"
 
 # List available commands
