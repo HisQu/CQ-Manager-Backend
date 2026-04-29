@@ -17,6 +17,22 @@ from .models import Consolidation
 
 class ConsolidationService:
     @staticmethod
+    def _infer_result_question_group_id(
+        questions: Sequence[Question],
+    ) -> UUID:
+        group_ids = {question.group_id for question in questions}
+        if len(group_ids) == 1:
+            return group_ids.pop()
+
+        raise HTTPException(
+            status_code=HTTP_400_BAD_REQUEST,
+            detail=(
+                "resultQuestion.groupId is required when the group cannot be "
+                "inferred from the consolidated questions."
+            ),
+        )
+
+    @staticmethod
     async def _get_project_question(
         session: AsyncSession, project_id: UUID, question_id: UUID
     ) -> Question:
@@ -142,11 +158,21 @@ class ConsolidationService:
                     question_id=data.result_question_id,
                 )
             elif data.result_question is not None:
+                if data.result_question.question is None:
+                    raise HTTPException(
+                        status_code=HTTP_400_BAD_REQUEST,
+                        detail="resultQuestion.question is required.",
+                    )
+
+                group_id = (
+                    data.result_question.group_id
+                    or ConsolidationService._infer_result_question_group_id(questions)
+                )
                 result_question = await ConsolidationService._create_result_question(
                     session=session,
                     project_id=project_id,
                     user_id=user_id,
-                    group_id=data.result_question.group_id,
+                    group_id=group_id,
                     question=data.result_question.question,
                     sparql_query=data.result_question.sparql_query,
                 )

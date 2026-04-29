@@ -25,6 +25,18 @@ def test_consolidation_create_accepts_new_result_question() -> None:
     assert payload.result_question_id is None
 
 
+def test_consolidation_create_accepts_new_result_question_without_group() -> None:
+    payload = ConsolidationCreate(
+        ids=[QUESTION_ID],
+        result_question={
+            "question": "A generated result question",
+        },
+    )
+    assert payload.result_question is not None
+    assert payload.result_question.group_id is None
+    assert payload.result_question_id is None
+
+
 def test_consolidation_create_accepts_existing_result_question() -> None:
     payload = ConsolidationCreate(
         ids=[QUESTION_ID],

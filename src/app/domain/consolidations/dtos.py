@@ -59,8 +59,8 @@ class ConsolidationResultQuestionCreate(BaseModel):
             raise ValueError(
                 "Provide either id or question/groupId for resultQuestion."
             )
-        if has_create and (self.question is None or self.group_id is None):
-            raise ValueError("question and groupId are required for new resultQuestion.")
+        if has_create and self.question is None:
+            raise ValueError("question is required for new resultQuestion.")
         return self
 
 
@@ -106,7 +106,6 @@ class ConsolidationCreate(BaseModel):
         has_new_result = (
             self.result_question is not None
             and self.result_question.question is not None
-            and self.result_question.group_id is not None
         )
         has_existing_result = self.result_question_id is not None
         if has_new_result == has_existing_result:
