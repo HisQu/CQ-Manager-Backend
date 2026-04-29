@@ -203,6 +203,10 @@ components:
           type: integer
         question:
           type: string
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
       required:
       - author
       - group
@@ -224,38 +228,50 @@ components:
       - name
       title: ByProjectQuestionUserResponseBody
       type: object
-    ByProjectUnifiedQuestionGroupResponseBody:
-      properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - name
-      title: ByProjectUnifiedQuestionGroupResponseBody
-      type: object
-    ByProjectUnifiedQuestionResponseBody:
+    ByProjectUnifiedUnifiedQuestionOverviewResponseBody:
       properties:
         author:
-          $ref: '#/components/schemas/ByProjectUnifiedQuestionUserResponseBody'
+          oneOf:
+          - $ref: '#/components/schemas/ByProjectUnifiedUnifiedQuestionOverview_0UnifiedQuestionAuthorResponseBody'
+          - type: 'null'
+        consolidatedQuestionIds:
+          items:
+            format: uuid
+            type: string
+          type: array
+        consolidationId:
+          oneOf:
+          - format: uuid
+            type: string
+          - type: 'null'
         group:
-          $ref: '#/components/schemas/ByProjectUnifiedQuestionGroupResponseBody'
+          oneOf:
+          - $ref: '#/components/schemas/ByProjectUnifiedUnifiedQuestionOverview_0UnifiedQuestionGroupResponseBody'
+          - type: 'null'
         id:
           format: uuid
           type: string
         noConsolidations:
+          default: 0
           type: integer
         question:
           type: string
+        rating:
+          default: 0
+          type: integer
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        unifiedEntryKind:
+          $ref: '#/components/schemas/UnifiedQuestionEntryKind'
       required:
-      - author
-      - group
-      - noConsolidations
+      - id
       - question
-      title: ByProjectUnifiedQuestionResponseBody
+      - unifiedEntryKind
+      title: ByProjectUnifiedUnifiedQuestionOverviewResponseBody
       type: object
-    ByProjectUnifiedQuestionUserResponseBody:
+    ByProjectUnifiedUnifiedQuestionOverview_0UnifiedQuestionAuthorResponseBody:
       properties:
         email:
           type: string
@@ -266,8 +282,21 @@ components:
           type: string
       required:
       - email
+      - id
       - name
-      title: ByProjectUnifiedQuestionUserResponseBody
+      title: ByProjectUnifiedUnifiedQuestionOverview_0UnifiedQuestionAuthorResponseBody
+      type: object
+    ByProjectUnifiedUnifiedQuestionOverview_0UnifiedQuestionGroupResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: ByProjectUnifiedUnifiedQuestionOverview_0UnifiedQuestionGroupResponseBody
       type: object
     CreateCommentCommentCreateRequestBody:
       properties:
@@ -452,6 +481,10 @@ components:
           type: array
         question:
           type: string
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
       required:
       - question
       title: CreateQuestionQuestionCreateRequestBody
@@ -503,6 +536,10 @@ components:
           items:
             $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionQuestion_0RatingResponseBody_4'
           type: array
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
         versionNumber:
           type: integer
         versions:
@@ -641,6 +678,10 @@ components:
           type: integer
         question:
           type: string
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
       required:
       - author
       - group
@@ -822,6 +863,10 @@ components:
           $ref: '#/components/schemas/GetDirectHandlerQuestionUserResponseBody'
         question:
           type: string
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
       required:
       - aggregatedRating
       - author
@@ -921,6 +966,10 @@ components:
           $ref: '#/components/schemas/GetGroupHandlerQuestionUserResponseBody'
         question:
           type: string
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
       required:
       - aggregatedRating
       - author
@@ -979,6 +1028,10 @@ components:
           type: integer
         question:
           type: string
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
       required:
       - author
       - group
@@ -1000,38 +1053,50 @@ components:
       - name
       title: GetGroupQuestionsQuestionUserResponseBody
       type: object
-    GetGroupQuestionsUnifiedQuestionGroupResponseBody:
-      properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - name
-      title: GetGroupQuestionsUnifiedQuestionGroupResponseBody
-      type: object
-    GetGroupQuestionsUnifiedQuestionResponseBody:
+    GetGroupQuestionsUnifiedUnifiedQuestionOverviewResponseBody:
       properties:
         author:
-          $ref: '#/components/schemas/GetGroupQuestionsUnifiedQuestionUserResponseBody'
+          oneOf:
+          - $ref: '#/components/schemas/GetGroupQuestionsUnifiedUnifiedQuestionOverview_0UnifiedQuestionAuthorResponseBody'
+          - type: 'null'
+        consolidatedQuestionIds:
+          items:
+            format: uuid
+            type: string
+          type: array
+        consolidationId:
+          oneOf:
+          - format: uuid
+            type: string
+          - type: 'null'
         group:
-          $ref: '#/components/schemas/GetGroupQuestionsUnifiedQuestionGroupResponseBody'
+          oneOf:
+          - $ref: '#/components/schemas/GetGroupQuestionsUnifiedUnifiedQuestionOverview_0UnifiedQuestionGroupResponseBody'
+          - type: 'null'
         id:
           format: uuid
           type: string
         noConsolidations:
+          default: 0
           type: integer
         question:
           type: string
+        rating:
+          default: 0
+          type: integer
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        unifiedEntryKind:
+          $ref: '#/components/schemas/UnifiedQuestionEntryKind'
       required:
-      - author
-      - group
-      - noConsolidations
+      - id
       - question
-      title: GetGroupQuestionsUnifiedQuestionResponseBody
+      - unifiedEntryKind
+      title: GetGroupQuestionsUnifiedUnifiedQuestionOverviewResponseBody
       type: object
-    GetGroupQuestionsUnifiedQuestionUserResponseBody:
+    GetGroupQuestionsUnifiedUnifiedQuestionOverview_0UnifiedQuestionAuthorResponseBody:
       properties:
         email:
           type: string
@@ -1042,8 +1107,21 @@ components:
           type: string
       required:
       - email
+      - id
       - name
-      title: GetGroupQuestionsUnifiedQuestionUserResponseBody
+      title: GetGroupQuestionsUnifiedUnifiedQuestionOverview_0UnifiedQuestionAuthorResponseBody
+      type: object
+    GetGroupQuestionsUnifiedUnifiedQuestionOverview_0UnifiedQuestionGroupResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: GetGroupQuestionsUnifiedUnifiedQuestionOverview_0UnifiedQuestionGroupResponseBody
       type: object
     GetGroupsHandlerGroupProjectResponseBody:
       properties:
@@ -1409,6 +1487,10 @@ components:
           items:
             $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionQuestion_0RatingResponseBody_4'
           type: array
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
         versionNumber:
           type: integer
         versions:
@@ -1455,6 +1537,10 @@ components:
           type: integer
         question:
           type: string
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
       required:
       - author
       - group
@@ -1958,6 +2044,12 @@ components:
       - name
       title: SetRatingRatingUserResponseBody
       type: object
+    UnifiedQuestionEntryKind:
+      enum:
+      - question
+      - consolidation_result
+      title: UnifiedQuestionEntryKind
+      type: string
     UpdateAnnotationAnnotationUpdateRequestBody:
       properties:
         passage:
@@ -2114,6 +2206,10 @@ components:
           type: array
         question:
           type: string
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
       required:
       - question
       title: UpdateQuestionQuestionCreateRequestBody
@@ -2165,6 +2261,10 @@ components:
           items:
             $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionQuestion_0RatingResponseBody_4'
           type: array
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
         versionNumber:
           type: integer
         versions:
@@ -2348,6 +2448,10 @@ components:
           type: string
         question:
           type: string
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
       required:
       - aggregatedRating
       - author
@@ -2415,6 +2519,10 @@ components:
           type: string
         question:
           type: string
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
       required:
       - aggregatedRating
       - author
@@ -2482,6 +2590,10 @@ components:
           type: string
         question:
           type: string
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
       required:
       - aggregatedRating
       - author
@@ -2549,6 +2661,10 @@ components:
           type: string
         question:
           type: string
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
       required:
       - aggregatedRating
       - author
@@ -2616,6 +2732,10 @@ components:
           type: string
         question:
           type: string
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
       required:
       - aggregatedRating
       - author
@@ -2683,6 +2803,10 @@ components:
           type: string
         question:
           type: string
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
       required:
       - aggregatedRating
       - author
@@ -2750,6 +2874,10 @@ components:
           type: string
         question:
           type: string
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
       required:
       - aggregatedRating
       - author
@@ -2847,6 +2975,10 @@ components:
           type: string
         question:
           type: string
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
       required:
       - author
       - groupId
@@ -3077,6 +3209,10 @@ components:
           type: string
         question:
           type: string
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
       required:
       - author
       - groupId
@@ -3307,6 +3443,10 @@ components:
           type: string
         question:
           type: string
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
       required:
       - author
       - groupId
@@ -5147,7 +5287,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/ByProjectUnifiedQuestionResponseBody'
+                  $ref: '#/components/schemas/ByProjectUnifiedUnifiedQuestionOverviewResponseBody'
                 type: array
           description: Request fulfilled, document follows
           headers: {}
@@ -5315,7 +5455,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/GetGroupQuestionsUnifiedQuestionResponseBody'
+                  $ref: '#/components/schemas/GetGroupQuestionsUnifiedUnifiedQuestionOverviewResponseBody'
                 type: array
           description: Request fulfilled, document follows
           headers: {}

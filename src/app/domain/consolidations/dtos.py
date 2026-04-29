@@ -23,6 +23,7 @@ class ConsolidationDTO(SQLAlchemyDTO[Consolidation]):
             "questions.0.group.id",
             "questions.0.group.name",
             "questions.0.question",
+            "questions.0.sparql_query",
             "questions.0.aggregated_rating",
             "questions.0.author.id",
             "questions.0.author.email",

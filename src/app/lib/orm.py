@@ -17,6 +17,8 @@ from advanced_alchemy.extensions.litestar.plugins.init.plugin import (
 )
 from litestar.config.app import AppConfig
 from advanced_alchemy.base import UUIDBase
+from sqlalchemy.engine import Connection
+from sqlalchemy import inspect, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 _default_db_path = (
@@ -82,11 +84,18 @@ class AsyncSqlPlugin:
         """Forwards `litestar's` plugins `on_app_init`."""
         return self.plugin.on_app_init
 
+    @staticmethod
+    def _ensure_question_sparql_query_column(connection: Connection) -> None:
+        columns = {column["name"] for column in inspect(connection).get_columns("question")}
+        if "sparql_query" not in columns:
+            connection.execute(text("ALTER TABLE question ADD COLUMN sparql_query VARCHAR"))
+
     async def on_startup(self) -> None:
         """Initializes the database."""
         async with self.config.get_engine().begin() as conn:
             # await conn.run_sync(UUIDBase.metadata.drop_all)
             await conn.run_sync(UUIDBase.metadata.create_all)
+            await conn.run_sync(self._ensure_question_sparql_query_column)
 
 
 @asynccontextmanager

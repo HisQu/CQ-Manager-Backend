@@ -21,6 +21,7 @@ if TYPE_CHECKING:
 class Question(UUIDAuditBase):
     version_number: Mapped[int]
     question: Mapped[str]
+    sparql_query: Mapped[str | None]
     author_id: Mapped[UUID] = mapped_column(ForeignKey("user.id"))
     editor_id: Mapped[UUID] = mapped_column(ForeignKey("user.id"))
     group_id: Mapped[UUID] = mapped_column(ForeignKey("group.id"))

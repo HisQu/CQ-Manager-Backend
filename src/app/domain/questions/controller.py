@@ -25,6 +25,8 @@ from .dtos import (
     QuestionCreateDTO,
     QuestionDetailDTO,
     QuestionOverviewDTO,
+    UnifiedQuestionOverview,
+    UnifiedQuestionOverviewDTO,
 )
 from .models import Question
 from domain.terms.services import AnnotationService
@@ -44,6 +46,15 @@ class QuestionController(Controller):
         selectinload(Question.author),
         selectinload(Question.ratings),
         selectinload(Question.consolidations),
+        selectinload(Question.group).options(selectinload(Group.project)),
+    ]
+    unified_options = [
+        selectinload(Question.author),
+        selectinload(Question.ratings),
+        selectinload(Question.consolidations).options(
+            selectinload(Consolidation.engineer),
+            selectinload(Consolidation.questions),
+        ),
         selectinload(Question.group).options(selectinload(Group.project)),
     ]
     detail_options = [
@@ -105,6 +116,7 @@ class QuestionController(Controller):
 
             question = Question(
                 question=data.question,
+                sparql_query=data.sparql_query,
                 author_id=request.user.id,
                 editor_id=request.user.id,
                 group_id=group_id,
@@ -150,17 +162,17 @@ class QuestionController(Controller):
     @get(
         "/{group_id:uuid}/unified",
         summary="Gets unified Questions belonging to a Group",
-        return_dto=QuestionOverviewDTO,
+        return_dto=UnifiedQuestionOverviewDTO,
         status_code=HTTP_200_OK,
     )
     async def get_group_questions_unified(
         self,
         session: AsyncSession,
         group_id: UUID,
-    ) -> Sequence[Question]:
+    ) -> Sequence[UnifiedQuestionOverview]:
         """Gets all `Question`s of a `Group` with consolidated sets collapsed to one representative each."""
         return await QuestionService.get_unified_questions_by_group(
-            session, group_id, self.default_options
+            session, group_id, self.unified_options
         )
 
     @get(
@@ -222,6 +234,7 @@ class QuestionController(Controller):
             session.add(version)
             question.editor_id = request.user.id
             question.question = data.question
+            question.sparql_query = data.sparql_query
             question.version_number = question.version_number + 1
             session.add(question)
             await session.commit()
@@ -282,12 +295,12 @@ class QuestionController(Controller):
     @get(
         "/by_project/{project_id:uuid}/unified",
         summary="Gets unified Questions that are part of a Project",
-        return_dto=QuestionOverviewDTO,
+        return_dto=UnifiedQuestionOverviewDTO,
     )
     async def by_project_unified(
         self, session: AsyncSession, project_id: UUID
-    ) -> Sequence[Question]:
+    ) -> Sequence[UnifiedQuestionOverview]:
         """Gets all `Question`s of a `Project` with consolidated sets collapsed to one representative each."""
         return await QuestionService.get_unified_questions_by_project(
-            session, project_id, self.detail_options
+            session, project_id, self.unified_options
         )

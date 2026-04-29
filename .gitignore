@@ -4,6 +4,7 @@ API.md
 # Sqlite
 
 *.sqlite
+*.db
 
 # VS Code & Visual Studio
 .vs/

@@ -46,6 +46,7 @@ class GroupDetailDTO(SQLAlchemyDTO[Group]):
             "members.0.email",
             "members.0.name",
             "questions.0.question",
+            "questions.0.sparql_query",
             "questions.0.aggregated_rating",
             "questions.0.author.id",
             "questions.0.author.email",

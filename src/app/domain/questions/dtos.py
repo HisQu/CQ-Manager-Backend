@@ -1,9 +1,11 @@
+from enum import Enum
 from uuid import UUID
 
 from lib.dto import BaseModel
 from litestar.contrib.pydantic.pydantic_dto_factory import PydanticDTO
 from litestar.contrib.sqlalchemy.dto import SQLAlchemyDTO, SQLAlchemyDTOConfig
 from litestar.dto import DTOConfig
+from pydantic import Field
 
 from .models import Question
 from domain.terms.dtos import AnnotationDTO
@@ -17,6 +19,7 @@ class QuestionOverviewDTO(SQLAlchemyDTO[Question]):
             "group.id",
             "group.name",
             "question",
+            "sparql_query",
             "rating",
             "author.id",
             "author.email",
@@ -33,6 +36,7 @@ class QuestionDetailDTO(SQLAlchemyDTO[Question]):
         include={
             "id",
             "question",
+            "sparql_query",
             "group_id",
             "version_number",
             "ratings.0.rating",
@@ -67,6 +71,7 @@ class QuestionDetailDTO(SQLAlchemyDTO[Question]):
             "consolidations.0.questions.0.id",
             "consolidations.0.questions.0.group_id",
             "consolidations.0.questions.0.question",
+            "consolidations.0.questions.0.sparql_query",
             "consolidations.0.questions.0.author.id",
             "consolidations.0.questions.0.author.email",
             "consolidations.0.questions.0.author.name",
@@ -87,6 +92,7 @@ class QuestionDetailDTO(SQLAlchemyDTO[Question]):
 
 class QuestionCreate(BaseModel):
     question: str
+    sparql_query: str | None = None
     annotations: list[AnnotationDTO] = []
 
 
@@ -96,6 +102,7 @@ class QuestionCreateDTO(PydanticDTO[QuestionCreate]):
 
 class QuestionUpdate(BaseModel):
     question: str
+    sparql_query: str | None = None
 
 
 class QuestionUpdateDTO(PydanticDTO[QuestionUpdate]):
@@ -105,8 +112,42 @@ class QuestionUpdateDTO(PydanticDTO[QuestionUpdate]):
 class QuestionUpdated(BaseModel):
     id: UUID
     question: str
+    sparql_query: str | None = None
     author_id: UUID
 
 
 class QuestionUpdatedDTO(PydanticDTO[QuestionUpdated]):
+    config = DTOConfig(rename_strategy="camel")
+
+
+class UnifiedQuestionEntryKind(str, Enum):
+    QUESTION = "question"
+    CONSOLIDATION_RESULT = "consolidation_result"
+
+
+class UnifiedQuestionGroup(BaseModel):
+    id: UUID
+    name: str
+
+
+class UnifiedQuestionAuthor(BaseModel):
+    id: UUID
+    email: str
+    name: str
+
+
+class UnifiedQuestionOverview(BaseModel):
+    id: UUID
+    question: str
+    sparql_query: str | None = None
+    rating: int = 0
+    no_consolidations: int = 0
+    group: UnifiedQuestionGroup | None = None
+    author: UnifiedQuestionAuthor | None = None
+    unified_entry_kind: UnifiedQuestionEntryKind
+    consolidation_id: UUID | None = None
+    consolidated_question_ids: list[UUID] = Field(default_factory=list)
+
+
+class UnifiedQuestionOverviewDTO(PydanticDTO[UnifiedQuestionOverview]):
     config = DTOConfig(rename_strategy="camel")
