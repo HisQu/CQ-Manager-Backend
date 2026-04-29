@@ -54,11 +54,17 @@ class QuestionController(Controller):
         selectinload(Question.consolidations).options(
             selectinload(Consolidation.engineer),
             selectinload(Consolidation.questions),
+            selectinload(Consolidation.result_question).options(
+                selectinload(Question.author),
+                selectinload(Question.ratings),
+                selectinload(Question.group),
+            ),
         ),
         selectinload(Question.group).options(selectinload(Group.project)),
     ]
     detail_options = [
         selectinload(Question.author),
+        selectinload(Question.editor),
         selectinload(Question.ratings).options(selectinload(Rating.author)),
         selectinload(Question.consolidations).options(
             selectinload(Consolidation.questions).options(

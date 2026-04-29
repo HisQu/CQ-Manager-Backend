@@ -14,7 +14,16 @@ class ConsolidationDTO(SQLAlchemyDTO[Consolidation]):
         max_nested_depth=3,
         include={
             "id",
-            "name",
+            "result_question_id",
+            "result_question.id",
+            "result_question.group.id",
+            "result_question.group.name",
+            "result_question.question",
+            "result_question.sparql_query",
+            "result_question.aggregated_rating",
+            "result_question.author.id",
+            "result_question.author.email",
+            "result_question.author.name",
             "no_questions."
             "engineer.id",
             "engineer.email",
@@ -34,8 +43,14 @@ class ConsolidationDTO(SQLAlchemyDTO[Consolidation]):
     )
 
 
+class ConsolidationResultQuestionCreate(BaseModel):
+    question: str
+    group_id: UUID
+    sparql_query: str | None = None
+
+
 class ConsolidationCreate(BaseModel):
-    name: str
+    result_question: ConsolidationResultQuestionCreate
     ids: list[UUID] | None = None
 
 
@@ -44,7 +59,7 @@ class ConsolidationCreateDTO(PydanticDTO[ConsolidationCreate]):
 
 
 class ConsolidationUpdate(BaseModel):
-    name: str | None
+    result_question_id: UUID | None = None
 
 
 class ConsolidationUpdateDTO(PydanticDTO[ConsolidationUpdate]):

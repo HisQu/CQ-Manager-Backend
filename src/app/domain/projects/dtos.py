@@ -54,7 +54,6 @@ class ProjectDetailDTO(SQLAlchemyDTO[Project]):
             "groups.0.members.0.email",
             "groups.0.members.0.name",
             "consolidations.0.id",
-            "consolidations.0.name",
             "consolidations.0.no_questions",
             "consolidations.0.engineer.id",
             "consolidations.0.engineer.email",

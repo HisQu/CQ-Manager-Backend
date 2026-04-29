@@ -9,6 +9,7 @@ from domain.ratings.models import Rating
 from domain.versions.models import Version
 from domain.comments.models import Comment
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import select
 from sqlalchemy.orm import DeclarativeBase
 
 from .orm import session as session_maker
@@ -66,6 +67,14 @@ class MockDataService:
             version_number=1,
             author_id=UUID("a8693768-244b-4b87-9972-548034df1cc3"),
             editor_id=UUID("a8693768-244b-4b87-9972-548034df1cc3"),
+            group_id=UUID("a825cd37-f637-4853-bc73-97a2b01f18e7"),
+        ),
+        Question(
+            question="What shape is the earth according to current evidence?",
+            id=UUID("4f8c5f0b-5966-49d6-8d0f-a9a2e7883114"),
+            version_number=1,
+            author_id=UUID("a3fbf0c3-35cb-4774-8eba-10bdd1cbfb0c"),
+            editor_id=UUID("a3fbf0c3-35cb-4774-8eba-10bdd1cbfb0c"),
             group_id=UUID("a825cd37-f637-4853-bc73-97a2b01f18e7"),
         ),
     ]
@@ -131,9 +140,9 @@ class MockDataService:
             consolidations=[
                 Consolidation(
                     id=UUID("5daa6935-bd94-47fa-87d8-e0660ef00a79"),
-                    name="What does round mean any ways? I mean if the earth is flat, is it a circle or a square?",
                     engineer=mock_users[3],
-                    questions=mock_questions[1:],
+                    questions=mock_questions[1:3],
+                    result_question=mock_questions[3],
                 )
             ],
         ),
@@ -209,5 +218,29 @@ class MockDataService:
             except IntegrityError:
                 ...
 
+    async def _link_mock_consolidation_result(self) -> None:
+        async with session_maker() as session:
+            consolidation = await session.scalar(
+                select(Consolidation).where(
+                    Consolidation.id == UUID("5daa6935-bd94-47fa-87d8-e0660ef00a79")
+                )
+            )
+            if consolidation is None:
+                return
+            if consolidation.result_question_id is not None:
+                return
+
+            result_question = await session.scalar(
+                select(Question).where(
+                    Question.id == UUID("4f8c5f0b-5966-49d6-8d0f-a9a2e7883114")
+                )
+            )
+            if result_question is None:
+                return
+
+            consolidation.result_question_id = result_question.id
+            await session.commit()
+
     async def on_startup(self) -> None:
         _ = [await self._add_mock_model(model) for model in self.mock_data]
+        await self._link_mock_consolidation_result()

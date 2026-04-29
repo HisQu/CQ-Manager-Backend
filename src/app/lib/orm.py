@@ -90,12 +90,75 @@ class AsyncSqlPlugin:
         if "sparql_query" not in columns:
             connection.execute(text("ALTER TABLE question ADD COLUMN sparql_query VARCHAR"))
 
+    @staticmethod
+    def _ensure_consolidation_result_question_id_column(connection: Connection) -> None:
+        columns = {
+            column["name"]
+            for column in inspect(connection).get_columns("consolidation")
+        }
+        if "result_question_id" not in columns:
+            connection.execute(
+                text("ALTER TABLE consolidation ADD COLUMN result_question_id CHAR(32)")
+            )
+
+    @staticmethod
+    def _remove_consolidation_name_column(connection: Connection) -> None:
+        columns = {
+            column["name"] for column in inspect(connection).get_columns("consolidation")
+        }
+        if "name" not in columns:
+            return
+
+        connection.execute(text("PRAGMA foreign_keys=OFF"))
+        connection.execute(text("DROP TABLE IF EXISTS consolidation_new"))
+        connection.execute(
+            text(
+                """
+                CREATE TABLE consolidation_new (
+                    id BINARY(16) NOT NULL,
+                    engineer_id BINARY(16) NOT NULL,
+                    project_id BINARY(16) NOT NULL,
+                    sa_orm_sentinel INTEGER,
+                    created_at DATETIME NOT NULL,
+                    updated_at DATETIME NOT NULL,
+                    result_question_id BINARY(16),
+                    CONSTRAINT pk_consolidation PRIMARY KEY (id),
+                    CONSTRAINT fk_consolidation_engineer_id_user
+                        FOREIGN KEY(engineer_id) REFERENCES user (id),
+                    CONSTRAINT fk_consolidation_project_id_project
+                        FOREIGN KEY(project_id) REFERENCES project (id),
+                    CONSTRAINT fk_consolidation_result_question_id_question
+                        FOREIGN KEY(result_question_id) REFERENCES question (id)
+                )
+                """
+            )
+        )
+        connection.execute(
+            text(
+                """
+                INSERT INTO consolidation_new (
+                    id, engineer_id, project_id, sa_orm_sentinel,
+                    created_at, updated_at, result_question_id
+                )
+                SELECT
+                    id, engineer_id, project_id, sa_orm_sentinel,
+                    created_at, updated_at, result_question_id
+                FROM consolidation
+                """
+            )
+        )
+        connection.execute(text("DROP TABLE consolidation"))
+        connection.execute(text("ALTER TABLE consolidation_new RENAME TO consolidation"))
+        connection.execute(text("PRAGMA foreign_keys=ON"))
+
     async def on_startup(self) -> None:
         """Initializes the database."""
         async with self.config.get_engine().begin() as conn:
             # await conn.run_sync(UUIDBase.metadata.drop_all)
             await conn.run_sync(UUIDBase.metadata.create_all)
             await conn.run_sync(self._ensure_question_sparql_query_column)
+            await conn.run_sync(self._ensure_consolidation_result_question_id_column)
+            await conn.run_sync(self._remove_consolidation_name_column)
 
 
 @asynccontextmanager

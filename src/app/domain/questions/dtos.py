@@ -61,7 +61,6 @@ class QuestionDetailDTO(SQLAlchemyDTO[Question]):
             "comments.0.created_at",
             "no_consolidations",
             "consolidations.0.id",
-            "consolidations.0.name",
             "consolidations.0.no_questions",
             "consolidations.0.project.id",
             "consolidations.0.project.name",

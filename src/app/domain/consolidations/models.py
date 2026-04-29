@@ -24,14 +24,24 @@ ConsolidatedQuestions = Table(
 
 
 class Consolidation(UUIDAuditBase):
-    name: Mapped[str] = mapped_column(unique=True)
     engineer_id: Mapped[UUID] = mapped_column(ForeignKey("user.id"))
     project_id: Mapped[UUID] = mapped_column(ForeignKey("project.id"))
+    result_question_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("question.id"), nullable=True
+    )
 
     project: Mapped[Project] = relationship(back_populates="consolidations")
     engineer: Mapped[User] = relationship(back_populates="consolidations")
     questions: Mapped[list[Question]] = relationship(
-        secondary="consolidated_questions", back_populates="consolidations"
+        secondary="consolidated_questions",
+        back_populates="consolidations",
+        foreign_keys=[
+            ConsolidatedQuestions.c.consolidation_id,
+            ConsolidatedQuestions.c.question_id,
+        ],
+    )
+    result_question: Mapped[Question | None] = relationship(
+        foreign_keys=[result_question_id]
     )
 
     @hybrid_property

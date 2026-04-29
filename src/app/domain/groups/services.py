@@ -96,6 +96,7 @@ class GroupService:
         if not data.emails:
             raise HTTPException(status_code=HTTP_400_BAD_REQUEST)  # TODO: raise explicit exception
 
+        members = await UserService.get_or_create_users(session, encryption, data.emails)
         group = await GroupService.get_group(
             session,
             id,
@@ -105,17 +106,32 @@ class GroupService:
                 selectinload(Group.project),
             ],
         )
-        members = await UserService.get_or_create_users(session, encryption, data.emails)
-        group.members.extend(
-            filter(lambda x: x not in group.members, chain(members.existing, map(lambda u: u[0], members.created))),
-        )
-        
-        invite_task = partial(UserMailService.send_invitation_mail, users=members) if members.created else None
-        message_task = partial(GroupMailService.send_invitation_mail, users=members, group=group)
+
+        existing_member_ids = {member.id for member in group.members}
+        new_members = [
+            member
+            for member in chain(
+                members.existing,
+                map(lambda user: user[0], members.created),
+            )
+            if member.id not in existing_member_ids
+        ]
+        group.members.extend(new_members)
 
         await session.commit()
         await session.refresh(group)
-        return await GroupService.get_group(session, group.id, project_id, options), invite_task, message_task
+        group = await GroupService.get_group(session, group.id, project_id, options)
+
+        invite_task = (
+            partial(UserMailService.send_invitation_mail, users=members)
+            if members.created
+            else None
+        )
+        message_task = partial(
+            GroupMailService.send_invitation_mail, users=members, group=group
+        )
+
+        return group, invite_task, message_task
 
     @staticmethod
     async def remove_members(
