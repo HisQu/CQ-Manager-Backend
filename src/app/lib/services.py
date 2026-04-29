@@ -9,7 +9,6 @@ from domain.ratings.models import Rating
 from domain.versions.models import Version
 from domain.comments.models import Comment
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import select
 from sqlalchemy.orm import DeclarativeBase
 
 from .orm import session as session_maker
@@ -137,14 +136,6 @@ class MockDataService:
                     members=mock_users[2:],
                 ),
             ],
-            consolidations=[
-                Consolidation(
-                    id=UUID("5daa6935-bd94-47fa-87d8-e0660ef00a79"),
-                    engineer=mock_users[3],
-                    questions=mock_questions[1:3],
-                    result_question=mock_questions[3],
-                )
-            ],
         ),
         Project(
             id=UUID("415de6a4-4d35-420a-bca2-0fde2731234d"),
@@ -159,6 +150,16 @@ class MockDataService:
                 ),
             ],
         ),
+    ]
+
+    mock_consolidations = [
+        Consolidation(
+            id=UUID("5daa6935-bd94-47fa-87d8-e0660ef00a79"),
+            engineer_id=UUID("a8693768-244b-4b87-9972-548034df1cc3"),
+            project_id=UUID("7efa96ba-c7a9-4069-9728-dc7fa2c105fd"),
+            result_question_id=UUID("4f8c5f0b-5966-49d6-8d0f-a9a2e7883114"),
+            questions=mock_questions[1:3],
+        )
     ]
 
     mock_terms = [
@@ -202,12 +203,13 @@ class MockDataService:
 
     mock_data: list[DeclarativeBase] = [
         *mock_users,
+        *mock_projects,
+        *mock_terms,
         *mock_questions,
         *mock_ratings,
-        *mock_projects,
+        *mock_consolidations,
         *mock_versions,
         *mock_comments,
-        *mock_terms,
     ]
 
     async def _add_mock_model(self, model: DeclarativeBase) -> None:
@@ -218,29 +220,5 @@ class MockDataService:
             except IntegrityError:
                 ...
 
-    async def _link_mock_consolidation_result(self) -> None:
-        async with session_maker() as session:
-            consolidation = await session.scalar(
-                select(Consolidation).where(
-                    Consolidation.id == UUID("5daa6935-bd94-47fa-87d8-e0660ef00a79")
-                )
-            )
-            if consolidation is None:
-                return
-            if consolidation.result_question_id is not None:
-                return
-
-            result_question = await session.scalar(
-                select(Question).where(
-                    Question.id == UUID("4f8c5f0b-5966-49d6-8d0f-a9a2e7883114")
-                )
-            )
-            if result_question is None:
-                return
-
-            consolidation.result_question_id = result_question.id
-            await session.commit()
-
     async def on_startup(self) -> None:
         _ = [await self._add_mock_model(model) for model in self.mock_data]
-        await self._link_mock_consolidation_result()

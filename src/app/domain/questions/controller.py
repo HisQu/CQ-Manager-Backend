@@ -57,6 +57,7 @@ class QuestionController(Controller):
             selectinload(Consolidation.result_question).options(
                 selectinload(Question.author),
                 selectinload(Question.ratings),
+                selectinload(Question.consolidations),
                 selectinload(Question.group),
             ),
         ),

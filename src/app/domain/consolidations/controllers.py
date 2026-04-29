@@ -3,6 +3,7 @@ from uuid import UUID
 
 from domain.accounts.models import User
 from domain.consolidations.services import ConsolidationService
+from domain.groups.models import Group
 from domain.projects.middleware import UserProjectPermissionsMiddleware
 from domain.questions.models import Question
 from litestar import Controller, Request, delete, get, post, put
@@ -15,6 +16,7 @@ from .dtos import (
     ConsolidationCreate,
     ConsolidationCreateDTO,
     ConsolidationDTO,
+    ConsolidationRead,
     ConsolidationUpdate,
     ConsolidationUpdateDTO,
     MoveQuestion,
@@ -34,27 +36,60 @@ class ConsolidationController(Controller):
     default_options = [
         selectinload(Consolidation.project),
         selectinload(Consolidation.engineer),
-        selectinload(Consolidation.questions).options(selectinload(Question.author), selectinload(Question.ratings), selectinload(Question.group)),
+        selectinload(Consolidation.questions).options(
+            selectinload(Question.author),
+            selectinload(Question.editor),
+            selectinload(Question.ratings),
+            selectinload(Question.group).options(
+                selectinload(Group.members),
+                selectinload(Group.questions),
+            ),
+        ),
         selectinload(Consolidation.result_question).options(
             selectinload(Question.author),
+            selectinload(Question.editor),
             selectinload(Question.ratings),
-            selectinload(Question.group),
+            selectinload(Question.group).options(
+                selectinload(Group.members),
+                selectinload(Group.questions),
+            ),
         ),
     ]
 
+    @staticmethod
+    def _to_response(consolidation: Consolidation) -> ConsolidationRead:
+        return ConsolidationRead.model_validate(consolidation)
+
+    @staticmethod
+    def _to_response_list(
+        consolidations: Sequence[Consolidation],
+    ) -> list[ConsolidationRead]:
+        return [
+            ConsolidationController._to_response(consolidation)
+            for consolidation in consolidations
+        ]
+
     @get("/", return_dto=ConsolidationDTO)
-    async def get_consolidations_handler(self, session: AsyncSession) -> Sequence[Consolidation]:
+    async def get_consolidations_handler(
+        self, session: AsyncSession
+    ) -> Sequence[ConsolidationRead]:
         """Gets a all `Consolidations`."""
-        return await ConsolidationService.get_consolidations(session, options=self.default_options)
+        consolidations = await ConsolidationService.get_consolidations(
+            session, options=self.default_options
+        )
+        return self._to_response_list(consolidations)
 
     @get("/{project_id:uuid}", return_dto=ConsolidationDTO)
     async def get_project_consolidations_handler(
         self,
         session: AsyncSession,
         project_id: UUID,
-    ) -> Sequence[Consolidation]:
+    ) -> Sequence[ConsolidationRead]:
         """Gets a all `Consolidations` belonging to a specific `Project`."""
-        return await ConsolidationService.get_consolidations(session, project_id, self.default_options)
+        consolidations = await ConsolidationService.get_consolidations(
+            session, project_id, self.default_options
+        )
+        return self._to_response_list(consolidations)
 
     @get("/{project_id:uuid}/{consolidation_id:uuid}", return_dto=ConsolidationDTO)
     async def get_project_consolidation_handler(
@@ -62,37 +97,48 @@ class ConsolidationController(Controller):
         session: AsyncSession,
         consolidation_id: UUID,
         project_id: UUID,
-    ) -> Consolidation:
+    ) -> ConsolidationRead:
         """Gets a single `Consolidation` belonging to a specific `Project`."""
-        return await ConsolidationService.get_consolidation(
+        consolidation = await ConsolidationService.get_consolidation(
             session, consolidation_id, project_id, self.default_options
         )
+        return self._to_response(consolidation)
 
-    @post("/{project_id:uuid}", dto=ConsolidationCreateDTO, return_dto=ConsolidationDTO)
+    @post(
+        "/{project_id:uuid}",
+        dto=ConsolidationCreateDTO,
+        return_dto=ConsolidationDTO,
+    )
     async def create_consolidation_handler(
         self,
         request: Request[User, Any, Any],
         session: AsyncSession,
         data: JsonEncoded[ConsolidationCreate],
         project_id: UUID,
-    ) -> Consolidation:
+    ) -> ConsolidationRead:
         """Creates a new `Consolidation` within a given `Project`."""
-        return await ConsolidationService.create_consolidation(
+        consolidation = await ConsolidationService.create_consolidation(
             session, request.user.id, project_id, data, self.default_options
         )
+        return self._to_response(consolidation)
 
-    @put("/{project_id:uuid}/{consolidation_id:uuid}", dto=ConsolidationUpdateDTO, return_dto=ConsolidationDTO)
+    @put(
+        "/{project_id:uuid}/{consolidation_id:uuid}",
+        dto=ConsolidationUpdateDTO,
+        return_dto=ConsolidationDTO,
+    )
     async def update_consolidation_handler(
         self,
         session: AsyncSession,
         consolidation_id: UUID,
         data: JsonEncoded[ConsolidationUpdate],
         project_id: UUID,
-    ) -> Consolidation:
+    ) -> ConsolidationRead:
         """Updates an existing `Consolidation` within a given `Project`."""
-        return await ConsolidationService.update_consolidation(
+        consolidation = await ConsolidationService.update_consolidation(
             session, consolidation_id, project_id, data, self.default_options
         )
+        return self._to_response(consolidation)
 
     @delete("/{project_id:uuid}/{consolidation_id:uuid}")
     async def delete_consolidation_handler(
@@ -104,24 +150,38 @@ class ConsolidationController(Controller):
         """Deletes an existing `Consolidation`."""
         await ConsolidationService.delete_consolidation(session, consolidation_id, project_id)
 
-    @put("/{project_id:uuid}/{consolidation_id:uuid}/questions/add", dto=MoveQuestionDTO, return_dto=ConsolidationDTO)
+    @put(
+        "/{project_id:uuid}/{consolidation_id:uuid}/questions/add",
+        dto=MoveQuestionDTO,
+        return_dto=ConsolidationDTO,
+    )
     async def add_question_handler(
         self,
         session: AsyncSession,
         consolidation_id: UUID,
         project_id: UUID,
         data: JsonEncoded[MoveQuestion],
-    ) -> Consolidation:
+    ) -> ConsolidationRead:
         """Add `Questions` to an existing `Consolidation`."""
-        return await ConsolidationService.add_questions(session, consolidation_id, project_id, data, self.default_options)
+        consolidation = await ConsolidationService.add_questions(
+            session, consolidation_id, project_id, data, self.default_options
+        )
+        return self._to_response(consolidation)
 
-    @put("/{project_id:uuid}/{consolidation_id:uuid}/questions/remove", dto=MoveQuestionDTO, return_dto=ConsolidationDTO)
+    @put(
+        "/{project_id:uuid}/{consolidation_id:uuid}/questions/remove",
+        dto=MoveQuestionDTO,
+        return_dto=ConsolidationDTO,
+    )
     async def remove_question_handler(
         self,
         session: AsyncSession,
         consolidation_id: UUID,
         project_id: UUID,
         data: JsonEncoded[MoveQuestion],
-    ) -> Consolidation:
+    ) -> ConsolidationRead:
         """Removes `Questions` from an existing `Consolidation`."""
-        return await ConsolidationService.remove_questions(session, consolidation_id, project_id,data, self.default_options)
+        consolidation = await ConsolidationService.remove_questions(
+            session, consolidation_id, project_id, data, self.default_options
+        )
+        return self._to_response(consolidation)

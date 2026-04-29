@@ -18,7 +18,12 @@ from .models import Question
 
 class QuestionService:
     @staticmethod
-    def _to_unified_question_entry(question: Question) -> UnifiedQuestionOverview:
+    def _to_unified_question_entry(
+        question: Question,
+        entry_kind: UnifiedQuestionEntryKind = UnifiedQuestionEntryKind.QUESTION,
+        consolidation_id: UUID | None = None,
+        consolidated_question_ids: list[UUID] | None = None,
+    ) -> UnifiedQuestionOverview:
         return UnifiedQuestionOverview(
             id=question.id,
             question=question.question,
@@ -31,7 +36,9 @@ class QuestionService:
                 email=question.author.email,
                 name=question.author.name,
             ),
-            unified_entry_kind=UnifiedQuestionEntryKind.QUESTION,
+            unified_entry_kind=entry_kind,
+            consolidation_id=consolidation_id,
+            consolidated_question_ids=consolidated_question_ids or [],
         )
 
     @staticmethod
@@ -67,21 +74,9 @@ class QuestionService:
                 consolidated_question_ids=consolidated_question_ids,
             )
 
-        return UnifiedQuestionOverview(
-            id=result_question.id,
-            question=result_question.question,
-            sparql_query=result_question.sparql_query,
-            rating=result_question.aggregated_rating,
-            no_consolidations=result_question.no_consolidations,
-            group=UnifiedQuestionGroup(
-                id=result_question.group.id, name=result_question.group.name
-            ),
-            author=UnifiedQuestionAuthor(
-                id=result_question.author.id,
-                email=result_question.author.email,
-                name=result_question.author.name,
-            ),
-            unified_entry_kind=UnifiedQuestionEntryKind.CONSOLIDATION_RESULT,
+        return QuestionService._to_unified_question_entry(
+            result_question,
+            entry_kind=UnifiedQuestionEntryKind.CONSOLIDATION_RESULT,
             consolidation_id=consolidation.id,
             consolidated_question_ids=consolidated_question_ids,
         )

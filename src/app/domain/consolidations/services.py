@@ -135,14 +135,26 @@ class ConsolidationService:
             questions = questions_.all()
 
         try:
-            result_question = await ConsolidationService._create_result_question(
-                session=session,
-                project_id=project_id,
-                user_id=user_id,
-                group_id=data.result_question.group_id,
-                question=data.result_question.question,
-                sparql_query=data.result_question.sparql_query,
-            )
+            if data.result_question_id is not None:
+                result_question = await ConsolidationService._get_project_question(
+                    session=session,
+                    project_id=project_id,
+                    question_id=data.result_question_id,
+                )
+            elif data.result_question is not None:
+                result_question = await ConsolidationService._create_result_question(
+                    session=session,
+                    project_id=project_id,
+                    user_id=user_id,
+                    group_id=data.result_question.group_id,
+                    question=data.result_question.question,
+                    sparql_query=data.result_question.sparql_query,
+                )
+            else:
+                raise HTTPException(
+                    status_code=HTTP_400_BAD_REQUEST,
+                    detail="Provide exactly one of resultQuestion or resultQuestionId.",
+                )
             consolidation = Consolidation(
                 questions=questions,
                 result_question=result_question,
