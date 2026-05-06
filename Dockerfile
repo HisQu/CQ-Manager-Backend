@@ -1,29 +1,26 @@
-# Use an official Python runtime as a parent image
-FROM python:3.11-slim
+FROM python:3.14-slim
 
-# Set the working directory in the container
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/usr/src/app/.venv/bin:$PATH" \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    CORS_ALLOW_ORIGIN="*" \
+    CONNECTION_STRING="sqlite+aiosqlite:///database/cq-database.sqlite" \
+    SMPT_SERVER="" \
+    SMPT_PORT="" \
+    SMPT_SENDER="" \
+    USE_SMPT=""
+
 WORKDIR /usr/src/app
 
-# Copy the current directory contents into the container at /usr/src/app
-COPY requirements.txt .
-COPY ./src/app .
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+COPY pyproject.toml uv.lock ./
 
-# Install any needed packages specified in requirements.txt
-# Make sure you have a requirements.txt file with litestar and any other dependencies
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
+RUN uv sync --frozen --no-dev --no-install-project
 
-# For development purposes only
-ENV CORS_ALLOW_ORIGIN="*"
-ENV CONNECTION_STRING="sqlite+aiosqlite:///database/cq-database.sqlite"
+COPY src ./src
 
-ENV SMPT_SERVER=""
-ENV SMPT_PORT=""
-ENV SMPT_SENDER=""
-ENV USE_SMPT=""
-
-# Make port 8000 available to the world outside this container
 EXPOSE 8000
 
-# Run app.py when the container launches
-CMD ["litestar","run","--host","0.0.0.0","--debug"]
+CMD ["litestar", "--app-dir", "src/app", "--app", "app:app", "run", "--host", "0.0.0.0", "--debug"]

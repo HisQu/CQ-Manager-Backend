@@ -1,10 +1,10 @@
-version: '3'
-
 services:
   cq-manager:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: cq-manager
-    image: cq-manager:v1
+    image: cq-manager:latest
     ports:
       - "8000:8000"
     volumes:
