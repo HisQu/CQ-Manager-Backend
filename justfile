@@ -17,6 +17,10 @@ dev:
 sync:
     uv sync --dev
 
+# Run pytest. Pass extra pytest args after the recipe name, e.g. `just test tests/integration/test_groups.py -q`
+test *args:
+    uv run --with pytest pytest {{args}}
+
 # Generate OpenAPI JSON and Markdown API docs
 api-docs:
     uv run litestar --app-dir {{app_dir}} --app={{app_path}} schema openapi --output {{openapi_file}}
