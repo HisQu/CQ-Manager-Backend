@@ -33,7 +33,7 @@ def _create_terms_context(
     )
     engineer_header = login(client, ENGINEER_EMAIL)
     manager_header = login(client, MANAGER_EMAIL)
-    group = create_group(client, engineer_header, project["id"])
+    group = create_group(client, manager_header, project["id"])
     question = create_question(client, engineer_header, group["id"])
     return project, group, question, engineer_header, manager_header
 

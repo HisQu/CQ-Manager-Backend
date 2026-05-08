@@ -57,7 +57,7 @@ def create_project(
         json={
             "name": name or unique_text("Test Project"),
             "description": "Temporary integration test project.",
-            "managers": managers,
+            "managers": managers if managers is not None else [ADMIN_EMAIL],
             "engineers": engineers,
         },
         headers=headers,

@@ -4,6 +4,7 @@ from lib.mails import MailService
 from domain.accounts.authentication.services import EncryptionService
 from domain.accounts.models import User
 from domain.groups.models import Group
+from domain.projects.guards import project_manager_guard
 from domain.projects.middleware import UserProjectPermissionsMiddleware
 from domain.questions.models import Question
 from litestar import Controller, delete, get, post, put
@@ -84,7 +85,7 @@ class GroupController(Controller):
         group = await GroupService.get_group(session, group_id, None, self.default_options)
         return self._to_detail_response(group)
 
-    @post("/{project_id:uuid}", return_dto=GroupDTO)
+    @post("/{project_id:uuid}", return_dto=GroupDTO, guards=[project_manager_guard])
     async def create_group_handler(
         self,
         request: Request[User, Any, Any],

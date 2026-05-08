@@ -1,6 +1,6 @@
 from httpx import Headers
 from litestar import Litestar
-from litestar.status_codes import HTTP_200_OK, HTTP_204_NO_CONTENT
+from litestar.status_codes import HTTP_200_OK, HTTP_204_NO_CONTENT, HTTP_401_UNAUTHORIZED
 from litestar.testing import TestClient
 
 from ._fixtures import (
@@ -45,6 +45,29 @@ def test_created_group_is_visible_in_my_groups(
                 headers=admin_header,
             )
             assert project_delete_response.status_code == HTTP_204_NO_CONTENT
+
+
+def test_non_project_manager_cannot_create_group(
+    test_client: TestClient[Litestar],
+    admin_header: Headers,
+) -> None:
+    with test_client as client:
+        user = register_user(client)
+        verify_user(client, admin_header, user["email"])
+        user_header = login(client, user["email"], TEST_PASSWORD)
+        project = create_project(client, admin_header)
+
+        try:
+            response = client.post(
+                f"/groups/{project['id']}",
+                json={"name": unique_text("Blocked Group")},
+                headers=user_header,
+            )
+
+            assert response.status_code == HTTP_401_UNAUTHORIZED, response.text
+        finally:
+            client.delete(f"/projects/{project['id']}", headers=admin_header)
+            client.delete(f"/users/{user['email']}", headers=admin_header)
 
 
 def test_group_comment_can_be_created_and_updated(
@@ -172,7 +195,11 @@ def test_project_manager_can_update_group_without_group_membership(
         manager = register_user(client)
         verify_user(client, admin_header, manager["email"])
         manager_header = login(client, manager["email"], TEST_PASSWORD)
-        project = create_project(client, admin_header, managers=[manager["email"]])
+        project = create_project(
+            client,
+            admin_header,
+            managers=[manager["email"], "admin@uni-jena.de"],
+        )
         group = create_group(client, admin_header, project["id"])
         updated_name = unique_text("Updated Group")
 

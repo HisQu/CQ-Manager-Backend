@@ -188,7 +188,12 @@ def test_delete_user_referenced_by_entities(
         register_user(client, email=email)
         verify_user(client, admin_header, email)
         user_header = login(client, email, TEST_PASSWORD)
-        project = create_project(client, admin_header, engineers=[email])
+        project = create_project(
+            client,
+            admin_header,
+            managers=[email],
+            engineers=[email],
+        )
         group = create_group(client, user_header, project["id"])
         create_question(client, user_header, group["id"])
 

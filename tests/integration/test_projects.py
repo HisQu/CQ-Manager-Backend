@@ -64,7 +64,12 @@ def test_delete_project_with_user_created_cq(
         user = register_user(client)
         verify_user(client, admin_header, user["email"])
         user_header = login(client, user["email"], TEST_PASSWORD)
-        project = create_project(client, admin_header, engineers=[user["email"]])
+        project = create_project(
+            client,
+            admin_header,
+            managers=[user["email"]],
+            engineers=[user["email"]],
+        )
         group = create_group(client, user_header, project["id"])
         question = create_question(client, user_header, group["id"])
 
@@ -93,10 +98,20 @@ def test_delete_project_with_user_created_cq_keeps_unrelated_user_references(
         user = register_user(client)
         verify_user(client, admin_header, user["email"])
         user_header = login(client, user["email"], TEST_PASSWORD)
-        cq_project = create_project(client, admin_header, engineers=[user["email"]])
+        cq_project = create_project(
+            client,
+            admin_header,
+            managers=[user["email"]],
+            engineers=[user["email"]],
+        )
         cq_group = create_group(client, user_header, cq_project["id"])
         create_question(client, user_header, cq_group["id"])
-        other_project = create_project(client, admin_header, engineers=[user["email"]])
+        other_project = create_project(
+            client,
+            admin_header,
+            managers=[user["email"]],
+            engineers=[user["email"]],
+        )
         other_group = create_group(client, user_header, other_project["id"])
         create_question(client, user_header, other_group["id"])
 
