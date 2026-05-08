@@ -26,7 +26,13 @@ def _create_consolidated_questions(
         admin_header,
         project["id"],
         question_ids=[question["id"] for question in questions],
-        result_question={"question": f"Consolidated {uuid4().hex}"},
+        result_question={
+            "question": f"Consolidated {uuid4().hex}",
+            "reference": "S. 138.",
+            "anchor": "S. 138 Abs. 4 - Kanzlei.",
+            "exampleAnswer": "Nikolaus Hertnid.",
+            "type": "VCQ",
+        },
     )
     return project, group, consolidation, questions
 
@@ -57,6 +63,10 @@ def test_get_group_questions_unified(
             assert consolidation_results[0]["id"] == consolidation["resultQuestion"]["id"]
             assert consolidation_results[0]["consolidationId"] == consolidation["id"]
             assert set(consolidation_results[0]["consolidatedQuestionIds"]) == consolidated_ids
+            assert consolidation_results[0]["reference"] == "S. 138."
+            assert consolidation_results[0]["anchor"] == "S. 138 Abs. 4 - Kanzlei."
+            assert consolidation_results[0]["exampleAnswer"] == "Nikolaus Hertnid."
+            assert consolidation_results[0]["type"] == "VCQ"
 
             question_entries = [result for result in results if result["unifiedEntryKind"] == "question"]
             assert all(question["id"] not in consolidated_ids for question in question_entries)

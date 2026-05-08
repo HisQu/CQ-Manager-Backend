@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from lib.dto import BaseModel
+from domain.questions.dtos import QuestionMetadataMixin
 from litestar.contrib.pydantic.pydantic_dto_factory import PydanticDTO
 from litestar.dto import DTOConfig
 from pydantic import model_validator
@@ -22,7 +23,7 @@ class ConsolidationQuestionGroup(BaseModel):
     name: str
 
 
-class ConsolidationQuestion(BaseModel):
+class ConsolidationQuestion(QuestionMetadataMixin):
     id: UUID
     group: ConsolidationQuestionGroup | None = None
     question: str
@@ -46,7 +47,7 @@ class ConsolidationDTO(PydanticDTO[ConsolidationRead]):
     config = DTOConfig(rename_strategy="camel")
 
 
-class ConsolidationResultQuestionCreate(BaseModel):
+class ConsolidationResultQuestionCreate(QuestionMetadataMixin):
     id: UUID | None = None
     question: str | None = None
     comment: str | None = None

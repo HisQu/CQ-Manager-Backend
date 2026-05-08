@@ -97,6 +97,50 @@ def test_question_comment_can_be_created_and_updated(
             client.delete(f"/projects/{project['id']}", headers=admin_header)
 
 
+def test_question_metadata_can_be_created_and_updated(
+    test_client: TestClient[Litestar],
+    admin_header,
+) -> None:
+    with test_client as client:
+        project, group = create_project_group(client, admin_header)
+
+        try:
+            question = create_question(
+                client,
+                admin_header,
+                group["id"],
+                question="Which offices are in scope?",
+                reference="S. 138.",
+                anchor="S. 138 Abs. 4 - Kanzlei und Rota Romana.",
+                example_answer="Päpstliche Kanzlei, Rota Romana.",
+                type="SCQ",
+            )
+            assert question["reference"] == "S. 138."
+            assert question["anchor"] == "S. 138 Abs. 4 - Kanzlei und Rota Romana."
+            assert question["exampleAnswer"] == "Päpstliche Kanzlei, Rota Romana."
+            assert question["type"] == "SCQ"
+
+            update_response = client.put(
+                f"/questions/{group['id']}/{question['id']}",
+                json={
+                    "reference": None,
+                    "anchor": "S. 140 Abs. 1 - Offizial und Generalvikar.",
+                    "exampleAnswer": "Offizial, Generalvikar.",
+                    "type": "VCQ",
+                },
+                headers=admin_header,
+            )
+            assert update_response.status_code == HTTP_200_OK, update_response.text
+            updated = update_response.json()
+            assert updated["question"] == "Which offices are in scope?"
+            assert updated["reference"] is None
+            assert updated["anchor"] == "S. 140 Abs. 1 - Offizial und Generalvikar."
+            assert updated["exampleAnswer"] == "Offizial, Generalvikar."
+            assert updated["type"] == "VCQ"
+        finally:
+            client.delete(f"/projects/{project['id']}", headers=admin_header)
+
+
 def test_get_question_detail_loads_editor(
     test_client: TestClient[Litestar],
     admin_header,

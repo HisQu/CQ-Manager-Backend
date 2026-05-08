@@ -122,6 +122,44 @@ def test_create_consolidation_infers_result_question_group(
             client.delete(f"/projects/{project['id']}", headers=admin_header)
 
 
+def test_create_consolidation_result_question_with_metadata(
+    test_client: TestClient[Litestar],
+    admin_header,
+) -> None:
+    with test_client as client:
+        project, group, questions = _create_project_with_questions(client, admin_header, count=1)
+
+        try:
+            consolidation = create_consolidation(
+                client,
+                admin_header,
+                project["id"],
+                question_ids=[questions[0]["id"]],
+                result_question={
+                    "question": "Which persons were members of the papal chancery?",
+                    "reference": "S. 138.",
+                    "anchor": "S. 138 Abs. 4 - namentliche Aufzählung.",
+                    "exampleAnswer": "Nikolaus Hertnid, Heinrich Massheim.",
+                    "type": "VCQ",
+                },
+            )
+
+            result_question = consolidation["resultQuestion"]
+            assert result_question["reference"] == "S. 138."
+            assert result_question["anchor"] == "S. 138 Abs. 4 - namentliche Aufzählung."
+            assert result_question["exampleAnswer"] == "Nikolaus Hertnid, Heinrich Massheim."
+            assert result_question["type"] == "VCQ"
+
+            detail_response = client.get(
+                f"/questions/{group['id']}/{result_question['id']}",
+                headers=admin_header,
+            )
+            assert detail_response.status_code == HTTP_200_OK, detail_response.text
+            assert detail_response.json()["type"] == "VCQ"
+        finally:
+            client.delete(f"/projects/{project['id']}", headers=admin_header)
+
+
 def test_deleting_project_deletes_consolidations(
     test_client: TestClient[Litestar],
     admin_header,

@@ -22,6 +22,10 @@ class Question(UUIDAuditBase):
     version_number: Mapped[int]
     question: Mapped[str]
     comment: Mapped[str | None] = mapped_column(Text, default=None)
+    reference: Mapped[str | None] = mapped_column(Text, default=None)
+    anchor: Mapped[str | None] = mapped_column(Text, default=None)
+    example_answer: Mapped[str | None] = mapped_column(Text, default=None)
+    type: Mapped[str | None] = mapped_column(default=None)
     sparql_query: Mapped[str | None]
     author_id: Mapped[UUID] = mapped_column(ForeignKey("user.id"))
     editor_id: Mapped[UUID] = mapped_column(ForeignKey("user.id"))

@@ -124,11 +124,23 @@ def create_question(
     *,
     question: str | None = None,
     comment: str | None = None,
+    reference: str | None = None,
+    anchor: str | None = None,
+    example_answer: str | None = None,
+    type: str | None = None,
     sparql_query: str | None = None,
 ) -> dict:
     payload = {"question": question or unique_text("Test question?")}
     if comment is not None:
         payload["comment"] = comment
+    if reference is not None:
+        payload["reference"] = reference
+    if anchor is not None:
+        payload["anchor"] = anchor
+    if example_answer is not None:
+        payload["exampleAnswer"] = example_answer
+    if type is not None:
+        payload["type"] = type
     if sparql_query is not None:
         payload["sparqlQuery"] = sparql_query
 

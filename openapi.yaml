@@ -199,7 +199,15 @@ components:
         aggregatedRating:
           default: 0
           type: integer
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
           oneOf:
           - type: string
           - type: 'null'
@@ -208,10 +216,29 @@ components:
           type: string
         question:
           type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
           oneOf:
           - type: string
           - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
       required:
       - id
       - question
@@ -262,9 +289,17 @@ components:
       type: object
     ByProjectQuestionResponseBody:
       properties:
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         author:
           $ref: '#/components/schemas/ByProjectQuestionUserResponseBody'
         comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
           oneOf:
           - type: string
           - type: 'null'
@@ -277,7 +312,15 @@ components:
           type: integer
         question:
           type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        type:
           oneOf:
           - type: string
           - type: 'null'
@@ -304,6 +347,10 @@ components:
       type: object
     ByProjectUnifiedUnifiedQuestionOverviewResponseBody:
       properties:
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         author:
           oneOf:
           - $ref: '#/components/schemas/ByProjectUnifiedUnifiedQuestionOverview_0UnifiedQuestionAuthorResponseBody'
@@ -322,6 +369,10 @@ components:
           - format: uuid
             type: string
           - type: 'null'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
         group:
           oneOf:
           - $ref: '#/components/schemas/ByProjectUnifiedUnifiedQuestionOverview_0UnifiedQuestionGroupResponseBody'
@@ -337,10 +388,29 @@ components:
         rating:
           default: 0
           type: integer
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
           oneOf:
           - type: string
           - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
         unifiedEntryKind:
           $ref: '#/components/schemas/UnifiedQuestionEntryKind'
       required:
@@ -446,7 +516,15 @@ components:
       type: object
     CreateConsolidationHandlerConsolidationCreate_0ConsolidationResultQuestionCreateRequestBody:
       properties:
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
           oneOf:
           - type: string
           - type: 'null'
@@ -464,10 +542,29 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
           oneOf:
           - type: string
           - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
       required: []
       title: CreateConsolidationHandlerConsolidationCreate_0ConsolidationResultQuestionCreateRequestBody
       type: object
@@ -535,7 +632,15 @@ components:
         aggregatedRating:
           default: 0
           type: integer
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
           oneOf:
           - type: string
           - type: 'null'
@@ -544,10 +649,29 @@ components:
           type: string
         question:
           type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
           oneOf:
           - type: string
           - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
       required:
       - id
       - question
@@ -655,6 +779,10 @@ components:
       type: object
     CreateQuestionQuestionCreateRequestBody:
       properties:
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         annotations:
           items:
             $ref: '#/components/schemas/CreateQuestionQuestionCreate_0AnnotationDTORequestBody'
@@ -663,12 +791,35 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
         question:
           type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
           oneOf:
           - type: string
           - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
       required:
       - question
       title: CreateQuestionQuestionCreateRequestBody
@@ -688,6 +839,10 @@ components:
       properties:
         aggregatedRating:
           type: integer
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         annotations:
           items:
             $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionQuestion_0PassageResponseBody_9'
@@ -708,6 +863,10 @@ components:
           type: array
         editor:
           $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionQuestionUserResponseBody_7'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
         group:
           $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionQuestionGroupResponseBody_3'
         groupId:
@@ -724,7 +883,15 @@ components:
           items:
             $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionQuestion_0RatingResponseBody_4'
           type: array
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        type:
           oneOf:
           - type: string
           - type: 'null'
@@ -866,9 +1033,17 @@ components:
       type: object
     GetByTermQuestionResponseBody:
       properties:
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         author:
           $ref: '#/components/schemas/GetByTermQuestionUserResponseBody'
         comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
           oneOf:
           - type: string
           - type: 'null'
@@ -881,7 +1056,15 @@ components:
           type: integer
         question:
           type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        type:
           oneOf:
           - type: string
           - type: 'null'
@@ -1040,7 +1223,15 @@ components:
         aggregatedRating:
           default: 0
           type: integer
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
           oneOf:
           - type: string
           - type: 'null'
@@ -1049,10 +1240,29 @@ components:
           type: string
         question:
           type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
           oneOf:
           - type: string
           - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
       required:
       - id
       - question
@@ -1263,9 +1473,17 @@ components:
       type: object
     GetGroupQuestionsQuestionResponseBody:
       properties:
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         author:
           $ref: '#/components/schemas/GetGroupQuestionsQuestionUserResponseBody'
         comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
           oneOf:
           - type: string
           - type: 'null'
@@ -1278,7 +1496,15 @@ components:
           type: integer
         question:
           type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        type:
           oneOf:
           - type: string
           - type: 'null'
@@ -1305,6 +1531,10 @@ components:
       type: object
     GetGroupQuestionsUnifiedUnifiedQuestionOverviewResponseBody:
       properties:
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         author:
           oneOf:
           - $ref: '#/components/schemas/GetGroupQuestionsUnifiedUnifiedQuestionOverview_0UnifiedQuestionAuthorResponseBody'
@@ -1323,6 +1553,10 @@ components:
           - format: uuid
             type: string
           - type: 'null'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
         group:
           oneOf:
           - $ref: '#/components/schemas/GetGroupQuestionsUnifiedUnifiedQuestionOverview_0UnifiedQuestionGroupResponseBody'
@@ -1338,10 +1572,29 @@ components:
         rating:
           default: 0
           type: integer
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
           oneOf:
           - type: string
           - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
         unifiedEntryKind:
           $ref: '#/components/schemas/UnifiedQuestionEntryKind'
       required:
@@ -1499,7 +1752,15 @@ components:
         aggregatedRating:
           default: 0
           type: integer
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
           oneOf:
           - type: string
           - type: 'null'
@@ -1508,10 +1769,29 @@ components:
           type: string
         question:
           type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
           oneOf:
           - type: string
           - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
       required:
       - id
       - question
@@ -1581,7 +1861,15 @@ components:
         aggregatedRating:
           default: 0
           type: integer
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
           oneOf:
           - type: string
           - type: 'null'
@@ -1590,10 +1878,29 @@ components:
           type: string
         question:
           type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
           oneOf:
           - type: string
           - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
       required:
       - id
       - question
@@ -1815,6 +2122,10 @@ components:
       properties:
         aggregatedRating:
           type: integer
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         annotations:
           items:
             $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionQuestion_0PassageResponseBody_9'
@@ -1835,6 +2146,10 @@ components:
           type: array
         editor:
           $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionQuestionUserResponseBody_7'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
         group:
           $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionQuestionGroupResponseBody_3'
         groupId:
@@ -1851,7 +2166,15 @@ components:
           items:
             $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionQuestion_0RatingResponseBody_4'
           type: array
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        type:
           oneOf:
           - type: string
           - type: 'null'
@@ -1890,9 +2213,17 @@ components:
       type: object
     GetQuestionsQuestionResponseBody:
       properties:
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         author:
           $ref: '#/components/schemas/GetQuestionsQuestionUserResponseBody'
         comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
           oneOf:
           - type: string
           - type: 'null'
@@ -1905,7 +2236,15 @@ components:
           type: integer
         question:
           type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        type:
           oneOf:
           - type: string
           - type: 'null'
@@ -2439,7 +2778,15 @@ components:
         aggregatedRating:
           default: 0
           type: integer
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
           oneOf:
           - type: string
           - type: 'null'
@@ -2448,10 +2795,29 @@ components:
           type: string
         question:
           type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
           oneOf:
           - type: string
           - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
       required:
       - id
       - question
@@ -2607,7 +2973,15 @@ components:
         aggregatedRating:
           default: 0
           type: integer
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
           oneOf:
           - type: string
           - type: 'null'
@@ -2616,10 +2990,29 @@ components:
           type: string
         question:
           type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
           oneOf:
           - type: string
           - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
       required:
       - id
       - question
@@ -2739,6 +3132,10 @@ components:
       properties:
         aggregatedRating:
           type: integer
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         annotations:
           items:
             $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionQuestion_0PassageResponseBody_9'
@@ -2759,6 +3156,10 @@ components:
           type: array
         editor:
           $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionQuestionUserResponseBody_7'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
         group:
           $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionQuestionGroupResponseBody_3'
         groupId:
@@ -2775,7 +3176,15 @@ components:
           items:
             $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionQuestion_0RatingResponseBody_4'
           type: array
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        type:
           oneOf:
           - type: string
           - type: 'null'
@@ -2803,7 +3212,15 @@ components:
       type: object
     UpdateQuestionQuestionUpdateRequestBody:
       properties:
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
           oneOf:
           - type: string
           - type: 'null'
@@ -2811,10 +3228,29 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
           oneOf:
           - type: string
           - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
       required: []
       title: UpdateQuestionQuestionUpdateRequestBody
       type: object
@@ -2949,7 +3385,15 @@ components:
         aggregatedRating:
           default: 0
           type: integer
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
           oneOf:
           - type: string
           - type: 'null'
@@ -2958,10 +3402,29 @@ components:
           type: string
         question:
           type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
           oneOf:
           - type: string
           - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
       required:
       - id
       - question
@@ -2972,7 +3435,15 @@ components:
         aggregatedRating:
           default: 0
           type: integer
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
           oneOf:
           - type: string
           - type: 'null'
@@ -2981,10 +3452,29 @@ components:
           type: string
         question:
           type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
           oneOf:
           - type: string
           - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
       required:
       - id
       - question
@@ -2995,7 +3485,15 @@ components:
         aggregatedRating:
           default: 0
           type: integer
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
           oneOf:
           - type: string
           - type: 'null'
@@ -3004,10 +3502,29 @@ components:
           type: string
         question:
           type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
           oneOf:
           - type: string
           - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
       required:
       - id
       - question
@@ -3018,7 +3535,15 @@ components:
         aggregatedRating:
           default: 0
           type: integer
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
           oneOf:
           - type: string
           - type: 'null'
@@ -3027,10 +3552,29 @@ components:
           type: string
         question:
           type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
           oneOf:
           - type: string
           - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
       required:
       - id
       - question
@@ -3041,7 +3585,15 @@ components:
         aggregatedRating:
           default: 0
           type: integer
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
           oneOf:
           - type: string
           - type: 'null'
@@ -3050,10 +3602,29 @@ components:
           type: string
         question:
           type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
           oneOf:
           - type: string
           - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
       required:
       - id
       - question
@@ -3064,7 +3635,15 @@ components:
         aggregatedRating:
           default: 0
           type: integer
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
           oneOf:
           - type: string
           - type: 'null'
@@ -3073,10 +3652,29 @@ components:
           type: string
         question:
           type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
           oneOf:
           - type: string
           - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
       required:
       - id
       - question
@@ -3087,7 +3685,15 @@ components:
         aggregatedRating:
           default: 0
           type: integer
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
           oneOf:
           - type: string
           - type: 'null'
@@ -3096,10 +3702,29 @@ components:
           type: string
         question:
           type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
           oneOf:
           - type: string
           - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
       required:
       - id
       - question
@@ -3161,9 +3786,17 @@ components:
       type: object
     domain.questions.controller.QuestionController.create_questionConsolidation_0QuestionResponseBody_2:
       properties:
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         author:
           $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionQuestionUserResponseBody_14'
         comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
           oneOf:
           - type: string
           - type: 'null'
@@ -3175,7 +3808,15 @@ components:
           type: string
         question:
           type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        type:
           oneOf:
           - type: string
           - type: 'null'
@@ -3396,9 +4037,17 @@ components:
       type: object
     domain.questions.controller.QuestionController.get_questionConsolidation_0QuestionResponseBody_2:
       properties:
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         author:
           $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionQuestionUserResponseBody_14'
         comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
           oneOf:
           - type: string
           - type: 'null'
@@ -3410,7 +4059,15 @@ components:
           type: string
         question:
           type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        type:
           oneOf:
           - type: string
           - type: 'null'
@@ -3631,9 +4288,17 @@ components:
       type: object
     domain.questions.controller.QuestionController.update_questionConsolidation_0QuestionResponseBody_2:
       properties:
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
         author:
           $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionQuestionUserResponseBody_14'
         comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
           oneOf:
           - type: string
           - type: 'null'
@@ -3645,7 +4310,15 @@ components:
           type: string
         question:
           type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
         sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        type:
           oneOf:
           - type: string
           - type: 'null'

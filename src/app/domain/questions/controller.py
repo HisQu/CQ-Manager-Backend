@@ -126,6 +126,10 @@ class QuestionController(Controller):
             question = Question(
                 question=data.question,
                 comment=data.comment,
+                reference=data.reference,
+                anchor=data.anchor,
+                example_answer=data.example_answer,
+                type=data.type,
                 sparql_query=data.sparql_query,
                 author_id=request.user.id,
                 editor_id=request.user.id,
@@ -247,6 +251,14 @@ class QuestionController(Controller):
                 question.question = data.question
             if "comment" in data.model_fields_set:
                 question.comment = data.comment
+            if "reference" in data.model_fields_set:
+                question.reference = data.reference
+            if "anchor" in data.model_fields_set:
+                question.anchor = data.anchor
+            if "example_answer" in data.model_fields_set:
+                question.example_answer = data.example_answer
+            if "type" in data.model_fields_set:
+                question.type = data.type
             if "sparql_query" in data.model_fields_set:
                 question.sparql_query = data.sparql_query
             question.version_number = question.version_number + 1

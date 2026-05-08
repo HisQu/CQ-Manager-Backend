@@ -77,6 +77,97 @@ class MockDataService:
             editor_id=UUID("a3fbf0c3-35cb-4774-8eba-10bdd1cbfb0c"),
             group_id=UUID("a825cd37-f637-4853-bc73-97a2b01f18e7"),
         ),
+        Question(
+            question="Ist ein akademischer Grad in BFO als `role` oder als `quality` zu modellieren?",
+            comment="Designentscheidung dokumentieren.",
+            reference="S. 137.",
+            anchor=(
+                "S. 137 Abs. 2 - funktionale Bestimmung des Studiums: Graduierungen verschaffen Vorteile "
+                "beim Pfründenerwerb; Studium dient der Berufs- und Pfründenkarriere."
+            ),
+            example_answer=(
+                "Empfehlung: `role`; der Grad ist realisierbar, z. B. bei Pfründenbewerbungen. "
+                "Alternative: `generically dependent continuant` (Diplom als Träger)."
+            ),
+            type="FCQ",
+            id=UUID("3c43a53b-b260-4de6-8c56-773a8fbb89a9"),
+            version_number=1,
+            author_id=UUID("a8693768-244b-4b87-9972-548034df1cc3"),
+            editor_id=UUID("a8693768-244b-4b87-9972-548034df1cc3"),
+            group_id=UUID("0469f9f6-a1a5-4e1b-b829-48366171f7ed"),
+        ),
+        Question(
+            question="Ist die Klasse Doktor des kanonischen Rechts rigide?",
+            reference="S. 136 Anm. 10.",
+            anchor=(
+                "S. 136 Anm. 10 - Promotion Lysuras zum `decretorum doctor` zeitlich nach den "
+                "Immatrikulationen 1417/1423/1424."
+            ),
+            example_answer=(
+                "Anti-rigide bezogen auf den Lebenslauf der Person; vor der Promotion gilt sie nicht. "
+                "Typischerweise einmal erworben dann beständig - daher als Rolle mit dauerhafter "
+                "Realisierung modellieren."
+            ),
+            type="MpCQ",
+            id=UUID("b83d8f91-f3e6-4c5f-81b7-bf3cb5b7db92"),
+            version_number=1,
+            author_id=UUID("a8693768-244b-4b87-9972-548034df1cc3"),
+            editor_id=UUID("a8693768-244b-4b87-9972-548034df1cc3"),
+            group_id=UUID("0469f9f6-a1a5-4e1b-b829-48366171f7ed"),
+        ),
+        Question(
+            question="Welche kirchlichen und kurialen Ämter werden im Repertorium Germanicum genannt?",
+            reference="S. 138, 139, 140, 144 Anm. 44.",
+            anchor=(
+                "S. 138 Abs. 4 - Rotaauditoren, Kanzleibedienstete. S. 139 Abs. 3 - päpstlicher "
+                "Zeremonienmeister Burchardus. S. 140 Abs. 1 - Offizial, Generalvikar, päpstlich "
+                "delegierter Richter; Audientiaprokurator. S. 144 Anm. 44 - Heinrich Kalteisen OP "
+                "als `magister sacri palatii`."
+            ),
+            example_answer=(
+                "Bischof, Propst, Dekan, Kanoniker, Pfarrer, Vikar, Offizial, Generalvikar, päpstlich "
+                "delegierter Richter, Kaplan, Familiare, Kuriale, Rotaauditor, Audientiaprokurator, "
+                "Zeremonienmeister, Ketzerinquisitor (`magister sacri palatii`)."
+            ),
+            type="SCQ",
+            id=UUID("b49ae397-a0a4-4fc1-8c48-c01f347c4c73"),
+            version_number=1,
+            author_id=UUID("a8693768-244b-4b87-9972-548034df1cc3"),
+            editor_id=UUID("a8693768-244b-4b87-9972-548034df1cc3"),
+            group_id=UUID("0469f9f6-a1a5-4e1b-b829-48366171f7ed"),
+        ),
+        Question(
+            question="An welchen Institutionen waren Geistliche als Kurialen tätig?",
+            reference="S. 138, 139, 143.",
+            anchor=(
+                "S. 138 Abs. 4 - Kanzlei und Rota Romana als zentrale kuriale Behörden. "
+                "S. 139 Abs. 3 - kuriale Tätigkeit als Karrieresprungbrett seit dem Schisma. "
+                "S. 143 Abs. 1 - Audientiaprokuratur (Johannes von Durkheim)."
+            ),
+            example_answer="Päpstliche Kanzlei, Rota Romana, Pönitentiarie, Audientia.",
+            type="SCQ",
+            id=UUID("f270b6de-680d-40e4-942e-d5e38450c519"),
+            version_number=1,
+            author_id=UUID("a8693768-244b-4b87-9972-548034df1cc3"),
+            editor_id=UUID("a8693768-244b-4b87-9972-548034df1cc3"),
+            group_id=UUID("0469f9f6-a1a5-4e1b-b829-48366171f7ed"),
+        ),
+        Question(
+            question="Welche Personen waren Mitglied der päpstlichen Kanzlei?",
+            comment="Lv <= Lo: OWL 2 DL via `mitgliedVon` und Klasse `PäpstlicheKanzlei`.",
+            reference="S. 138.",
+            anchor=(
+                "S. 138 Abs. 4 - namentliche Aufzählung als Bedienstete der päpstlichen Kanzlei "
+                "bzw. der Rota Romana."
+            ),
+            example_answer="Nikolaus Hertnid, Heinrich Massheim, Antonius Molitoris, Peter Quentin, Thomas Rode.",
+            type="VCQ",
+            id=UUID("0c90541f-9a31-4576-a88e-57f1527fb05b"),
+            version_number=1,
+            author_id=UUID("a8693768-244b-4b87-9972-548034df1cc3"),
+            editor_id=UUID("a8693768-244b-4b87-9972-548034df1cc3"),
+            group_id=UUID("0469f9f6-a1a5-4e1b-b829-48366171f7ed"),
+        ),
     ]
 
     mock_users = [
@@ -148,6 +239,11 @@ class MockDataService:
                     id=UUID("b0488a1e-3768-4d34-8c90-f24f1f9036a3"),
                     name="Kebab found in Jena",
                     members=[*mock_users[:-1]],
+                ),
+                Group(
+                    id=UUID("0469f9f6-a1a5-4e1b-b829-48366171f7ed"),
+                    name="Ontology guide examples",
+                    members=mock_users,
                 ),
             ],
         ),

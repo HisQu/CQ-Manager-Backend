@@ -1,15 +1,34 @@
 from enum import Enum
+from typing import Literal, TypeAlias, get_args
 from uuid import UUID
 
 from lib.dto import BaseModel
 from litestar.contrib.pydantic.pydantic_dto_factory import PydanticDTO
 from litestar.contrib.sqlalchemy.dto import SQLAlchemyDTO, SQLAlchemyDTOConfig
 from litestar.dto import DTOConfig
-from pydantic import Field
+from pydantic import Field, field_validator
 
 from .models import Question
 from domain.terms.dtos import AnnotationDTO
 
+
+CQType: TypeAlias = Literal["SCQ", "VCQ", "FCQ", "RCQ", "aRCQ", "efRCQ", "drRCQ", "rpRCQ", "MpCQ"]
+CQ_TYPES = frozenset(get_args(CQType))
+
+
+class QuestionMetadataMixin(BaseModel):
+    reference: str | None = None
+    anchor: str | None = None
+    example_answer: str | None = None
+    type: CQType | None = None
+
+    @field_validator("type")
+    @classmethod
+    def validate_type(cls, value: CQType | None) -> CQType | None:
+        if value is not None and value not in CQ_TYPES:
+            allowed = ", ".join(sorted(CQ_TYPES))
+            raise ValueError(f"type must be one of: {allowed}.")
+        return value
 
 
 class QuestionOverviewDTO(SQLAlchemyDTO[Question]):
@@ -20,6 +39,10 @@ class QuestionOverviewDTO(SQLAlchemyDTO[Question]):
             "group.name",
             "question",
             "comment",
+            "reference",
+            "anchor",
+            "example_answer",
+            "type",
             "sparql_query",
             "rating",
             "author.id",
@@ -38,6 +61,10 @@ class QuestionDetailDTO(SQLAlchemyDTO[Question]):
             "id",
             "question",
             "comment",
+            "reference",
+            "anchor",
+            "example_answer",
+            "type",
             "sparql_query",
             "group_id",
             "version_number",
@@ -73,6 +100,10 @@ class QuestionDetailDTO(SQLAlchemyDTO[Question]):
             "consolidations.0.questions.0.group_id",
             "consolidations.0.questions.0.question",
             "consolidations.0.questions.0.comment",
+            "consolidations.0.questions.0.reference",
+            "consolidations.0.questions.0.anchor",
+            "consolidations.0.questions.0.example_answer",
+            "consolidations.0.questions.0.type",
             "consolidations.0.questions.0.sparql_query",
             "consolidations.0.questions.0.author.id",
             "consolidations.0.questions.0.author.email",
@@ -92,7 +123,7 @@ class QuestionDetailDTO(SQLAlchemyDTO[Question]):
     )
 
 
-class QuestionCreate(BaseModel):
+class QuestionCreate(QuestionMetadataMixin):
     question: str
     comment: str | None = None
     sparql_query: str | None = None
@@ -103,7 +134,7 @@ class QuestionCreateDTO(PydanticDTO[QuestionCreate]):
     config = DTOConfig(rename_strategy="camel")
 
 
-class QuestionUpdate(BaseModel):
+class QuestionUpdate(QuestionMetadataMixin):
     question: str | None = None
     comment: str | None = None
     sparql_query: str | None = None
@@ -113,7 +144,7 @@ class QuestionUpdateDTO(PydanticDTO[QuestionUpdate]):
     config = DTOConfig(rename_strategy="camel")
 
 
-class QuestionUpdated(BaseModel):
+class QuestionUpdated(QuestionMetadataMixin):
     id: UUID
     question: str
     comment: str | None = None
@@ -141,7 +172,7 @@ class UnifiedQuestionAuthor(BaseModel):
     name: str
 
 
-class UnifiedQuestionOverview(BaseModel):
+class UnifiedQuestionOverview(QuestionMetadataMixin):
     id: UUID
     question: str
     comment: str | None = None
