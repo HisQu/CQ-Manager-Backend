@@ -8,6 +8,7 @@ from domain.questions.models import Question
 from domain.ratings.models import Rating
 from domain.versions.models import Version
 from domain.comments.models import Comment
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import DeclarativeBase
 
@@ -221,4 +222,11 @@ class MockDataService:
                 ...
 
     async def on_startup(self) -> None:
+        async with session_maker() as session:
+            seeded_admin_exists = await session.scalar(
+                select(User.id).where(User.email == "admin@uni-jena.de")
+            )
+            if seeded_admin_exists:
+                return
+
         _ = [await self._add_mock_model(model) for model in self.mock_data]
