@@ -31,7 +31,7 @@ cors_config = CORSConfig(
         "Permissions-Project-Member",
     ],
 )
-openapi_config = OpenAPIConfig("CQ Manager", "0.0.1", use_handler_docstrings=True)
+openapi_config = OpenAPIConfig("CQ Manager", "0.1.0", use_handler_docstrings=True)
 
 authenticator = AuthenticationMiddleware("Super Secret Token", "Authorization", 24)
 encryption = EncryptionService()
