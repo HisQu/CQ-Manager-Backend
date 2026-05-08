@@ -1,0 +1,145 @@
+from httpx import Headers
+from litestar import Litestar
+from litestar.status_codes import HTTP_200_OK, HTTP_204_NO_CONTENT
+from litestar.testing import TestClient
+
+from ._fixtures import (
+    admin_header,
+    create_group,
+    create_project,
+    create_question,
+    register_user,
+    test_client,
+    verify_user,
+)  # pyright: ignore
+
+
+def test_get_all_groups(test_client: TestClient[Litestar], admin_header: Headers) -> None:
+    with test_client as client:
+        response = client.get("/groups", headers=admin_header)
+        assert response.status_code == HTTP_200_OK, response.text
+        assert isinstance(response.json(), list)
+
+
+def test_created_group_is_visible_in_my_groups(
+    test_client: TestClient[Litestar],
+    admin_header: Headers,
+) -> None:
+    with test_client as client:
+        project = create_project(client, admin_header)
+        group = create_group(client, admin_header, project["id"])
+
+        try:
+            assert group["noMembers"] == 1
+            assert group["project"]["id"] == project["id"]
+
+            my_groups = client.get("/groups/my_groups", headers=admin_header)
+            assert my_groups.status_code == HTTP_200_OK, my_groups.text
+            assert group["id"] in {group["id"] for group in my_groups.json()}
+        finally:
+            project_delete_response = client.delete(
+                f"/projects/{project['id']}",
+                headers=admin_header,
+            )
+            assert project_delete_response.status_code == HTTP_204_NO_CONTENT
+
+
+def test_add_existing_user_to_group(
+    test_client: TestClient[Litestar],
+    admin_header: Headers,
+) -> None:
+    with test_client as client:
+        user = register_user(client)
+        verify_user(client, admin_header, user["email"])
+        project = create_project(client, admin_header)
+        group = create_group(client, admin_header, project["id"])
+
+        try:
+            response = client.put(
+                f"/groups/{project['id']}/{group['id']}/members/add",
+                json={"emails": [user["email"]]},
+                headers=admin_header,
+            )
+            assert response.status_code == HTTP_200_OK, response.text
+
+            group_response = client.get(
+                f"/groups/{project['id']}/{group['id']}",
+                headers=admin_header,
+            )
+            assert group_response.status_code == HTTP_200_OK, group_response.text
+            assert user["email"] in {member["email"] for member in group_response.json()["members"]}
+        finally:
+            client.delete(f"/projects/{project['id']}", headers=admin_header)
+            client.delete(f"/users/{user['email']}", headers=admin_header)
+
+
+def test_deleting_project_deletes_groups(
+    test_client: TestClient[Litestar],
+    admin_header: Headers,
+) -> None:
+    with test_client as client:
+        project = create_project(client, admin_header)
+        group = create_group(client, admin_header, project["id"])
+
+        try:
+            delete_response = client.delete(f"/projects/{project['id']}", headers=admin_header)
+            assert delete_response.status_code == HTTP_204_NO_CONTENT
+
+            direct_group = client.get(f"/groups/direct/{group['id']}", headers=admin_header)
+            assert direct_group.status_code == 404, direct_group.text
+
+            groups_response = client.get("/groups", headers=admin_header)
+            assert groups_response.status_code == HTTP_200_OK, groups_response.text
+            assert group["id"] not in {group["id"] for group in groups_response.json()}
+        finally:
+            client.delete(f"/projects/{project['id']}", headers=admin_header)
+
+
+def test_deleting_project_deletes_group_questions(
+    test_client: TestClient[Litestar],
+    admin_header: Headers,
+) -> None:
+    with test_client as client:
+        project = create_project(client, admin_header)
+        group = create_group(client, admin_header, project["id"])
+        question = create_question(client, admin_header, group["id"])
+
+        annotation_response = client.put(
+            f"/terms/add/{question['id']}",
+            json={
+                "annotations": [
+                    {
+                        "term": "Cascade term",
+                        "passage": "Cascade passage",
+                    }
+                ]
+            },
+            headers=admin_header,
+        )
+        assert annotation_response.status_code == HTTP_200_OK, annotation_response.text
+
+        try:
+            delete_response = client.delete(f"/projects/{project['id']}", headers=admin_header)
+            assert delete_response.status_code == HTTP_204_NO_CONTENT
+
+            question_detail = client.get(
+                f"/questions/{group['id']}/{question['id']}",
+                headers=admin_header,
+            )
+            assert question_detail.status_code == 404, question_detail.text
+
+            project_questions = client.get(
+                f"/questions/by_project/{project['id']}",
+                headers=admin_header,
+            )
+            assert project_questions.status_code == HTTP_200_OK, project_questions.text
+            assert question["id"] not in {question["id"] for question in project_questions.json()}
+
+            project_terms = client.get(
+                f"/terms/project/{project['id']}",
+                headers=admin_header,
+            )
+            assert project_terms.status_code == HTTP_200_OK, project_terms.text
+            assert project_terms.json() == []
+        finally:
+            client.delete(f"/projects/{project['id']}", headers=admin_header)

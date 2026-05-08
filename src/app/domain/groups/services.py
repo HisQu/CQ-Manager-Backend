@@ -63,6 +63,7 @@ class GroupService:
     async def create(
         session: AsyncSession,
         encryption: EncryptionService,
+        user_id: UUID,
         data: GroupCreateDTO,
         project_id: UUID,
         options: Iterable[ExecutableOption] | None = None,
@@ -70,11 +71,23 @@ class GroupService:
         if not data.name:
             raise EmptyNameException()
         options = options or []
+
+        project_exists = await session.scalar(select(Project.id).where(Project.id == project_id))
+        if project_exists is None:
+            raise HTTPException(status_code=HTTP_404_NOT_FOUND)
+
         members: list[User] = []
         members_ = None
         if data.members:
             members_ = await UserService.get_or_create_users(session, encryption, data.members)
             members.extend([*members_.existing, *map(lambda u: u[0], members_.created)])
+
+        creator = await session.scalar(select(User).where(User.id == user_id))
+        if creator is None:
+            raise HTTPException(status_code=HTTP_404_NOT_FOUND)
+        if creator.id not in {member.id for member in members}:
+            members.append(creator)
+
         group = Group(name=data.name, project_id=project_id, members=members)
         session.add(group)
         await session.commit()
@@ -211,6 +224,6 @@ class GroupService:
         )
         # i think this could be done on the db as well but im not sure how without warnings,
         # this should be fine given the expected result size
-        if group := await session.scalar(statement):
+        if (group := await session.scalar(statement)) and group.project:
             return any(user_id == manager.id for manager in group.project.managers)
         return False

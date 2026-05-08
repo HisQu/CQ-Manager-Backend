@@ -24,7 +24,7 @@ class ConsolidationQuestionGroup(BaseModel):
 
 class ConsolidationQuestion(BaseModel):
     id: UUID
-    group: ConsolidationQuestionGroup
+    group: ConsolidationQuestionGroup | None = None
     question: str
     sparql_query: str | None = None
     aggregated_rating: int = 0
@@ -42,7 +42,7 @@ class ConsolidationRead(BaseModel):
 
 
 class ConsolidationDTO(PydanticDTO[ConsolidationRead]):
-    config = DTOConfig(rename_strategy="camel", max_nested_depth=2)
+    config = DTOConfig(rename_strategy="camel")
 
 
 class ConsolidationResultQuestionCreate(BaseModel):

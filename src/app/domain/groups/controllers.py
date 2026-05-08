@@ -18,8 +18,10 @@ from litestar.background_tasks import BackgroundTasks, BackgroundTask
 from litestar import Response
 from .dtos import (
     GroupCreateDTO,
+    GroupDetail,
     GroupDetailDTO,
     GroupDTO,
+    GroupRead,
     GroupUpdateDTO,
     GroupUsersAddDTO,
     GroupUsersRemoveDTO,
@@ -46,40 +48,58 @@ class GroupController(Controller):
         ),
     ]
 
+    @staticmethod
+    def _to_response(group: Group) -> GroupRead:
+        return GroupRead.model_validate(group)
+
+    @staticmethod
+    def _to_detail_response(group: Group) -> GroupDetail:
+        return GroupDetail.model_validate(group)
+
+    @staticmethod
+    def _to_response_list(groups: Sequence[Group]) -> list[GroupRead]:
+        return [GroupController._to_response(group) for group in groups]
+
     @get("/", return_dto=GroupDTO)
-    async def get_groups_handler(self, session: AsyncSession) -> Sequence[Group]:
+    async def get_groups_handler(self, session: AsyncSession) -> Sequence[GroupRead]:
         """Gets all `Group`s."""
-        return await GroupService.get_groups(session, options=self.default_options)
+        groups = await GroupService.get_groups(session, options=self.default_options)
+        return self._to_response_list(groups)
 
     @get("/{project_id:uuid}", return_dto=GroupDTO)
-    async def get_project_groups_handler(self, session: AsyncSession, project_id: UUID) -> Sequence[Group]:
+    async def get_project_groups_handler(self, session: AsyncSession, project_id: UUID) -> Sequence[GroupRead]:
         """Gets all `Group`s. belonging to a given `Project`."""
-        return await GroupService.get_groups(session, project_id, self.default_options)
+        groups = await GroupService.get_groups(session, project_id, self.default_options)
+        return self._to_response_list(groups)
 
     @get("/{project_id:uuid}/{group_id:uuid}", return_dto=GroupDetailDTO)
-    async def get_group_handler(self, session: AsyncSession, group_id: UUID, project_id: UUID) -> Group:
+    async def get_group_handler(self, session: AsyncSession, group_id: UUID, project_id: UUID) -> GroupDetail:
         """Gets a single `Group` belonging to a given `Project`."""
-        return await GroupService.get_group(session, group_id, project_id, self.default_options)
+        group = await GroupService.get_group(session, group_id, project_id, self.default_options)
+        return self._to_detail_response(group)
 
     @get("/direct/{group_id:uuid}", summary="Gets a single Group by its UUID only", return_dto=GroupDetailDTO)
-    async def get_direct_handler(self, session: AsyncSession, group_id: UUID) -> Group:
+    async def get_direct_handler(self, session: AsyncSession, group_id: UUID) -> GroupDetail:
         """Gets a single `Group`."""
-        return await GroupService.get_group(session, group_id, None, self.default_options)
+        group = await GroupService.get_group(session, group_id, None, self.default_options)
+        return self._to_detail_response(group)
 
     @post("/{project_id:uuid}", return_dto=GroupDTO)
     async def create_group_handler(
         self,
+        request: Request[User, Any, Any],
         session: AsyncSession,
         encryption: EncryptionService,
         data: JsonEncoded[GroupCreateDTO],
         project_id: UUID,
         mail_service: MailService,
-    ) -> Response[Group]:
+    ) -> Response[GroupRead]:
         """Creates a `Group` under a given `Project`."""
         tasks: list[BackgroundTask] = []
         group, invite_task, message_task = await GroupService.create(
             session,
             encryption,
+            request.user.id,
             data,
             project_id,
             self.default_options,
@@ -88,8 +108,9 @@ class GroupController(Controller):
             tasks.append(BackgroundTask(invite_task, mail_service))
         if message_task:
             tasks.append(BackgroundTask(message_task, mail_service))
+        response_group = self._to_response(group)
         session.expunge_all()
-        return Response(group, background=BackgroundTasks(tasks) if tasks else None)
+        return Response(response_group, background=BackgroundTasks(tasks) if tasks else None)
 
     @put("/{project_id:uuid}/{group_id:uuid}", return_dto=GroupDTO)
     async def update_group_handler(
@@ -98,9 +119,10 @@ class GroupController(Controller):
         group_id: UUID,
         data: JsonEncoded[GroupUpdateDTO],
         project_id: UUID,
-    ) -> Group:
+    ) -> GroupRead:
         """Updates a `Group` under a given `Project`."""
-        return await GroupService.update(session, group_id, project_id, data, self.default_options)
+        group = await GroupService.update(session, group_id, project_id, data, self.default_options)
+        return self._to_response(group)
 
     @delete("/{project_id:uuid}/{group_id:uuid}")
     async def delete_group_handler(self, session: AsyncSession, group_id: UUID, project_id: UUID) -> None:
@@ -118,7 +140,7 @@ class GroupController(Controller):
         project_id: UUID,
         data: JsonEncoded[GroupUsersAddDTO],
         mail_service: MailService,
-    ) -> Response[Group]:
+    ) -> Response[GroupRead]:
         """Adds members to a `Group` under a given `Project`, `User`s are created the do not exists yet."""
         tasks: list[BackgroundTask] = []
         group, invite_task, message_task = await GroupService.add_members(
@@ -133,8 +155,9 @@ class GroupController(Controller):
             tasks.append(BackgroundTask(invite_task, mail_service))
         if message_task:
             tasks.append(BackgroundTask(message_task, mail_service))
+        response_group = self._to_response(group)
         session.expunge_all()
-        return Response(group, background=BackgroundTasks(tasks) if tasks else None)
+        return Response(response_group, background=BackgroundTasks(tasks) if tasks else None)
 
     @put("/{project_id:uuid}/{group_id:uuid}/members/remove", return_dto=GroupDTO)
     async def remove_members_handler(
@@ -143,14 +166,16 @@ class GroupController(Controller):
         group_id: UUID,
         project_id: UUID,
         data: JsonEncoded[GroupUsersRemoveDTO],
-    ) -> Group:
+    ) -> GroupRead:
         """Removes members from a `Group` under a given `Project`."""
-        return await GroupService.remove_members(session, group_id, project_id, data, self.default_options)
+        group = await GroupService.remove_members(session, group_id, project_id, data, self.default_options)
+        return self._to_response(group)
 
     @get("/my_groups", summary="Gets all Groups you are a member of", return_dto=GroupDTO)
-    async def my_groups(self, request: Request[User, Any, Any], session: AsyncSession) -> Sequence[Group]:
+    async def my_groups(self, request: Request[User, Any, Any], session: AsyncSession) -> Sequence[GroupRead]:
         """Gets all `Group`s you are a member of."""
-        return await GroupService.my_groups(session, request.user.id, options=self.default_options)
+        groups = await GroupService.my_groups(session, request.user.id, options=self.default_options)
+        return self._to_response_list(groups)
 
     @get("/my_groups/{project_id:uuid}", summary="Gets all Groups you are a member of", return_dto=GroupDTO)
     async def my_groups_by_projects(
@@ -158,9 +183,10 @@ class GroupController(Controller):
         request: Request[User, Any, Any],
         session: AsyncSession,
         project_id: UUID,
-    ) -> Sequence[Group]:
+    ) -> Sequence[GroupRead]:
         """Gets all `Group`s you are a member of, filtered by a `Project`."""
-        return await GroupService.my_groups(session, request.user.id, project_id, self.default_options)
+        groups = await GroupService.my_groups(session, request.user.id, project_id, self.default_options)
+        return self._to_response_list(groups)
 
     @post("/{group_id:uuid}/extend_members", return_dto=GroupDTO)
     async def extend_members_handler(
@@ -170,7 +196,7 @@ class GroupController(Controller):
         group_id: UUID,
         data: JsonEncoded[GroupUsersAddDTO],
         mail_service: MailService,
-    ) -> Response[Group]:
+    ) -> Response[GroupRead]:
         """Extends the list of members in a `Group`."""
         tasks: list[BackgroundTask] = []
         group, invite_task, message_task = await GroupService.add_members(
@@ -185,5 +211,6 @@ class GroupController(Controller):
             tasks.append(BackgroundTask(invite_task, mail_service))
         if message_task:
             tasks.append(BackgroundTask(message_task, mail_service))
+        response_group = self._to_response(group)
         session.expunge_all()
-        return Response(group, background=BackgroundTasks(tasks) if tasks else None)
+        return Response(response_group, background=BackgroundTasks(tasks) if tasks else None)

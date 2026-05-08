@@ -18,14 +18,18 @@ if TYPE_CHECKING:
 ConsolidatedQuestions = Table(
     "consolidated_questions",
     UUIDAuditBase.metadata,
-    Column[UUID]("consolidation_id", ForeignKey("consolidation.id"), primary_key=True),
-    Column[UUID]("question_id", ForeignKey("question.id"), primary_key=True),
+    Column[UUID](
+        "consolidation_id",
+        ForeignKey("consolidation.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+    Column[UUID]("question_id", ForeignKey("question.id", ondelete="CASCADE"), primary_key=True),
 )
 
 
 class Consolidation(UUIDAuditBase):
     engineer_id: Mapped[UUID] = mapped_column(ForeignKey("user.id"))
-    project_id: Mapped[UUID] = mapped_column(ForeignKey("project.id"))
+    project_id: Mapped[UUID] = mapped_column(ForeignKey("project.id", ondelete="CASCADE"))
     result_question_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("question.id"), nullable=True
     )

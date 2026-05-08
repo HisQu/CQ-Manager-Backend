@@ -1,58 +1,54 @@
+from datetime import datetime
 from uuid import UUID
 
 from lib.dto import BaseModel, NonEmptyString
-from litestar.contrib.sqlalchemy.dto import SQLAlchemyDTO, SQLAlchemyDTOConfig
-from pydantic import EmailStr
-
-from .models import Group
-
-
-class GroupDTO(SQLAlchemyDTO[Group]):
-    config = SQLAlchemyDTOConfig(
-        rename_strategy="camel",
-        include={
-            "id",
-            "name",
-            "no_members",
-            "no_questions",
-            "created_at",
-            "updated_at",
-            "project.id",
-            "project.name",
-            "project.description",
-            "project.created_at",
-            "project.updated_at",
-        },
-    )
+from litestar.contrib.pydantic.pydantic_dto_factory import PydanticDTO
+from litestar.dto import DTOConfig
+from pydantic import EmailStr, Field
 
 
-class GroupDetailDTO(SQLAlchemyDTO[Group]):
-    config = SQLAlchemyDTOConfig(
-        rename_strategy="camel",
-        max_nested_depth=2,
-        include={
-            "id",
-            "name",
-            "no_members",
-            "no_questions",
-            "created_at",
-            "updated_at",
-            "project.id",
-            "project.name",
-            "project.description",
-            "project.created_at",
-            "project.updated_at",
-            "members.0.id",
-            "members.0.email",
-            "members.0.name",
-            "questions.0.question",
-            "questions.0.sparql_query",
-            "questions.0.aggregated_rating",
-            "questions.0.author.id",
-            "questions.0.author.email",
-            "questions.0.author.name",
-        },
-    )
+class GroupProject(BaseModel):
+    id: UUID
+    name: str
+    description: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class GroupUser(BaseModel):
+    id: UUID
+    email: EmailStr
+    name: str
+
+
+class GroupQuestion(BaseModel):
+    question: str
+    sparql_query: str | None = None
+    aggregated_rating: int = 0
+    author: GroupUser
+
+
+class GroupRead(BaseModel):
+    id: UUID
+    name: str
+    no_members: int = 0
+    no_questions: int = 0
+    created_at: datetime
+    updated_at: datetime
+    project: GroupProject | None = None
+
+
+class GroupDetail(GroupRead):
+    members: list[GroupUser] = Field(default_factory=list)
+    questions: list[GroupQuestion] = Field(default_factory=list)
+
+
+class GroupDTO(PydanticDTO[GroupRead]):
+    config = DTOConfig(rename_strategy="camel")
+
+
+class GroupDetailDTO(PydanticDTO[GroupDetail]):
+    config = DTOConfig(rename_strategy="camel")
 
 
 class GroupCreateDTO(BaseModel):

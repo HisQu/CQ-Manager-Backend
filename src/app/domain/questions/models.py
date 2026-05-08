@@ -24,7 +24,7 @@ class Question(UUIDAuditBase):
     sparql_query: Mapped[str | None]
     author_id: Mapped[UUID] = mapped_column(ForeignKey("user.id"))
     editor_id: Mapped[UUID] = mapped_column(ForeignKey("user.id"))
-    group_id: Mapped[UUID] = mapped_column(ForeignKey("group.id"))
+    group_id: Mapped[UUID] = mapped_column(ForeignKey("group.id", ondelete="CASCADE"))
 
     author: Mapped[User] = relationship(foreign_keys=[author_id], back_populates="questions")
     editor: Mapped[User] = relationship(foreign_keys=[editor_id], back_populates="edited_questions")

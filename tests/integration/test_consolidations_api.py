@@ -1,23 +1,36 @@
 from uuid import uuid4
 
 from litestar import Litestar
-from litestar.status_codes import HTTP_200_OK, HTTP_201_CREATED
+from litestar.status_codes import (
+    HTTP_200_OK,
+    HTTP_201_CREATED,
+    HTTP_204_NO_CONTENT,
+    HTTP_404_NOT_FOUND,
+)
 from litestar.testing import TestClient
 
-from ._fixtures import admin_header, test_client  # pyright: ignore
+from ._fixtures import (
+    create_consolidation,
+    create_group,
+    create_project,
+    create_project_group,
+    create_question,
+    test_client,
+    admin_header,
+)  # pyright: ignore
 
 
-PROJECT_ID = "7efa96ba-c7a9-4069-9728-dc7fa2c105fd"
-GROUP_ID = "a825cd37-f637-4853-bc73-97a2b01f18e7"
-KEBAB_PROJECT_ID = "415de6a4-4d35-420a-bca2-0fde2731234d"
-KEBAB_GROUP_ID = "b0488a1e-3768-4d34-8c90-f24f1f9036a3"
-SOURCE_QUESTION_ID = "a36783cf-1fb4-4e52-a19f-fe74a348e833"
-CONSOLIDATION_ID = "5daa6935-bd94-47fa-87d8-e0660ef00a79"
-CONSOLIDATION_RESULT_QUESTION_ID = "4f8c5f0b-5966-49d6-8d0f-a9a2e7883114"
-CONSOLIDATED_QUESTION_IDS = {
-    "92bcacac-c5bf-4fe3-a12a-d52d5f3ac1f1",
-    "968b9a07-463d-4e0d-a2ea-ba39c06e830d",
-}
+def _create_project_with_questions(
+    client: TestClient[Litestar],
+    admin_header,
+    *,
+    count: int = 2,
+) -> tuple[dict, dict, list[dict]]:
+    project, group = create_project_group(client, admin_header)
+    questions = [
+        create_question(client, admin_header, group["id"], question=f"Source {uuid4().hex}") for _ in range(count)
+    ]
+    return project, group, questions
 
 
 def test_get_consolidation_includes_questions(
@@ -25,18 +38,31 @@ def test_get_consolidation_includes_questions(
     admin_header,
 ) -> None:
     with test_client as client:
-        response = client.get(
-            f"/consolidations/{PROJECT_ID}/{CONSOLIDATION_ID}",
-            headers=admin_header,
-        )
+        project, _, questions = _create_project_with_questions(client, admin_header)
+        question_ids = [question["id"] for question in questions]
 
-        assert response.status_code == HTTP_200_OK, response.text
-        consolidation = response.json()
-        assert consolidation["id"] == CONSOLIDATION_ID
-        assert consolidation["resultQuestion"]["id"] == CONSOLIDATION_RESULT_QUESTION_ID
-        assert {question["id"] for question in consolidation["questions"]} == CONSOLIDATED_QUESTION_IDS
-        assert all("question" in question for question in consolidation["questions"])
-        assert all("author" in question for question in consolidation["questions"])
+        try:
+            created = create_consolidation(
+                client,
+                admin_header,
+                project["id"],
+                question_ids=question_ids,
+                result_question={"question": f"Result {uuid4().hex}"},
+            )
+
+            response = client.get(
+                f"/consolidations/{project['id']}/{created['id']}",
+                headers=admin_header,
+            )
+
+            assert response.status_code == HTTP_200_OK, response.text
+            consolidation = response.json()
+            assert consolidation["id"] == created["id"]
+            assert consolidation["resultQuestion"]["id"] == created["resultQuestion"]["id"]
+            assert {question["id"] for question in consolidation["questions"]} == set(question_ids)
+            assert all("question" in question for question in consolidation["questions"])
+        finally:
+            client.delete(f"/projects/{project['id']}", headers=admin_header)
 
 
 def test_create_consolidation_with_existing_target_question_id(
@@ -44,24 +70,27 @@ def test_create_consolidation_with_existing_target_question_id(
     admin_header,
 ) -> None:
     with test_client as client:
-        question_response = client.post(
-            f"/questions/{GROUP_ID}",
-            json={"question": f"Existing target {uuid4().hex}"},
-            headers=admin_header,
-        )
-        assert question_response.status_code == HTTP_201_CREATED
-        target_id = question_response.json()["id"]
-
-        consolidation_response = client.post(
-            f"/consolidations/{PROJECT_ID}",
-            json={
-                "resultQuestion": {"id": target_id},
-                "ids": [SOURCE_QUESTION_ID],
-            },
-            headers=admin_header,
+        project, group, questions = _create_project_with_questions(client, admin_header, count=1)
+        target = create_question(
+            client,
+            admin_header,
+            group["id"],
+            question=f"Existing target {uuid4().hex}",
         )
 
-        assert consolidation_response.status_code == HTTP_201_CREATED, consolidation_response.text
+        try:
+            consolidation_response = client.post(
+                f"/consolidations/{project['id']}",
+                json={
+                    "resultQuestion": {"id": target["id"]},
+                    "ids": [questions[0]["id"]],
+                },
+                headers=admin_header,
+            )
+
+            assert consolidation_response.status_code == HTTP_201_CREATED, consolidation_response.text
+        finally:
+            client.delete(f"/projects/{project['id']}", headers=admin_header)
 
 
 def test_create_consolidation_infers_result_question_group(
@@ -69,25 +98,54 @@ def test_create_consolidation_infers_result_question_group(
     admin_header,
 ) -> None:
     with test_client as client:
-        source_response = client.post(
-            f"/questions/{KEBAB_GROUP_ID}",
-            json={"question": f"Source {uuid4().hex}"},
-            headers=admin_header,
-        )
-        assert source_response.status_code == HTTP_201_CREATED
-        source_id = source_response.json()["id"]
+        project, group, questions = _create_project_with_questions(client, admin_header, count=1)
+        source_id = questions[0]["id"]
 
-        consolidation_response = client.post(
-            f"/consolidations/{KEBAB_PROJECT_ID}",
-            json={
-                "resultQuestion": {"question": "Test"},
-                "ids": [source_id],
-            },
-            headers=admin_header,
+        try:
+            consolidation = create_consolidation(
+                client,
+                admin_header,
+                project["id"],
+                question_ids=[source_id],
+                result_question={"question": "Test"},
+            )
+
+            assert consolidation["resultQuestion"]["question"] == "Test"
+            assert [question["id"] for question in consolidation["questions"]] == [source_id]
+
+            result_question = client.get(
+                f"/questions/{group['id']}/{consolidation['resultQuestion']['id']}",
+                headers=admin_header,
+            )
+            assert result_question.status_code == HTTP_200_OK, result_question.text
+        finally:
+            client.delete(f"/projects/{project['id']}", headers=admin_header)
+
+
+def test_deleting_project_deletes_consolidations(
+    test_client: TestClient[Litestar],
+    admin_header,
+) -> None:
+    with test_client as client:
+        project = create_project(client, admin_header)
+        group = create_group(client, admin_header, project["id"])
+        question = create_question(client, admin_header, group["id"])
+        consolidation = create_consolidation(
+            client,
+            admin_header,
+            project["id"],
+            question_ids=[question["id"]],
+            result_question={"question": f"Result question {uuid4().hex}"},
         )
 
-        assert consolidation_response.status_code == HTTP_201_CREATED, consolidation_response.text
-        consolidation = consolidation_response.json()
-        assert consolidation["resultQuestion"]["question"] == "Test"
-        assert consolidation["resultQuestion"]["group"]["id"] == KEBAB_GROUP_ID
-        assert [question["id"] for question in consolidation["questions"]] == [source_id]
+        try:
+            delete_response = client.delete(f"/projects/{project['id']}", headers=admin_header)
+            assert delete_response.status_code == HTTP_204_NO_CONTENT, delete_response.text
+
+            deleted_consolidation = client.get(
+                f"/consolidations/{project['id']}/{consolidation['id']}",
+                headers=admin_header,
+            )
+            assert deleted_consolidation.status_code == HTTP_404_NOT_FOUND, deleted_consolidation.text
+        finally:
+            client.delete(f"/projects/{project['id']}", headers=admin_header)

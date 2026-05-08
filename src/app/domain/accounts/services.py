@@ -275,6 +275,5 @@ class UserService:
             )
         ]
         session.add_all([user for user, _ in invited_users])
-        await session.commit()
-        _ = [await session.refresh(user) for user, _ in invited_users]
+        await session.flush()
         return InvitedUsers(existing_users, invited_users)

@@ -36,8 +36,14 @@ class Project(UUIDAuditBase):
 
     managers: Mapped[list[User]] = relationship(secondary="project_managers", back_populates="managed_projects")
     engineers: Mapped[list[User]] = relationship(secondary="project_engineers", back_populates="engineered_projects")
-    groups: Mapped[list[Group]] = relationship(back_populates="project")
-    consolidations: Mapped[list[Consolidation]] = relationship(back_populates="project")
+    groups: Mapped[list[Group]] = relationship(
+        back_populates="project",
+        cascade="all, delete-orphan",
+    )
+    consolidations: Mapped[list[Consolidation]] = relationship(
+        back_populates="project",
+        cascade="all, delete-orphan",
+    )
     terms: Mapped[list[Term]] = relationship(back_populates="project")
 
     @hybrid_property

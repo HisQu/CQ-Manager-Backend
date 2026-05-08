@@ -25,11 +25,14 @@ GroupMembers = Table(
 
 class Group(UUIDAuditBase):
     name: Mapped[str] = mapped_column()
-    project_id: Mapped[UUID] = mapped_column(ForeignKey("project.id"))
+    project_id: Mapped[UUID] = mapped_column(ForeignKey("project.id", ondelete="CASCADE"))
 
     project: Mapped[Project] = relationship(back_populates="groups")
     members: Mapped[list[User]] = relationship(secondary="group_members", back_populates="joined_groups")
-    questions: Mapped[list[Question]] = relationship(back_populates="group")
+    questions: Mapped[list[Question]] = relationship(
+        back_populates="group",
+        cascade="all, delete-orphan",
+    )
 
     @hybrid_property
     def no_members(self) -> int:

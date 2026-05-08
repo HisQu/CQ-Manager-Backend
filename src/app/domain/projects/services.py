@@ -6,17 +6,23 @@ from domain.accounts.authentication.services import EncryptionService
 from domain.accounts.mails import UserMailService
 from domain.accounts.models import User
 from domain.accounts.services import UserService
-from domain.groups.models import Group
+from domain.comments.models import Comment
+from domain.consolidations.models import ConsolidatedQuestions, Consolidation
+from domain.groups.models import Group, GroupMembers
+from domain.questions.models import Question
+from domain.ratings.models import Rating
+from domain.terms.models import AnnotatedPassages, Passage, Term
+from domain.versions.models import Version
 from litestar.exceptions import HTTPException
 from litestar.status_codes import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
-from sqlalchemy import delete, select
+from sqlalchemy import delete, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.base import ExecutableOption
 
 from .dtos import ProjectCreateDTO, ProjectUpdateDTO, ProjectUsersAddDTO, ProjectUsersRemoveDTO
 from .mails import ProjectMailService
-from .models import Project
+from .models import Project, ProjectEngineers, ProjectManagers
 
 AsyncCallable = Coroutine[None, None, None]
 
@@ -224,8 +230,46 @@ class ProjectService:
 
     @staticmethod
     async def delete(session: AsyncSession, id: UUID) -> bool:
-        result = await session.execute(delete(Project).where(Project.id == id))
-        return True if result.rowcount > 0 else False
+        if not await session.scalar(select(Project.id).where(Project.id == id)):
+            return False
+
+        group_ids = select(Group.id).where(Group.project_id == id)
+        question_ids = select(Question.id).where(Question.group_id.in_(group_ids))
+        consolidation_ids = select(Consolidation.id).where(Consolidation.project_id == id)
+        term_ids = select(Term.id).where(Term.project_id == id)
+        passage_ids = select(Passage.id).where(Passage.term_id.in_(term_ids))
+
+        statements = [
+            delete(ConsolidatedQuestions).where(
+                or_(
+                    ConsolidatedQuestions.c.consolidation_id.in_(consolidation_ids),
+                    ConsolidatedQuestions.c.question_id.in_(question_ids),
+                )
+            ),
+            delete(AnnotatedPassages).where(
+                or_(
+                    AnnotatedPassages.c.question_id.in_(question_ids),
+                    AnnotatedPassages.c.passage_id.in_(passage_ids),
+                )
+            ),
+            delete(Comment).where(Comment.question_id.in_(question_ids)),
+            delete(Rating).where(Rating.question_id.in_(question_ids)),
+            delete(Version).where(Version.question_id.in_(question_ids)),
+            delete(Consolidation).where(Consolidation.project_id == id),
+            delete(Question).where(Question.group_id.in_(group_ids)),
+            delete(GroupMembers).where(GroupMembers.c.group_id.in_(group_ids)),
+            delete(Group).where(Group.project_id == id),
+            delete(Passage).where(Passage.term_id.in_(term_ids)),
+            delete(Term).where(Term.project_id == id),
+            delete(ProjectManagers).where(ProjectManagers.c.project_id == id),
+            delete(ProjectEngineers).where(ProjectEngineers.c.project_id == id),
+            delete(Project).where(Project.id == id),
+        ]
+        for statement in statements:
+            await session.execute(statement)
+
+        await session.flush()
+        return True
 
     @staticmethod
     async def my_projects(

@@ -16,8 +16,10 @@ from sqlalchemy.orm import selectinload
 from lib.mails import MailService
 from .dtos import (
     ProjectCreateDTO,
+    ProjectDetail,
     ProjectDetailDTO,
     ProjectDTO,
+    ProjectRead,
     ProjectUpdateDTO,
     ProjectUsersAddDTO,
     ProjectUsersRemoveDTO,
@@ -51,13 +53,27 @@ class ProjectController(Controller):
         ),
     ]
 
+    @staticmethod
+    def _to_response(project: Project) -> ProjectRead:
+        return ProjectRead.model_validate(project)
+
+    @staticmethod
+    def _to_detail_response(project: Project) -> ProjectDetail:
+        return ProjectDetail.model_validate(project)
+
+    @staticmethod
+    def _to_response_list(projects: Sequence[Project]) -> list[ProjectRead]:
+        return [ProjectController._to_response(project) for project in projects]
+
     @get("/", return_dto=ProjectDTO)
-    async def get_projects_handler(self, session: AsyncSession) -> Sequence[Project]:
-        return await ProjectService.get_projects(session, self.default_options)
+    async def get_projects_handler(self, session: AsyncSession) -> Sequence[ProjectRead]:
+        projects = await ProjectService.get_projects(session, self.default_options)
+        return self._to_response_list(projects)
 
     @get("/{project_id:uuid}", return_dto=ProjectDetailDTO)
-    async def get_project_handler(self, session: AsyncSession, project_id: UUID) -> Project:
-        return await ProjectService.get_project(session, project_id, self.default_options)
+    async def get_project_handler(self, session: AsyncSession, project_id: UUID) -> ProjectDetail:
+        project = await ProjectService.get_project(session, project_id, self.default_options)
+        return self._to_detail_response(project)
 
     @post("/", return_dto=ProjectDTO)
     async def create_project_handler(
@@ -66,7 +82,7 @@ class ProjectController(Controller):
         encryption: EncryptionService,
         data: JsonEncoded[ProjectCreateDTO],
         mail_service: MailService,
-    ) -> Response[Project]:
+    ) -> Response[ProjectRead]:
         tasks: list[BackgroundTask] = []
         project, invite_task1, invite_task2, manager_task, engineers_task = await ProjectService.create(
             session, encryption, data, self.default_options
@@ -79,8 +95,9 @@ class ProjectController(Controller):
             tasks.append(BackgroundTask(manager_task, mail_service))
         if engineers_task:
             tasks.append(BackgroundTask(engineers_task, mail_service))
+        response_project = self._to_response(project)
         session.expunge_all()
-        return Response(project, background=BackgroundTasks(tasks))
+        return Response(response_project, background=BackgroundTasks(tasks))
 
     @put("/{project_id:uuid}", return_dto=ProjectDTO)
     async def update_project_handler(
@@ -88,8 +105,9 @@ class ProjectController(Controller):
         session: AsyncSession,
         project_id: UUID,
         data: JsonEncoded[ProjectUpdateDTO],
-    ) -> Project:
-        return await ProjectService.update(session, project_id, data, self.default_options)
+    ) -> ProjectRead:
+        project = await ProjectService.update(session, project_id, data, self.default_options)
+        return self._to_response(project)
 
     @delete("/{project_id:uuid}")
     async def delete_project_handler(self, session: AsyncSession, project_id: UUID) -> None:
@@ -105,7 +123,7 @@ class ProjectController(Controller):
         project_id: UUID,
         data: JsonEncoded[ProjectUsersAddDTO],
         mail_service: MailService,
-    ) -> Response[Project]:
+    ) -> Response[ProjectRead]:
         tasks: list[BackgroundTask] = []
         project, invite_task, manager_task = await ProjectService.add_managers(
             session, encryption, project_id, data, self.default_options
@@ -114,8 +132,9 @@ class ProjectController(Controller):
             tasks.append(BackgroundTask(invite_task, mail_service))
         if manager_task:
             tasks.append(BackgroundTask(manager_task, mail_service))
+        response_project = self._to_response(project)
         session.expunge_all()
-        return Response(project, background=BackgroundTasks(tasks))
+        return Response(response_project, background=BackgroundTasks(tasks))
 
     @put("/{project_id:uuid}/managers/remove", return_dto=ProjectDTO)
     async def remove_managers_handler(
@@ -123,8 +142,9 @@ class ProjectController(Controller):
         session: AsyncSession,
         project_id: UUID,
         data: JsonEncoded[ProjectUsersRemoveDTO],
-    ) -> Project:
-        return await ProjectService.remove_managers(session, project_id, data, self.default_options)
+    ) -> ProjectRead:
+        project = await ProjectService.remove_managers(session, project_id, data, self.default_options)
+        return self._to_response(project)
 
     @put("/{project_id:uuid}/engineers/add", return_dto=ProjectDTO)
     async def add_engineers_handler(
@@ -134,15 +154,16 @@ class ProjectController(Controller):
         project_id: UUID,
         data: JsonEncoded[ProjectUsersAddDTO],
         mail_service: MailService,
-    ) -> Response[Project]:
+    ) -> Response[ProjectRead]:
         tasks: list[BackgroundTask] = []
         project, invite_task, engineer_task = await ProjectService.add_engineers(session, encryption, project_id, data, self.default_options)
         if invite_task:
             tasks.append(BackgroundTask(invite_task, mail_service))
         if engineer_task:
             tasks.append(BackgroundTask(engineer_task, mail_service))
+        response_project = self._to_response(project)
         session.expunge_all()
-        return Response(project, background=BackgroundTasks(tasks))
+        return Response(response_project, background=BackgroundTasks(tasks))
 
     @put("/{project_id:uuid}/engineers/remove", return_dto=ProjectDTO)
     async def remove_engineers_handler(
@@ -150,10 +171,12 @@ class ProjectController(Controller):
         session: AsyncSession,
         project_id: UUID,
         data: JsonEncoded[ProjectUsersRemoveDTO],
-    ) -> Project:
-        return await ProjectService.remove_engineers(session, project_id, data, self.default_options)
+    ) -> ProjectRead:
+        project = await ProjectService.remove_engineers(session, project_id, data, self.default_options)
+        return self._to_response(project)
 
     @get("/my_projects", summary="Gets all Projects you are a part of", return_dto=ProjectDTO)
-    async def my_projects(self, request: Request[User, Any, Any], session: AsyncSession) -> Sequence[Project]:
+    async def my_projects(self, request: Request[User, Any, Any], session: AsyncSession) -> Sequence[ProjectRead]:
         """Get all projects you are part of, meaning you are a member of any `Group` within one of these `Project`s."""
-        return await ProjectService.my_projects(session, request.user.id, self.default_options)
+        projects = await ProjectService.my_projects(session, request.user.id, self.default_options)
+        return self._to_response_list(projects)

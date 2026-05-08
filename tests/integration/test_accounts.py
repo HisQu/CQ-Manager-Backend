@@ -1,6 +1,6 @@
-import sys
+from uuid import uuid4
 
-import pytest
+from httpx import Headers
 from litestar import Litestar
 from litestar.status_codes import (
     HTTP_200_OK,
@@ -12,181 +12,134 @@ from litestar.status_codes import (
 )
 from litestar.testing import TestClient
 
-sys.path.append("src/app/")
+from ._fixtures import (
+    TEST_PASSWORD,
+    admin_header,
+    create_group,
+    create_project,
+    create_question,
+    login,
+    register_user,
+    test_client,
+    verify_user,
+)  # pyright: ignore
 
 
-from app import app
+def _unique_email() -> str:
+    return f"user-{uuid4().hex}@example.com"
 
 
-@pytest.fixture(scope="module")
-def test_client() -> TestClient[Litestar]:
-    return TestClient(app=app)  # type: ignore
+def test_user_lifecycle(
+    test_client: TestClient[Litestar],
+    admin_header: Headers,
+) -> None:
+    email = _unique_email()
+    new_password = "12345678HalloNeu"
 
-
-new_user_id = None
-new_user_header = None
-admin_header = None
-
-
-def test_register_new_user(test_client: TestClient[Litestar]) -> None:
     with test_client as client:
-        data = {
-            "email": "dominik@uni-jena.de",
-            "name": "dominik",
-            "password": "12345",
-        }
+        try:
+            data = {
+                "email": email,
+                "name": email,
+                "password": "12345",
+            }
+            response = client.post("/users/register", json=data)
+            assert response.status_code == HTTP_400_BAD_REQUEST
 
-        response = client.post("/users/register", json=data)
-        assert response.status_code == HTTP_400_BAD_REQUEST
+            data["password"] = "12345678"
+            response = client.post("/users/register", json=data)
+            assert response.status_code == HTTP_400_BAD_REQUEST
 
-        data["password"] = "12345678"
-        response = client.post("/users/register", json=data)
-        assert response.status_code == HTTP_400_BAD_REQUEST
+            data["password"] = TEST_PASSWORD
+            response = client.post("/users/register", json=data)
+            assert response.status_code == HTTP_201_CREATED
+            assert response.json()["email"] == email
 
-        data["password"] = "12345678Hallo"
-        response = client.post("/users/register", json=data)
-        assert response.status_code == HTTP_201_CREATED
-        assert response.json().get("id", None) is not None
+            response = client.put(f"/users/verify/{email}")
+            assert response.status_code == HTTP_401_UNAUTHORIZED
 
-        global new_user_id
-        new_user_id = response.json()["id"]
+            response = client.put(f"/users/verify/{email}", headers=admin_header)
+            assert response.status_code == HTTP_200_OK
+
+            user_header = login(client, email, TEST_PASSWORD)
+
+            response = client.put(
+                "/users/password",
+                json={
+                    "current_password": TEST_PASSWORD,
+                    "new_password": new_password,
+                },
+            )
+            assert response.status_code == HTTP_401_UNAUTHORIZED
+
+            response = client.put(
+                "/users/password",
+                json={
+                    "current_password": TEST_PASSWORD,
+                    "new_password": new_password,
+                },
+                headers=user_header,
+            )
+            assert response.status_code == HTTP_204_NO_CONTENT
+
+            response = client.post(
+                "/users/login",
+                json={"email": email, "password": TEST_PASSWORD},
+            )
+            assert response.status_code == HTTP_401_UNAUTHORIZED
+
+            user_header = login(client, email, new_password)
+
+            response = client.put(f"/users/{email}", json={"name": f"{email}-updated"})
+            assert response.status_code == HTTP_401_UNAUTHORIZED
+
+            response = client.put(
+                f"/users/{email}",
+                json={"name": f"{email}-updated"},
+                headers=admin_header,
+            )
+            assert response.status_code == HTTP_200_OK
+            assert response.json()["name"] == f"{email}-updated"
+
+            response = client.get(f"/users/{email}")
+            assert response.status_code == HTTP_401_UNAUTHORIZED
+
+            response = client.get(f"/users/{email}", headers=user_header)
+            assert response.status_code == HTTP_200_OK
+            assert response.json()["name"] == f"{email}-updated"
+
+            response = client.get("/users")
+            assert response.status_code == HTTP_401_UNAUTHORIZED
+
+            response = client.get("/users", headers=user_header)
+            assert response.status_code == HTTP_200_OK
+
+            response = client.delete(f"/users/{email}")
+            assert response.status_code == HTTP_401_UNAUTHORIZED
+
+            response = client.delete(f"/users/{email}", headers=admin_header)
+            assert response.status_code == HTTP_204_NO_CONTENT
+        finally:
+            client.delete(f"/users/{email}", headers=admin_header)
 
 
-def test_login_admin(test_client: TestClient[Litestar]) -> None:
+def test_delete_user_referenced_by_entities(
+    test_client: TestClient[Litestar],
+    admin_header: Headers,
+) -> None:
+    email = _unique_email()
+
     with test_client as client:
-        data = {
-            "email": "admin@uni-jena.de",
-            "password": "HalloWelt123",
-        }
-        response = client.post(f"/users/login", json=data)
-        assert response.status_code == HTTP_201_CREATED
-        assert response.headers.get("Authorization", None) is not None
-        global admin_header
-        admin_header = response.headers
+        register_user(client, email=email)
+        verify_user(client, admin_header, email)
+        user_header = login(client, email, TEST_PASSWORD)
+        project = create_project(client, admin_header, engineers=[email])
+        group = create_group(client, user_header, project["id"])
+        create_question(client, user_header, group["id"])
 
-
-def test_verify_user_wo_admin(test_client: TestClient[Litestar]) -> None:
-    with test_client as client:
-        response = client.put(f"/users/verify/{new_user_id}")
-        assert response.status_code == HTTP_401_UNAUTHORIZED
-
-
-def test_verify_user_w_admin(test_client: TestClient[Litestar]) -> None:
-    with test_client as client:
-        response = client.put(f"/users/verify/{new_user_id}", headers=admin_header)
-        assert response.status_code == HTTP_200_OK
-
-
-def test_login_new_user(test_client: TestClient[Litestar]) -> None:
-    with test_client as client:
-        data = {
-            "email": "dominik@uni-jena.de",
-            "password": "12345678Hallo",
-        }
-        response = client.post(f"/users/login", json=data)
-        assert response.status_code == HTTP_201_CREATED
-        assert response.headers.get("Authorization", None) is not None
-        global new_user_header
-        new_user_header = response.headers
-
-
-def test_change_password_wo_login(test_client: TestClient[Litestar]) -> None:
-    with test_client as client:
-        response = client.put(
-            "/users/password",
-            json={
-                "current_password": "12345678Hallo",
-                "new_password": "12345678HalloNeu",
-            },
-        )
-        assert response.status_code == HTTP_401_UNAUTHORIZED
-
-
-def test_change_password_w_login(test_client: TestClient[Litestar]) -> None:
-    with test_client as client:
-        response = client.put(
-            "/users/password",
-            json={
-                "current_password": "12345678Hallo",
-                "new_password": "12345678HalloNeu",
-            },
-            headers=new_user_header,
-        )
-        assert response.status_code == HTTP_204_NO_CONTENT
-
-
-def test_login_new_user_with_old_password(test_client: TestClient[Litestar]) -> None:
-    with test_client as client:
-        response = client.post(
-            "/users/login",
-            json={"email": "dominik@uni-jena.de", "password": "12345678Hallo"},
-        )
-        assert response.status_code == HTTP_401_UNAUTHORIZED
-
-
-def test_login_new_user_with_new_password(test_client: TestClient[Litestar]) -> None:
-    with test_client as client:
-        response = client.post(
-            "/users/login",
-            json={"email": "dominik@uni-jena.de", "password": "12345678HalloNeu"},
-        )
-        assert response.status_code == HTTP_201_CREATED
-        assert response.headers.get("Authorization", None) is not None
-
-
-def test_update_user_wo_admin(test_client: TestClient[Litestar]) -> None:
-    with test_client as client:
-        response = client.put(f"/users/{new_user_id}", json={"name": "dominik_neu"})
-        assert response.status_code == HTTP_401_UNAUTHORIZED
-
-
-def test_update_user_w_admin(test_client: TestClient[Litestar]) -> None:
-    with test_client as client:
-        response = client.put(
-            f"/users/{new_user_id}", json={"name": "dominik_neu"}, headers=admin_header
-        )
-        assert response.status_code == HTTP_200_OK
-        assert response.json()["name"] == "dominik_neu"
-
-
-def test_get_user_wo_login(test_client: TestClient[Litestar]) -> None:
-    with test_client as client:
-        response = client.get(f"/users/{new_user_id}")
-        assert response.status_code == HTTP_401_UNAUTHORIZED
-
-
-def test_get_user_w_login(test_client: TestClient[Litestar]) -> None:
-    with test_client as client:
-        response = client.get(f"/users/{new_user_id}", headers=new_user_header)
-        assert response.status_code == HTTP_200_OK
-        assert response.json()["name"] == "dominik_neu"
-
-
-def test_get_users_wo_login(test_client: TestClient[Litestar]) -> None:
-    with test_client as client:
-        response = client.get(f"/users")
-        assert response.status_code == HTTP_401_UNAUTHORIZED
-
-
-def test_get_users_w_login(test_client: TestClient[Litestar]) -> None:
-    with test_client as client:
-        response = client.get(f"/users", headers=new_user_header)
-        assert response.status_code == HTTP_200_OK
-
-
-def test_delete_users_wo_admin(test_client: TestClient[Litestar]) -> None:
-    with test_client as client:
-        response = client.delete(f"/users/{new_user_id}")
-        assert response.status_code == HTTP_401_UNAUTHORIZED
-
-
-def test_delete_users_w_admin(test_client: TestClient[Litestar]) -> None:
-    with test_client as client:
-        response = client.delete(f"/users/{new_user_id}", headers=admin_header)
-        assert response.status_code == HTTP_204_NO_CONTENT
-
-
-def test_delete_user_referenced_by_entities(test_client: TestClient[Litestar]) -> None:
-    with test_client as client:
-        response = client.delete("/users/malte@uni-jena.de", headers=admin_header)
-        assert response.status_code == HTTP_409_CONFLICT
+        try:
+            response = client.delete(f"/users/{email}", headers=admin_header)
+            assert response.status_code == HTTP_409_CONFLICT
+        finally:
+            client.delete(f"/projects/{project['id']}", headers=admin_header)
+            client.delete(f"/users/{email}", headers=admin_header)
