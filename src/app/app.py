@@ -23,12 +23,12 @@ from litestar.openapi import OpenAPIConfig
 
 cors_config = CORSConfig(
     allow_origins=[os.environ.get("CORS_ALLOW_ORIGIN", "http://localhost:5173")],
+    # These are CORS-readable header names, not granted permission values.
     expose_headers=[
+        "Permissions-Group-Member",
         "Permissions-Project-Manager",
         "Permissions-Project-Engineer",
         "Permissions-Project-Member",
-        "Permissions-Group-Member",
-        "Permissions-Project-Manager",
     ],
 )
 openapi_config = OpenAPIConfig("CQ Manager", "0.0.1", use_handler_docstrings=True)
