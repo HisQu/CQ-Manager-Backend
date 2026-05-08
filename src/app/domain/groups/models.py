@@ -25,7 +25,7 @@ GroupMembers = Table(
 
 class Group(UUIDAuditBase):
     name: Mapped[str] = mapped_column()
-    comments: Mapped[str | None] = mapped_column(Text, default=None)
+    comment: Mapped[str | None] = mapped_column(Text, default=None)
     project_id: Mapped[UUID] = mapped_column(ForeignKey("project.id", ondelete="CASCADE"))
 
     project: Mapped[Project] = relationship(back_populates="groups")

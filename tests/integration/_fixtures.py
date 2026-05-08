@@ -102,11 +102,11 @@ def create_group(
     project_id: str,
     *,
     name: str | None = None,
-    comments: str | None = None,
+    comment: str | None = None,
 ) -> dict:
     payload = {"name": name or unique_text("Test Group")}
-    if comments is not None:
-        payload["comments"] = comments
+    if comment is not None:
+        payload["comment"] = comment
 
     response = client.post(
         f"/groups/{project_id}",

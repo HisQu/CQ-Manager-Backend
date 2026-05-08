@@ -108,10 +108,14 @@ class AsyncSqlPlugin:
             )
 
     @staticmethod
-    def _ensure_group_comments_column(connection: Connection) -> None:
+    def _ensure_group_comment_column(connection: Connection) -> None:
         columns = {column["name"] for column in inspect(connection).get_columns("group")}
-        if "comments" not in columns:
-            connection.execute(text('ALTER TABLE "group" ADD COLUMN comments TEXT'))
+        if "comment" in columns:
+            return
+        if "comments" in columns:
+            connection.execute(text('ALTER TABLE "group" RENAME COLUMN "comments" TO "comment"'))
+            return
+        connection.execute(text('ALTER TABLE "group" ADD COLUMN "comment" TEXT'))
 
     @staticmethod
     def _remove_consolidation_name_column(connection: Connection) -> None:
@@ -171,7 +175,7 @@ class AsyncSqlPlugin:
             await conn.run_sync(self._ensure_question_sparql_query_column)
             await conn.run_sync(self._ensure_question_comment_column)
             await conn.run_sync(self._ensure_consolidation_result_question_id_column)
-            await conn.run_sync(self._ensure_group_comments_column)
+            await conn.run_sync(self._ensure_group_comment_column)
             await conn.run_sync(self._remove_consolidation_name_column)
 
 

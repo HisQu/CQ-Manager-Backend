@@ -31,7 +31,7 @@ class GroupQuestion(BaseModel):
 class GroupRead(BaseModel):
     id: UUID
     name: str
-    comments: str | None = None
+    comment: str | None = None
     no_members: int = 0
     no_questions: int = 0
     created_at: datetime
@@ -54,7 +54,7 @@ class GroupDetailDTO(PydanticDTO[GroupDetail]):
 
 class GroupCreateDTO(BaseModel):
     name: NonEmptyString
-    comments: str | None = None
+    comment: str | None = None
     members: list[EmailStr] | None = None
 
 
@@ -68,4 +68,4 @@ class GroupUsersRemoveDTO(BaseModel):
 
 class GroupUpdateDTO(BaseModel):
     name: NonEmptyString | None = None
-    comments: str | None = None
+    comment: str | None = None
