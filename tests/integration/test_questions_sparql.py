@@ -39,6 +39,7 @@ def test_create_and_update_question_sparql(
             )
             assert update_response.status_code == HTTP_200_OK
             assert update_response.json()["sparqlQuery"] == update_query
+            assert update_response.json()["versions"][0]["editor"]["id"] is not None
         finally:
             client.delete(f"/projects/{project['id']}", headers=admin_header)
 

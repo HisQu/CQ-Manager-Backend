@@ -76,7 +76,7 @@ class QuestionController(Controller):
             selectinload(Consolidation.engineer),
         ),
         selectinload(Question.group).options(selectinload(Group.project)),
-        selectinload(Question.versions),
+        selectinload(Question.versions).options(selectinload(Version.editor)),
         selectinload(Question.annotations).options(selectinload(Passage.term)),
         selectinload(Question.comments).options(selectinload(Comment.author)),
     ]
