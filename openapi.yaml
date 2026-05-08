@@ -1,6 +1,6 @@
 components:
   schemas:
-    AddEngineersHandlerProjectResponseBody:
+    AddEngineersHandlerProjectReadResponseBody:
       properties:
         description:
           oneOf:
@@ -12,25 +12,26 @@ components:
         name:
           type: string
         noConsolidations:
+          default: 0
           type: integer
         noEngineers:
+          default: 0
           type: integer
         noGroups:
+          default: 0
           type: integer
         noManagers:
+          default: 0
           type: integer
         totalMembers:
+          default: 0
           type: integer
       required:
+      - id
       - name
-      - noConsolidations
-      - noEngineers
-      - noGroups
-      - noManagers
-      - totalMembers
-      title: AddEngineersHandlerProjectResponseBody
+      title: AddEngineersHandlerProjectReadResponseBody
       type: object
-    AddManagersHandlerProjectResponseBody:
+    AddManagersHandlerProjectReadResponseBody:
       properties:
         description:
           oneOf:
@@ -42,46 +43,26 @@ components:
         name:
           type: string
         noConsolidations:
+          default: 0
           type: integer
         noEngineers:
+          default: 0
           type: integer
         noGroups:
+          default: 0
           type: integer
         noManagers:
+          default: 0
           type: integer
         totalMembers:
+          default: 0
           type: integer
       required:
+      - id
       - name
-      - noConsolidations
-      - noEngineers
-      - noGroups
-      - noManagers
-      - totalMembers
-      title: AddManagersHandlerProjectResponseBody
+      title: AddManagersHandlerProjectReadResponseBody
       type: object
-    AddMembersHandlerGroupProjectResponseBody:
-      properties:
-        createdAt:
-          format: date-time
-          type: string
-        description:
-          oneOf:
-          - type: string
-          - type: 'null'
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-        updatedAt:
-          format: date-time
-          type: string
-      required:
-      - name
-      title: AddMembersHandlerGroupProjectResponseBody
-      type: object
-    AddMembersHandlerGroupResponseBody:
+    AddMembersHandlerGroupReadResponseBody:
       properties:
         createdAt:
           format: date-time
@@ -92,20 +73,48 @@ components:
         name:
           type: string
         noMembers:
+          default: 0
           type: integer
         noQuestions:
+          default: 0
           type: integer
         project:
-          $ref: '#/components/schemas/AddMembersHandlerGroupProjectResponseBody'
+          oneOf:
+          - $ref: '#/components/schemas/AddMembersHandlerGroupRead_0GroupProjectResponseBody'
+          - type: 'null'
         updatedAt:
           format: date-time
           type: string
       required:
+      - createdAt
+      - id
       - name
-      - noMembers
-      - noQuestions
-      - project
-      title: AddMembersHandlerGroupResponseBody
+      - updatedAt
+      title: AddMembersHandlerGroupReadResponseBody
+      type: object
+    AddMembersHandlerGroupRead_0GroupProjectResponseBody:
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        description:
+          oneOf:
+          - type: string
+          - type: 'null'
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+      - createdAt
+      - id
+      - name
+      - updatedAt
+      title: AddMembersHandlerGroupRead_0GroupProjectResponseBody
       type: object
     AddPassageResponseBody:
       properties:
@@ -121,33 +130,6 @@ components:
       - content
       - termId
       title: AddPassageResponseBody
-      type: object
-    AddQuestionHandlerConsolidationQuestionConsolidationQuestionGroupResponseBody:
-      properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - id
-      - name
-      title: AddQuestionHandlerConsolidationQuestionConsolidationQuestionGroupResponseBody
-      type: object
-    AddQuestionHandlerConsolidationQuestionConsolidationUserResponseBody:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - id
-      - name
-      title: AddQuestionHandlerConsolidationQuestionConsolidationUserResponseBody
       type: object
     AddQuestionHandlerConsolidationReadConsolidationProjectResponseBody:
       properties:
@@ -213,10 +195,6 @@ components:
         aggregatedRating:
           default: 0
           type: integer
-        author:
-          $ref: '#/components/schemas/AddQuestionHandlerConsolidationQuestionConsolidationUserResponseBody'
-        group:
-          $ref: '#/components/schemas/AddQuestionHandlerConsolidationQuestionConsolidationQuestionGroupResponseBody'
         id:
           format: uuid
           type: string
@@ -227,8 +205,6 @@ components:
           - type: string
           - type: 'null'
       required:
-      - author
-      - group
       - id
       - question
       title: AddQuestionHandlerConsolidationRead_0ConsolidationQuestionResponseBody
@@ -475,33 +451,6 @@ components:
       required: []
       title: CreateConsolidationHandlerConsolidationCreate_0ConsolidationResultQuestionCreateRequestBody
       type: object
-    CreateConsolidationHandlerConsolidationQuestionConsolidationQuestionGroupResponseBody:
-      properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - id
-      - name
-      title: CreateConsolidationHandlerConsolidationQuestionConsolidationQuestionGroupResponseBody
-      type: object
-    CreateConsolidationHandlerConsolidationQuestionConsolidationUserResponseBody:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - id
-      - name
-      title: CreateConsolidationHandlerConsolidationQuestionConsolidationUserResponseBody
-      type: object
     CreateConsolidationHandlerConsolidationReadConsolidationProjectResponseBody:
       properties:
         id:
@@ -566,10 +515,6 @@ components:
         aggregatedRating:
           default: 0
           type: integer
-        author:
-          $ref: '#/components/schemas/CreateConsolidationHandlerConsolidationQuestionConsolidationUserResponseBody'
-        group:
-          $ref: '#/components/schemas/CreateConsolidationHandlerConsolidationQuestionConsolidationQuestionGroupResponseBody'
         id:
           format: uuid
           type: string
@@ -580,13 +525,41 @@ components:
           - type: string
           - type: 'null'
       required:
-      - author
-      - group
       - id
       - question
       title: CreateConsolidationHandlerConsolidationRead_0ConsolidationQuestionResponseBody
       type: object
-    CreateGroupHandlerGroupProjectResponseBody:
+    CreateGroupHandlerGroupReadResponseBody:
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        noMembers:
+          default: 0
+          type: integer
+        noQuestions:
+          default: 0
+          type: integer
+        project:
+          oneOf:
+          - $ref: '#/components/schemas/CreateGroupHandlerGroupRead_0GroupProjectResponseBody'
+          - type: 'null'
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+      - createdAt
+      - id
+      - name
+      - updatedAt
+      title: CreateGroupHandlerGroupReadResponseBody
+      type: object
+    CreateGroupHandlerGroupRead_0GroupProjectResponseBody:
       properties:
         createdAt:
           format: date-time
@@ -604,36 +577,13 @@ components:
           format: date-time
           type: string
       required:
+      - createdAt
+      - id
       - name
-      title: CreateGroupHandlerGroupProjectResponseBody
+      - updatedAt
+      title: CreateGroupHandlerGroupRead_0GroupProjectResponseBody
       type: object
-    CreateGroupHandlerGroupResponseBody:
-      properties:
-        createdAt:
-          format: date-time
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-        noMembers:
-          type: integer
-        noQuestions:
-          type: integer
-        project:
-          $ref: '#/components/schemas/CreateGroupHandlerGroupProjectResponseBody'
-        updatedAt:
-          format: date-time
-          type: string
-      required:
-      - name
-      - noMembers
-      - noQuestions
-      - project
-      title: CreateGroupHandlerGroupResponseBody
-      type: object
-    CreateProjectHandlerProjectResponseBody:
+    CreateProjectHandlerProjectReadResponseBody:
       properties:
         description:
           oneOf:
@@ -645,23 +595,24 @@ components:
         name:
           type: string
         noConsolidations:
+          default: 0
           type: integer
         noEngineers:
+          default: 0
           type: integer
         noGroups:
+          default: 0
           type: integer
         noManagers:
+          default: 0
           type: integer
         totalMembers:
+          default: 0
           type: integer
       required:
+      - id
       - name
-      - noConsolidations
-      - noEngineers
-      - noGroups
-      - noManagers
-      - totalMembers
-      title: CreateProjectHandlerProjectResponseBody
+      title: CreateProjectHandlerProjectReadResponseBody
       type: object
     CreateQuestionPassageTermResponseBody:
       properties:
@@ -763,7 +714,37 @@ components:
       - versions
       title: CreateQuestionQuestionResponseBody
       type: object
-    ExtendMembersHandlerGroupProjectResponseBody:
+    ExtendMembersHandlerGroupReadResponseBody:
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        noMembers:
+          default: 0
+          type: integer
+        noQuestions:
+          default: 0
+          type: integer
+        project:
+          oneOf:
+          - $ref: '#/components/schemas/ExtendMembersHandlerGroupRead_0GroupProjectResponseBody'
+          - type: 'null'
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+      - createdAt
+      - id
+      - name
+      - updatedAt
+      title: ExtendMembersHandlerGroupReadResponseBody
+      type: object
+    ExtendMembersHandlerGroupRead_0GroupProjectResponseBody:
       properties:
         createdAt:
           format: date-time
@@ -781,34 +762,11 @@ components:
           format: date-time
           type: string
       required:
+      - createdAt
+      - id
       - name
-      title: ExtendMembersHandlerGroupProjectResponseBody
-      type: object
-    ExtendMembersHandlerGroupResponseBody:
-      properties:
-        createdAt:
-          format: date-time
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-        noMembers:
-          type: integer
-        noQuestions:
-          type: integer
-        project:
-          $ref: '#/components/schemas/ExtendMembersHandlerGroupProjectResponseBody'
-        updatedAt:
-          format: date-time
-          type: string
-      required:
-      - name
-      - noMembers
-      - noQuestions
-      - project
-      title: ExtendMembersHandlerGroupResponseBody
+      - updatedAt
+      title: ExtendMembersHandlerGroupRead_0GroupProjectResponseBody
       type: object
     GetAllProjectTermResponseBody:
       properties:
@@ -974,33 +932,6 @@ components:
       - name
       title: GetCommentsCommentUserResponseBody
       type: object
-    GetConsolidationsHandlerConsolidationQuestionConsolidationQuestionGroupResponseBody:
-      properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - id
-      - name
-      title: GetConsolidationsHandlerConsolidationQuestionConsolidationQuestionGroupResponseBody
-      type: object
-    GetConsolidationsHandlerConsolidationQuestionConsolidationUserResponseBody:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - id
-      - name
-      title: GetConsolidationsHandlerConsolidationQuestionConsolidationUserResponseBody
-      type: object
     GetConsolidationsHandlerConsolidationReadConsolidationProjectResponseBody:
       properties:
         id:
@@ -1065,10 +996,6 @@ components:
         aggregatedRating:
           default: 0
           type: integer
-        author:
-          $ref: '#/components/schemas/GetConsolidationsHandlerConsolidationQuestionConsolidationUserResponseBody'
-        group:
-          $ref: '#/components/schemas/GetConsolidationsHandlerConsolidationQuestionConsolidationQuestionGroupResponseBody'
         id:
           format: uuid
           type: string
@@ -1079,13 +1006,49 @@ components:
           - type: string
           - type: 'null'
       required:
-      - author
-      - group
       - id
       - question
       title: GetConsolidationsHandlerConsolidationRead_0ConsolidationQuestionResponseBody
       type: object
-    GetDirectHandlerGroupProjectResponseBody:
+    GetDirectHandlerGroupDetailResponseBody:
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        id:
+          format: uuid
+          type: string
+        members:
+          items:
+            $ref: '#/components/schemas/GetDirectHandlerGroupDetail_0GroupUserResponseBody'
+          type: array
+        name:
+          type: string
+        noMembers:
+          default: 0
+          type: integer
+        noQuestions:
+          default: 0
+          type: integer
+        project:
+          oneOf:
+          - $ref: '#/components/schemas/GetDirectHandlerGroupDetail_0GroupProjectResponseBody'
+          - type: 'null'
+        questions:
+          items:
+            $ref: '#/components/schemas/GetDirectHandlerGroupDetail_0GroupQuestionResponseBody'
+          type: array
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+      - createdAt
+      - id
+      - name
+      - updatedAt
+      title: GetDirectHandlerGroupDetailResponseBody
+      type: object
+    GetDirectHandlerGroupDetail_0GroupProjectResponseBody:
       properties:
         createdAt:
           format: date-time
@@ -1103,10 +1066,43 @@ components:
           format: date-time
           type: string
       required:
+      - createdAt
+      - id
       - name
-      title: GetDirectHandlerGroupProjectResponseBody
+      - updatedAt
+      title: GetDirectHandlerGroupDetail_0GroupProjectResponseBody
       type: object
-    GetDirectHandlerGroupResponseBody:
+    GetDirectHandlerGroupDetail_0GroupQuestionResponseBody:
+      properties:
+        aggregatedRating:
+          default: 0
+          type: integer
+        question:
+          type: string
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+      required:
+      - question
+      title: GetDirectHandlerGroupDetail_0GroupQuestionResponseBody
+      type: object
+    GetDirectHandlerGroupDetail_0GroupUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: GetDirectHandlerGroupDetail_0GroupUserResponseBody
+      type: object
+    GetGroupHandlerGroupDetailResponseBody:
       properties:
         createdAt:
           format: date-time
@@ -1116,79 +1112,35 @@ components:
           type: string
         members:
           items:
-            $ref: '#/components/schemas/GetDirectHandlerGroup_0UserResponseBody'
+            $ref: '#/components/schemas/GetGroupHandlerGroupDetail_0GroupUserResponseBody'
           type: array
         name:
           type: string
         noMembers:
+          default: 0
           type: integer
         noQuestions:
+          default: 0
           type: integer
         project:
-          $ref: '#/components/schemas/GetDirectHandlerGroupProjectResponseBody'
+          oneOf:
+          - $ref: '#/components/schemas/GetGroupHandlerGroupDetail_0GroupProjectResponseBody'
+          - type: 'null'
         questions:
           items:
-            $ref: '#/components/schemas/GetDirectHandlerGroup_0QuestionResponseBody'
+            $ref: '#/components/schemas/GetGroupHandlerGroupDetail_0GroupQuestionResponseBody'
           type: array
         updatedAt:
           format: date-time
           type: string
       required:
-      - members
+      - createdAt
+      - id
       - name
-      - noMembers
-      - noQuestions
-      - project
-      - questions
-      title: GetDirectHandlerGroupResponseBody
+      - updatedAt
+      title: GetGroupHandlerGroupDetailResponseBody
       type: object
-    GetDirectHandlerGroup_0QuestionResponseBody:
-      properties:
-        aggregatedRating:
-          type: integer
-        author:
-          $ref: '#/components/schemas/GetDirectHandlerQuestionUserResponseBody'
-        question:
-          type: string
-        sparqlQuery:
-          oneOf:
-          - type: string
-          - type: 'null'
-      required:
-      - aggregatedRating
-      - author
-      - question
-      title: GetDirectHandlerGroup_0QuestionResponseBody
-      type: object
-    GetDirectHandlerGroup_0UserResponseBody:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - name
-      title: GetDirectHandlerGroup_0UserResponseBody
-      type: object
-    GetDirectHandlerQuestionUserResponseBody:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - name
-      title: GetDirectHandlerQuestionUserResponseBody
-      type: object
-    GetGroupHandlerGroupProjectResponseBody:
+    GetGroupHandlerGroupDetail_0GroupProjectResponseBody:
       properties:
         createdAt:
           format: date-time
@@ -1206,51 +1158,17 @@ components:
           format: date-time
           type: string
       required:
+      - createdAt
+      - id
       - name
-      title: GetGroupHandlerGroupProjectResponseBody
+      - updatedAt
+      title: GetGroupHandlerGroupDetail_0GroupProjectResponseBody
       type: object
-    GetGroupHandlerGroupResponseBody:
-      properties:
-        createdAt:
-          format: date-time
-          type: string
-        id:
-          format: uuid
-          type: string
-        members:
-          items:
-            $ref: '#/components/schemas/GetGroupHandlerGroup_0UserResponseBody'
-          type: array
-        name:
-          type: string
-        noMembers:
-          type: integer
-        noQuestions:
-          type: integer
-        project:
-          $ref: '#/components/schemas/GetGroupHandlerGroupProjectResponseBody'
-        questions:
-          items:
-            $ref: '#/components/schemas/GetGroupHandlerGroup_0QuestionResponseBody'
-          type: array
-        updatedAt:
-          format: date-time
-          type: string
-      required:
-      - members
-      - name
-      - noMembers
-      - noQuestions
-      - project
-      - questions
-      title: GetGroupHandlerGroupResponseBody
-      type: object
-    GetGroupHandlerGroup_0QuestionResponseBody:
+    GetGroupHandlerGroupDetail_0GroupQuestionResponseBody:
       properties:
         aggregatedRating:
+          default: 0
           type: integer
-        author:
-          $ref: '#/components/schemas/GetGroupHandlerQuestionUserResponseBody'
         question:
           type: string
         sparqlQuery:
@@ -1258,12 +1176,10 @@ components:
           - type: string
           - type: 'null'
       required:
-      - aggregatedRating
-      - author
       - question
-      title: GetGroupHandlerGroup_0QuestionResponseBody
+      title: GetGroupHandlerGroupDetail_0GroupQuestionResponseBody
       type: object
-    GetGroupHandlerGroup_0UserResponseBody:
+    GetGroupHandlerGroupDetail_0GroupUserResponseBody:
       properties:
         email:
           type: string
@@ -1274,22 +1190,9 @@ components:
           type: string
       required:
       - email
+      - id
       - name
-      title: GetGroupHandlerGroup_0UserResponseBody
-      type: object
-    GetGroupHandlerQuestionUserResponseBody:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - name
-      title: GetGroupHandlerQuestionUserResponseBody
+      title: GetGroupHandlerGroupDetail_0GroupUserResponseBody
       type: object
     GetGroupQuestionsQuestionGroupResponseBody:
       properties:
@@ -1410,7 +1313,37 @@ components:
       - name
       title: GetGroupQuestionsUnifiedUnifiedQuestionOverview_0UnifiedQuestionGroupResponseBody
       type: object
-    GetGroupsHandlerGroupProjectResponseBody:
+    GetGroupsHandlerGroupReadResponseBody:
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        noMembers:
+          default: 0
+          type: integer
+        noQuestions:
+          default: 0
+          type: integer
+        project:
+          oneOf:
+          - $ref: '#/components/schemas/GetGroupsHandlerGroupRead_0GroupProjectResponseBody'
+          - type: 'null'
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+      - createdAt
+      - id
+      - name
+      - updatedAt
+      title: GetGroupsHandlerGroupReadResponseBody
+      type: object
+    GetGroupsHandlerGroupRead_0GroupProjectResponseBody:
       properties:
         createdAt:
           format: date-time
@@ -1428,61 +1361,11 @@ components:
           format: date-time
           type: string
       required:
-      - name
-      title: GetGroupsHandlerGroupProjectResponseBody
-      type: object
-    GetGroupsHandlerGroupResponseBody:
-      properties:
-        createdAt:
-          format: date-time
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-        noMembers:
-          type: integer
-        noQuestions:
-          type: integer
-        project:
-          $ref: '#/components/schemas/GetGroupsHandlerGroupProjectResponseBody'
-        updatedAt:
-          format: date-time
-          type: string
-      required:
-      - name
-      - noMembers
-      - noQuestions
-      - project
-      title: GetGroupsHandlerGroupResponseBody
-      type: object
-    GetProjectConsolidationHandlerConsolidationQuestionConsolidationQuestionGroupResponseBody:
-      properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
+      - createdAt
       - id
       - name
-      title: GetProjectConsolidationHandlerConsolidationQuestionConsolidationQuestionGroupResponseBody
-      type: object
-    GetProjectConsolidationHandlerConsolidationQuestionConsolidationUserResponseBody:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - id
-      - name
-      title: GetProjectConsolidationHandlerConsolidationQuestionConsolidationUserResponseBody
+      - updatedAt
+      title: GetGroupsHandlerGroupRead_0GroupProjectResponseBody
       type: object
     GetProjectConsolidationHandlerConsolidationReadConsolidationProjectResponseBody:
       properties:
@@ -1548,10 +1431,6 @@ components:
         aggregatedRating:
           default: 0
           type: integer
-        author:
-          $ref: '#/components/schemas/GetProjectConsolidationHandlerConsolidationQuestionConsolidationUserResponseBody'
-        group:
-          $ref: '#/components/schemas/GetProjectConsolidationHandlerConsolidationQuestionConsolidationQuestionGroupResponseBody'
         id:
           format: uuid
           type: string
@@ -1562,38 +1441,9 @@ components:
           - type: string
           - type: 'null'
       required:
-      - author
-      - group
       - id
       - question
       title: GetProjectConsolidationHandlerConsolidationRead_0ConsolidationQuestionResponseBody
-      type: object
-    GetProjectConsolidationsHandlerConsolidationQuestionConsolidationQuestionGroupResponseBody:
-      properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - id
-      - name
-      title: GetProjectConsolidationsHandlerConsolidationQuestionConsolidationQuestionGroupResponseBody
-      type: object
-    GetProjectConsolidationsHandlerConsolidationQuestionConsolidationUserResponseBody:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - id
-      - name
-      title: GetProjectConsolidationsHandlerConsolidationQuestionConsolidationUserResponseBody
       type: object
     GetProjectConsolidationsHandlerConsolidationReadConsolidationProjectResponseBody:
       properties:
@@ -1659,10 +1509,6 @@ components:
         aggregatedRating:
           default: 0
           type: integer
-        author:
-          $ref: '#/components/schemas/GetProjectConsolidationsHandlerConsolidationQuestionConsolidationUserResponseBody'
-        group:
-          $ref: '#/components/schemas/GetProjectConsolidationsHandlerConsolidationQuestionConsolidationQuestionGroupResponseBody'
         id:
           format: uuid
           type: string
@@ -1673,13 +1519,41 @@ components:
           - type: string
           - type: 'null'
       required:
-      - author
-      - group
       - id
       - question
       title: GetProjectConsolidationsHandlerConsolidationRead_0ConsolidationQuestionResponseBody
       type: object
-    GetProjectGroupsHandlerGroupProjectResponseBody:
+    GetProjectGroupsHandlerGroupReadResponseBody:
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        noMembers:
+          default: 0
+          type: integer
+        noQuestions:
+          default: 0
+          type: integer
+        project:
+          oneOf:
+          - $ref: '#/components/schemas/GetProjectGroupsHandlerGroupRead_0GroupProjectResponseBody'
+          - type: 'null'
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+      - createdAt
+      - id
+      - name
+      - updatedAt
+      title: GetProjectGroupsHandlerGroupReadResponseBody
+      type: object
+    GetProjectGroupsHandlerGroupRead_0GroupProjectResponseBody:
       properties:
         createdAt:
           format: date-time
@@ -1697,68 +1571,17 @@ components:
           format: date-time
           type: string
       required:
+      - createdAt
+      - id
       - name
-      title: GetProjectGroupsHandlerGroupProjectResponseBody
+      - updatedAt
+      title: GetProjectGroupsHandlerGroupRead_0GroupProjectResponseBody
       type: object
-    GetProjectGroupsHandlerGroupResponseBody:
-      properties:
-        createdAt:
-          format: date-time
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-        noMembers:
-          type: integer
-        noQuestions:
-          type: integer
-        project:
-          $ref: '#/components/schemas/GetProjectGroupsHandlerGroupProjectResponseBody'
-        updatedAt:
-          format: date-time
-          type: string
-      required:
-      - name
-      - noMembers
-      - noQuestions
-      - project
-      title: GetProjectGroupsHandlerGroupResponseBody
-      type: object
-    GetProjectHandlerConsolidationUserResponseBody:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - name
-      title: GetProjectHandlerConsolidationUserResponseBody
-      type: object
-    GetProjectHandlerGroup_0UserResponseBody:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - name
-      title: GetProjectHandlerGroup_0UserResponseBody
-      type: object
-    GetProjectHandlerProjectResponseBody:
+    GetProjectHandlerProjectDetailResponseBody:
       properties:
         consolidations:
           items:
-            $ref: '#/components/schemas/GetProjectHandlerProject_0ConsolidationResponseBody'
+            $ref: '#/components/schemas/GetProjectHandlerProjectDetail_0ProjectConsolidationResponseBody'
           type: array
         createdAt:
           format: date-time
@@ -1769,62 +1592,59 @@ components:
           - type: 'null'
         engineers:
           items:
-            $ref: '#/components/schemas/domain.projects.controllers.ProjectController.get_project_handlerProject_0UserResponseBody'
+            $ref: '#/components/schemas/domain.projects.controllers.ProjectController.get_project_handlerProjectDetail_0ProjectUserResponseBody'
           type: array
         groups:
           items:
-            $ref: '#/components/schemas/GetProjectHandlerProject_0GroupResponseBody'
+            $ref: '#/components/schemas/GetProjectHandlerProjectDetail_0ProjectGroupResponseBody'
           type: array
         id:
           format: uuid
           type: string
         managers:
           items:
-            $ref: '#/components/schemas/GetProjectHandlerProject_0UserResponseBody'
+            $ref: '#/components/schemas/GetProjectHandlerProjectDetail_0ProjectUserResponseBody'
           type: array
         name:
           type: string
         noConsolidations:
+          default: 0
           type: integer
         noEngineers:
+          default: 0
           type: integer
         noGroups:
+          default: 0
           type: integer
         noManagers:
+          default: 0
           type: integer
         totalMembers:
+          default: 0
           type: integer
         updatedAt:
           format: date-time
           type: string
       required:
-      - consolidations
-      - engineers
-      - groups
-      - managers
+      - createdAt
+      - id
       - name
-      - noConsolidations
-      - noEngineers
-      - noGroups
-      - noManagers
-      - totalMembers
-      title: GetProjectHandlerProjectResponseBody
+      - updatedAt
+      title: GetProjectHandlerProjectDetailResponseBody
       type: object
-    GetProjectHandlerProject_0ConsolidationResponseBody:
+    GetProjectHandlerProjectDetail_0ProjectConsolidationResponseBody:
       properties:
-        engineer:
-          $ref: '#/components/schemas/GetProjectHandlerConsolidationUserResponseBody'
         id:
           format: uuid
           type: string
         noQuestions:
+          default: 0
           type: integer
       required:
-      - engineer
-      - noQuestions
-      title: GetProjectHandlerProject_0ConsolidationResponseBody
+      - id
+      title: GetProjectHandlerProjectDetail_0ProjectConsolidationResponseBody
       type: object
-    GetProjectHandlerProject_0GroupResponseBody:
+    GetProjectHandlerProjectDetail_0ProjectGroupResponseBody:
       properties:
         createdAt:
           format: date-time
@@ -1832,27 +1652,25 @@ components:
         id:
           format: uuid
           type: string
-        members:
-          items:
-            $ref: '#/components/schemas/GetProjectHandlerGroup_0UserResponseBody'
-          type: array
         name:
           type: string
         noMembers:
+          default: 0
           type: integer
         noQuestions:
+          default: 0
           type: integer
         updatedAt:
           format: date-time
           type: string
       required:
-      - members
+      - createdAt
+      - id
       - name
-      - noMembers
-      - noQuestions
-      title: GetProjectHandlerProject_0GroupResponseBody
+      - updatedAt
+      title: GetProjectHandlerProjectDetail_0ProjectGroupResponseBody
       type: object
-    GetProjectHandlerProject_0UserResponseBody:
+    GetProjectHandlerProjectDetail_0ProjectUserResponseBody:
       properties:
         email:
           type: string
@@ -1863,10 +1681,11 @@ components:
           type: string
       required:
       - email
+      - id
       - name
-      title: GetProjectHandlerProject_0UserResponseBody
+      title: GetProjectHandlerProjectDetail_0ProjectUserResponseBody
       type: object
-    GetProjectsHandlerProjectResponseBody:
+    GetProjectsHandlerProjectReadResponseBody:
       properties:
         description:
           oneOf:
@@ -1878,23 +1697,24 @@ components:
         name:
           type: string
         noConsolidations:
+          default: 0
           type: integer
         noEngineers:
+          default: 0
           type: integer
         noGroups:
+          default: 0
           type: integer
         noManagers:
+          default: 0
           type: integer
         totalMembers:
+          default: 0
           type: integer
       required:
+      - id
       - name
-      - noConsolidations
-      - noEngineers
-      - noGroups
-      - noManagers
-      - totalMembers
-      title: GetProjectsHandlerProjectResponseBody
+      title: GetProjectsHandlerProjectReadResponseBody
       type: object
     GetQuestionPassageTermResponseBody:
       properties:
@@ -2095,7 +1915,37 @@ components:
       - ids
       title: GroupUsersRemoveDTO
       type: object
-    MyGroupsByProjectsGroupProjectResponseBody:
+    MyGroupsByProjectsGroupReadResponseBody:
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        noMembers:
+          default: 0
+          type: integer
+        noQuestions:
+          default: 0
+          type: integer
+        project:
+          oneOf:
+          - $ref: '#/components/schemas/MyGroupsByProjectsGroupRead_0GroupProjectResponseBody'
+          - type: 'null'
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+      - createdAt
+      - id
+      - name
+      - updatedAt
+      title: MyGroupsByProjectsGroupReadResponseBody
+      type: object
+    MyGroupsByProjectsGroupRead_0GroupProjectResponseBody:
       properties:
         createdAt:
           format: date-time
@@ -2113,10 +1963,13 @@ components:
           format: date-time
           type: string
       required:
+      - createdAt
+      - id
       - name
-      title: MyGroupsByProjectsGroupProjectResponseBody
+      - updatedAt
+      title: MyGroupsByProjectsGroupRead_0GroupProjectResponseBody
       type: object
-    MyGroupsByProjectsGroupResponseBody:
+    MyGroupsGroupReadResponseBody:
       properties:
         createdAt:
           format: date-time
@@ -2127,22 +1980,26 @@ components:
         name:
           type: string
         noMembers:
+          default: 0
           type: integer
         noQuestions:
+          default: 0
           type: integer
         project:
-          $ref: '#/components/schemas/MyGroupsByProjectsGroupProjectResponseBody'
+          oneOf:
+          - $ref: '#/components/schemas/MyGroupsGroupRead_0GroupProjectResponseBody'
+          - type: 'null'
         updatedAt:
           format: date-time
           type: string
       required:
+      - createdAt
+      - id
       - name
-      - noMembers
-      - noQuestions
-      - project
-      title: MyGroupsByProjectsGroupResponseBody
+      - updatedAt
+      title: MyGroupsGroupReadResponseBody
       type: object
-    MyGroupsGroupProjectResponseBody:
+    MyGroupsGroupRead_0GroupProjectResponseBody:
       properties:
         createdAt:
           format: date-time
@@ -2160,36 +2017,13 @@ components:
           format: date-time
           type: string
       required:
+      - createdAt
+      - id
       - name
-      title: MyGroupsGroupProjectResponseBody
+      - updatedAt
+      title: MyGroupsGroupRead_0GroupProjectResponseBody
       type: object
-    MyGroupsGroupResponseBody:
-      properties:
-        createdAt:
-          format: date-time
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-        noMembers:
-          type: integer
-        noQuestions:
-          type: integer
-        project:
-          $ref: '#/components/schemas/MyGroupsGroupProjectResponseBody'
-        updatedAt:
-          format: date-time
-          type: string
-      required:
-      - name
-      - noMembers
-      - noQuestions
-      - project
-      title: MyGroupsGroupResponseBody
-      type: object
-    MyProjectsProjectResponseBody:
+    MyProjectsProjectReadResponseBody:
       properties:
         description:
           oneOf:
@@ -2201,23 +2035,24 @@ components:
         name:
           type: string
         noConsolidations:
+          default: 0
           type: integer
         noEngineers:
+          default: 0
           type: integer
         noGroups:
+          default: 0
           type: integer
         noManagers:
+          default: 0
           type: integer
         totalMembers:
+          default: 0
           type: integer
       required:
+      - id
       - name
-      - noConsolidations
-      - noEngineers
-      - noGroups
-      - noManagers
-      - totalMembers
-      title: MyProjectsProjectResponseBody
+      title: MyProjectsProjectReadResponseBody
       type: object
     ProjectCreateDTO:
       properties:
@@ -2314,7 +2149,7 @@ components:
       - termId
       title: RemoveAnnotationsPassageResponseBody
       type: object
-    RemoveEngineersHandlerProjectResponseBody:
+    RemoveEngineersHandlerProjectReadResponseBody:
       properties:
         description:
           oneOf:
@@ -2326,25 +2161,26 @@ components:
         name:
           type: string
         noConsolidations:
+          default: 0
           type: integer
         noEngineers:
+          default: 0
           type: integer
         noGroups:
+          default: 0
           type: integer
         noManagers:
+          default: 0
           type: integer
         totalMembers:
+          default: 0
           type: integer
       required:
+      - id
       - name
-      - noConsolidations
-      - noEngineers
-      - noGroups
-      - noManagers
-      - totalMembers
-      title: RemoveEngineersHandlerProjectResponseBody
+      title: RemoveEngineersHandlerProjectReadResponseBody
       type: object
-    RemoveManagersHandlerProjectResponseBody:
+    RemoveManagersHandlerProjectReadResponseBody:
       properties:
         description:
           oneOf:
@@ -2356,46 +2192,26 @@ components:
         name:
           type: string
         noConsolidations:
+          default: 0
           type: integer
         noEngineers:
+          default: 0
           type: integer
         noGroups:
+          default: 0
           type: integer
         noManagers:
+          default: 0
           type: integer
         totalMembers:
+          default: 0
           type: integer
       required:
+      - id
       - name
-      - noConsolidations
-      - noEngineers
-      - noGroups
-      - noManagers
-      - totalMembers
-      title: RemoveManagersHandlerProjectResponseBody
+      title: RemoveManagersHandlerProjectReadResponseBody
       type: object
-    RemoveMembersHandlerGroupProjectResponseBody:
-      properties:
-        createdAt:
-          format: date-time
-          type: string
-        description:
-          oneOf:
-          - type: string
-          - type: 'null'
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-        updatedAt:
-          format: date-time
-          type: string
-      required:
-      - name
-      title: RemoveMembersHandlerGroupProjectResponseBody
-      type: object
-    RemoveMembersHandlerGroupResponseBody:
+    RemoveMembersHandlerGroupReadResponseBody:
       properties:
         createdAt:
           format: date-time
@@ -2406,47 +2222,48 @@ components:
         name:
           type: string
         noMembers:
+          default: 0
           type: integer
         noQuestions:
+          default: 0
           type: integer
         project:
-          $ref: '#/components/schemas/RemoveMembersHandlerGroupProjectResponseBody'
+          oneOf:
+          - $ref: '#/components/schemas/RemoveMembersHandlerGroupRead_0GroupProjectResponseBody'
+          - type: 'null'
         updatedAt:
           format: date-time
           type: string
       required:
+      - createdAt
+      - id
       - name
-      - noMembers
-      - noQuestions
-      - project
-      title: RemoveMembersHandlerGroupResponseBody
+      - updatedAt
+      title: RemoveMembersHandlerGroupReadResponseBody
       type: object
-    RemoveQuestionHandlerConsolidationQuestionConsolidationQuestionGroupResponseBody:
+    RemoveMembersHandlerGroupRead_0GroupProjectResponseBody:
       properties:
+        createdAt:
+          format: date-time
+          type: string
+        description:
+          oneOf:
+          - type: string
+          - type: 'null'
         id:
           format: uuid
           type: string
         name:
           type: string
-      required:
-      - id
-      - name
-      title: RemoveQuestionHandlerConsolidationQuestionConsolidationQuestionGroupResponseBody
-      type: object
-    RemoveQuestionHandlerConsolidationQuestionConsolidationUserResponseBody:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
+        updatedAt:
+          format: date-time
           type: string
       required:
-      - email
+      - createdAt
       - id
       - name
-      title: RemoveQuestionHandlerConsolidationQuestionConsolidationUserResponseBody
+      - updatedAt
+      title: RemoveMembersHandlerGroupRead_0GroupProjectResponseBody
       type: object
     RemoveQuestionHandlerConsolidationReadConsolidationProjectResponseBody:
       properties:
@@ -2512,10 +2329,6 @@ components:
         aggregatedRating:
           default: 0
           type: integer
-        author:
-          $ref: '#/components/schemas/RemoveQuestionHandlerConsolidationQuestionConsolidationUserResponseBody'
-        group:
-          $ref: '#/components/schemas/RemoveQuestionHandlerConsolidationQuestionConsolidationQuestionGroupResponseBody'
         id:
           format: uuid
           type: string
@@ -2526,8 +2339,6 @@ components:
           - type: string
           - type: 'null'
       required:
-      - author
-      - group
       - id
       - question
       title: RemoveQuestionHandlerConsolidationRead_0ConsolidationQuestionResponseBody
@@ -2618,33 +2429,6 @@ components:
       - termId
       title: UpdateAnnotationPassageResponseBody
       type: object
-    UpdateConsolidationHandlerConsolidationQuestionConsolidationQuestionGroupResponseBody:
-      properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - id
-      - name
-      title: UpdateConsolidationHandlerConsolidationQuestionConsolidationQuestionGroupResponseBody
-      type: object
-    UpdateConsolidationHandlerConsolidationQuestionConsolidationUserResponseBody:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - id
-      - name
-      title: UpdateConsolidationHandlerConsolidationQuestionConsolidationUserResponseBody
-      type: object
     UpdateConsolidationHandlerConsolidationReadConsolidationProjectResponseBody:
       properties:
         id:
@@ -2709,10 +2493,6 @@ components:
         aggregatedRating:
           default: 0
           type: integer
-        author:
-          $ref: '#/components/schemas/UpdateConsolidationHandlerConsolidationQuestionConsolidationUserResponseBody'
-        group:
-          $ref: '#/components/schemas/UpdateConsolidationHandlerConsolidationQuestionConsolidationQuestionGroupResponseBody'
         id:
           format: uuid
           type: string
@@ -2723,8 +2503,6 @@ components:
           - type: string
           - type: 'null'
       required:
-      - author
-      - group
       - id
       - question
       title: UpdateConsolidationHandlerConsolidationRead_0ConsolidationQuestionResponseBody
@@ -2739,7 +2517,37 @@ components:
       required: []
       title: UpdateConsolidationHandlerConsolidationUpdateRequestBody
       type: object
-    UpdateGroupHandlerGroupProjectResponseBody:
+    UpdateGroupHandlerGroupReadResponseBody:
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        noMembers:
+          default: 0
+          type: integer
+        noQuestions:
+          default: 0
+          type: integer
+        project:
+          oneOf:
+          - $ref: '#/components/schemas/UpdateGroupHandlerGroupRead_0GroupProjectResponseBody'
+          - type: 'null'
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+      - createdAt
+      - id
+      - name
+      - updatedAt
+      title: UpdateGroupHandlerGroupReadResponseBody
+      type: object
+    UpdateGroupHandlerGroupRead_0GroupProjectResponseBody:
       properties:
         createdAt:
           format: date-time
@@ -2757,36 +2565,13 @@ components:
           format: date-time
           type: string
       required:
+      - createdAt
+      - id
       - name
-      title: UpdateGroupHandlerGroupProjectResponseBody
+      - updatedAt
+      title: UpdateGroupHandlerGroupRead_0GroupProjectResponseBody
       type: object
-    UpdateGroupHandlerGroupResponseBody:
-      properties:
-        createdAt:
-          format: date-time
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-        noMembers:
-          type: integer
-        noQuestions:
-          type: integer
-        project:
-          $ref: '#/components/schemas/UpdateGroupHandlerGroupProjectResponseBody'
-        updatedAt:
-          format: date-time
-          type: string
-      required:
-      - name
-      - noMembers
-      - noQuestions
-      - project
-      title: UpdateGroupHandlerGroupResponseBody
-      type: object
-    UpdateProjectHandlerProjectResponseBody:
+    UpdateProjectHandlerProjectReadResponseBody:
       properties:
         description:
           oneOf:
@@ -2798,23 +2583,24 @@ components:
         name:
           type: string
         noConsolidations:
+          default: 0
           type: integer
         noEngineers:
+          default: 0
           type: integer
         noGroups:
+          default: 0
           type: integer
         noManagers:
+          default: 0
           type: integer
         totalMembers:
+          default: 0
           type: integer
       required:
+      - id
       - name
-      - noConsolidations
-      - noEngineers
-      - noGroups
-      - noManagers
-      - totalMembers
-      title: UpdateProjectHandlerProjectResponseBody
+      title: UpdateProjectHandlerProjectReadResponseBody
       type: object
     UpdateQuestionPassageTermResponseBody:
       properties:
@@ -3042,42 +2828,11 @@ components:
       required: []
       title: UserUpdateDTO
       type: object
-    ? domain.consolidations.controllers.ConsolidationController.add_question_handlerConsolidationQuestionConsolidationQuestionGroupResponseBody
-    : properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - id
-      - name
-      title: domain.consolidations.controllers.ConsolidationController.add_question_handlerConsolidationQuestionConsolidationQuestionGroupResponseBody
-      type: object
-    ? domain.consolidations.controllers.ConsolidationController.add_question_handlerConsolidationQuestionConsolidationUserResponseBody
-    : properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - id
-      - name
-      title: domain.consolidations.controllers.ConsolidationController.add_question_handlerConsolidationQuestionConsolidationUserResponseBody
-      type: object
     ? domain.consolidations.controllers.ConsolidationController.add_question_handlerConsolidationRead_0ConsolidationQuestionResponseBody
     : properties:
         aggregatedRating:
           default: 0
           type: integer
-        author:
-          $ref: '#/components/schemas/domain.consolidations.controllers.ConsolidationController.add_question_handlerConsolidationQuestionConsolidationUserResponseBody'
-        group:
-          $ref: '#/components/schemas/domain.consolidations.controllers.ConsolidationController.add_question_handlerConsolidationQuestionConsolidationQuestionGroupResponseBody'
         id:
           format: uuid
           type: string
@@ -3088,48 +2843,15 @@ components:
           - type: string
           - type: 'null'
       required:
-      - author
-      - group
       - id
       - question
       title: domain.consolidations.controllers.ConsolidationController.add_question_handlerConsolidationRead_0ConsolidationQuestionResponseBody
-      type: object
-    ? domain.consolidations.controllers.ConsolidationController.create_consolidation_handlerConsolidationQuestionConsolidationQuestionGroupResponseBody
-    : properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - id
-      - name
-      title: domain.consolidations.controllers.ConsolidationController.create_consolidation_handlerConsolidationQuestionConsolidationQuestionGroupResponseBody
-      type: object
-    ? domain.consolidations.controllers.ConsolidationController.create_consolidation_handlerConsolidationQuestionConsolidationUserResponseBody
-    : properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - id
-      - name
-      title: domain.consolidations.controllers.ConsolidationController.create_consolidation_handlerConsolidationQuestionConsolidationUserResponseBody
       type: object
     ? domain.consolidations.controllers.ConsolidationController.create_consolidation_handlerConsolidationRead_0ConsolidationQuestionResponseBody
     : properties:
         aggregatedRating:
           default: 0
           type: integer
-        author:
-          $ref: '#/components/schemas/domain.consolidations.controllers.ConsolidationController.create_consolidation_handlerConsolidationQuestionConsolidationUserResponseBody'
-        group:
-          $ref: '#/components/schemas/domain.consolidations.controllers.ConsolidationController.create_consolidation_handlerConsolidationQuestionConsolidationQuestionGroupResponseBody'
         id:
           format: uuid
           type: string
@@ -3140,48 +2862,15 @@ components:
           - type: string
           - type: 'null'
       required:
-      - author
-      - group
       - id
       - question
       title: domain.consolidations.controllers.ConsolidationController.create_consolidation_handlerConsolidationRead_0ConsolidationQuestionResponseBody
-      type: object
-    ? domain.consolidations.controllers.ConsolidationController.get_consolidations_handlerConsolidationQuestionConsolidationQuestionGroupResponseBody
-    : properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - id
-      - name
-      title: domain.consolidations.controllers.ConsolidationController.get_consolidations_handlerConsolidationQuestionConsolidationQuestionGroupResponseBody
-      type: object
-    ? domain.consolidations.controllers.ConsolidationController.get_consolidations_handlerConsolidationQuestionConsolidationUserResponseBody
-    : properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - id
-      - name
-      title: domain.consolidations.controllers.ConsolidationController.get_consolidations_handlerConsolidationQuestionConsolidationUserResponseBody
       type: object
     ? domain.consolidations.controllers.ConsolidationController.get_consolidations_handlerConsolidationRead_0ConsolidationQuestionResponseBody
     : properties:
         aggregatedRating:
           default: 0
           type: integer
-        author:
-          $ref: '#/components/schemas/domain.consolidations.controllers.ConsolidationController.get_consolidations_handlerConsolidationQuestionConsolidationUserResponseBody'
-        group:
-          $ref: '#/components/schemas/domain.consolidations.controllers.ConsolidationController.get_consolidations_handlerConsolidationQuestionConsolidationQuestionGroupResponseBody'
         id:
           format: uuid
           type: string
@@ -3192,48 +2881,15 @@ components:
           - type: string
           - type: 'null'
       required:
-      - author
-      - group
       - id
       - question
       title: domain.consolidations.controllers.ConsolidationController.get_consolidations_handlerConsolidationRead_0ConsolidationQuestionResponseBody
-      type: object
-    ? domain.consolidations.controllers.ConsolidationController.get_project_consolidation_handlerConsolidationQuestionConsolidationQuestionGroupResponseBody
-    : properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - id
-      - name
-      title: domain.consolidations.controllers.ConsolidationController.get_project_consolidation_handlerConsolidationQuestionConsolidationQuestionGroupResponseBody
-      type: object
-    ? domain.consolidations.controllers.ConsolidationController.get_project_consolidation_handlerConsolidationQuestionConsolidationUserResponseBody
-    : properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - id
-      - name
-      title: domain.consolidations.controllers.ConsolidationController.get_project_consolidation_handlerConsolidationQuestionConsolidationUserResponseBody
       type: object
     ? domain.consolidations.controllers.ConsolidationController.get_project_consolidation_handlerConsolidationRead_0ConsolidationQuestionResponseBody
     : properties:
         aggregatedRating:
           default: 0
           type: integer
-        author:
-          $ref: '#/components/schemas/domain.consolidations.controllers.ConsolidationController.get_project_consolidation_handlerConsolidationQuestionConsolidationUserResponseBody'
-        group:
-          $ref: '#/components/schemas/domain.consolidations.controllers.ConsolidationController.get_project_consolidation_handlerConsolidationQuestionConsolidationQuestionGroupResponseBody'
         id:
           format: uuid
           type: string
@@ -3244,48 +2900,15 @@ components:
           - type: string
           - type: 'null'
       required:
-      - author
-      - group
       - id
       - question
       title: domain.consolidations.controllers.ConsolidationController.get_project_consolidation_handlerConsolidationRead_0ConsolidationQuestionResponseBody
-      type: object
-    ? domain.consolidations.controllers.ConsolidationController.get_project_consolidations_handlerConsolidationQuestionConsolidationQuestionGroupResponseBody
-    : properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - id
-      - name
-      title: domain.consolidations.controllers.ConsolidationController.get_project_consolidations_handlerConsolidationQuestionConsolidationQuestionGroupResponseBody
-      type: object
-    ? domain.consolidations.controllers.ConsolidationController.get_project_consolidations_handlerConsolidationQuestionConsolidationUserResponseBody
-    : properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - id
-      - name
-      title: domain.consolidations.controllers.ConsolidationController.get_project_consolidations_handlerConsolidationQuestionConsolidationUserResponseBody
       type: object
     ? domain.consolidations.controllers.ConsolidationController.get_project_consolidations_handlerConsolidationRead_0ConsolidationQuestionResponseBody
     : properties:
         aggregatedRating:
           default: 0
           type: integer
-        author:
-          $ref: '#/components/schemas/domain.consolidations.controllers.ConsolidationController.get_project_consolidations_handlerConsolidationQuestionConsolidationUserResponseBody'
-        group:
-          $ref: '#/components/schemas/domain.consolidations.controllers.ConsolidationController.get_project_consolidations_handlerConsolidationQuestionConsolidationQuestionGroupResponseBody'
         id:
           format: uuid
           type: string
@@ -3296,48 +2919,15 @@ components:
           - type: string
           - type: 'null'
       required:
-      - author
-      - group
       - id
       - question
       title: domain.consolidations.controllers.ConsolidationController.get_project_consolidations_handlerConsolidationRead_0ConsolidationQuestionResponseBody
-      type: object
-    ? domain.consolidations.controllers.ConsolidationController.remove_question_handlerConsolidationQuestionConsolidationQuestionGroupResponseBody
-    : properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - id
-      - name
-      title: domain.consolidations.controllers.ConsolidationController.remove_question_handlerConsolidationQuestionConsolidationQuestionGroupResponseBody
-      type: object
-    ? domain.consolidations.controllers.ConsolidationController.remove_question_handlerConsolidationQuestionConsolidationUserResponseBody
-    : properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - id
-      - name
-      title: domain.consolidations.controllers.ConsolidationController.remove_question_handlerConsolidationQuestionConsolidationUserResponseBody
       type: object
     ? domain.consolidations.controllers.ConsolidationController.remove_question_handlerConsolidationRead_0ConsolidationQuestionResponseBody
     : properties:
         aggregatedRating:
           default: 0
           type: integer
-        author:
-          $ref: '#/components/schemas/domain.consolidations.controllers.ConsolidationController.remove_question_handlerConsolidationQuestionConsolidationUserResponseBody'
-        group:
-          $ref: '#/components/schemas/domain.consolidations.controllers.ConsolidationController.remove_question_handlerConsolidationQuestionConsolidationQuestionGroupResponseBody'
         id:
           format: uuid
           type: string
@@ -3348,48 +2938,15 @@ components:
           - type: string
           - type: 'null'
       required:
-      - author
-      - group
       - id
       - question
       title: domain.consolidations.controllers.ConsolidationController.remove_question_handlerConsolidationRead_0ConsolidationQuestionResponseBody
-      type: object
-    ? domain.consolidations.controllers.ConsolidationController.update_consolidation_handlerConsolidationQuestionConsolidationQuestionGroupResponseBody
-    : properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - id
-      - name
-      title: domain.consolidations.controllers.ConsolidationController.update_consolidation_handlerConsolidationQuestionConsolidationQuestionGroupResponseBody
-      type: object
-    ? domain.consolidations.controllers.ConsolidationController.update_consolidation_handlerConsolidationQuestionConsolidationUserResponseBody
-    : properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - id
-      - name
-      title: domain.consolidations.controllers.ConsolidationController.update_consolidation_handlerConsolidationQuestionConsolidationUserResponseBody
       type: object
     ? domain.consolidations.controllers.ConsolidationController.update_consolidation_handlerConsolidationRead_0ConsolidationQuestionResponseBody
     : properties:
         aggregatedRating:
           default: 0
           type: integer
-        author:
-          $ref: '#/components/schemas/domain.consolidations.controllers.ConsolidationController.update_consolidation_handlerConsolidationQuestionConsolidationUserResponseBody'
-        group:
-          $ref: '#/components/schemas/domain.consolidations.controllers.ConsolidationController.update_consolidation_handlerConsolidationQuestionConsolidationQuestionGroupResponseBody'
         id:
           format: uuid
           type: string
@@ -3400,13 +2957,11 @@ components:
           - type: string
           - type: 'null'
       required:
-      - author
-      - group
       - id
       - question
       title: domain.consolidations.controllers.ConsolidationController.update_consolidation_handlerConsolidationRead_0ConsolidationQuestionResponseBody
       type: object
-    domain.projects.controllers.ProjectController.get_project_handlerProject_0UserResponseBody:
+    domain.projects.controllers.ProjectController.get_project_handlerProjectDetail_0ProjectUserResponseBody:
       properties:
         email:
           type: string
@@ -3417,8 +2972,9 @@ components:
           type: string
       required:
       - email
+      - id
       - name
-      title: domain.projects.controllers.ProjectController.get_project_handlerProject_0UserResponseBody
+      title: domain.projects.controllers.ProjectController.get_project_handlerProjectDetail_0ProjectUserResponseBody
       type: object
     domain.questions.controller.QuestionController.create_questionCommentUserResponseBody_0:
       properties:
@@ -4663,7 +4219,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/GetGroupsHandlerGroupResponseBody'
+                  $ref: '#/components/schemas/GetGroupsHandlerGroupReadResponseBody'
                 type: array
           description: Request fulfilled, document follows
           headers: {}
@@ -4688,7 +4244,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetDirectHandlerGroupResponseBody'
+                $ref: '#/components/schemas/GetDirectHandlerGroupDetailResponseBody'
           description: Request fulfilled, document follows
           headers: {}
         '400':
@@ -4730,7 +4286,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/MyGroupsGroupResponseBody'
+                  $ref: '#/components/schemas/MyGroupsGroupReadResponseBody'
                 type: array
           description: Request fulfilled, document follows
           headers: {}
@@ -4756,7 +4312,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/MyGroupsByProjectsGroupResponseBody'
+                  $ref: '#/components/schemas/MyGroupsByProjectsGroupReadResponseBody'
                 type: array
           description: Request fulfilled, document follows
           headers: {}
@@ -4812,7 +4368,7 @@ paths:
           content:
             ? ''
             : schema:
-                $ref: '#/components/schemas/ExtendMembersHandlerGroupResponseBody'
+                $ref: '#/components/schemas/ExtendMembersHandlerGroupReadResponseBody'
           description: Document created, URL follows
           headers: {}
         '400':
@@ -4862,7 +4418,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/GetProjectGroupsHandlerGroupResponseBody'
+                  $ref: '#/components/schemas/GetProjectGroupsHandlerGroupReadResponseBody'
                 type: array
           description: Request fulfilled, document follows
           headers: {}
@@ -4917,7 +4473,7 @@ paths:
           content:
             ? ''
             : schema:
-                $ref: '#/components/schemas/CreateGroupHandlerGroupResponseBody'
+                $ref: '#/components/schemas/CreateGroupHandlerGroupReadResponseBody'
           description: Document created, URL follows
           headers: {}
         '400':
@@ -5024,7 +4580,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetGroupHandlerGroupResponseBody'
+                $ref: '#/components/schemas/GetGroupHandlerGroupDetailResponseBody'
           description: Request fulfilled, document follows
           headers: {}
         '400':
@@ -5085,7 +4641,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UpdateGroupHandlerGroupResponseBody'
+                $ref: '#/components/schemas/UpdateGroupHandlerGroupReadResponseBody'
           description: Request fulfilled, document follows
           headers: {}
         '400':
@@ -5148,7 +4704,7 @@ paths:
           content:
             ? ''
             : schema:
-                $ref: '#/components/schemas/AddMembersHandlerGroupResponseBody'
+                $ref: '#/components/schemas/AddMembersHandlerGroupReadResponseBody'
           description: Request fulfilled, document follows
           headers: {}
         '400':
@@ -5210,7 +4766,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RemoveMembersHandlerGroupResponseBody'
+                $ref: '#/components/schemas/RemoveMembersHandlerGroupReadResponseBody'
           description: Request fulfilled, document follows
           headers: {}
         '400':
@@ -5251,7 +4807,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/GetProjectsHandlerProjectResponseBody'
+                  $ref: '#/components/schemas/GetProjectsHandlerProjectReadResponseBody'
                 type: array
           description: Request fulfilled, document follows
           headers: {}
@@ -5272,7 +4828,7 @@ paths:
           content:
             ? ''
             : schema:
-                $ref: '#/components/schemas/CreateProjectHandlerProjectResponseBody'
+                $ref: '#/components/schemas/CreateProjectHandlerProjectReadResponseBody'
           description: Document created, URL follows
           headers: {}
         '400':
@@ -5315,7 +4871,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/MyProjectsProjectResponseBody'
+                  $ref: '#/components/schemas/MyProjectsProjectReadResponseBody'
                 type: array
           description: Request fulfilled, document follows
           headers: {}
@@ -5382,7 +4938,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetProjectHandlerProjectResponseBody'
+                $ref: '#/components/schemas/GetProjectHandlerProjectDetailResponseBody'
           description: Request fulfilled, document follows
           headers: {}
         '400':
@@ -5435,7 +4991,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UpdateProjectHandlerProjectResponseBody'
+                $ref: '#/components/schemas/UpdateProjectHandlerProjectReadResponseBody'
           description: Request fulfilled, document follows
           headers: {}
         '400':
@@ -5489,7 +5045,7 @@ paths:
           content:
             ? ''
             : schema:
-                $ref: '#/components/schemas/AddEngineersHandlerProjectResponseBody'
+                $ref: '#/components/schemas/AddEngineersHandlerProjectReadResponseBody'
           description: Request fulfilled, document follows
           headers: {}
         '400':
@@ -5543,7 +5099,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RemoveEngineersHandlerProjectResponseBody'
+                $ref: '#/components/schemas/RemoveEngineersHandlerProjectReadResponseBody'
           description: Request fulfilled, document follows
           headers: {}
         '400':
@@ -5597,7 +5153,7 @@ paths:
           content:
             ? ''
             : schema:
-                $ref: '#/components/schemas/AddManagersHandlerProjectResponseBody'
+                $ref: '#/components/schemas/AddManagersHandlerProjectReadResponseBody'
           description: Request fulfilled, document follows
           headers: {}
         '400':
@@ -5651,7 +5207,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RemoveManagersHandlerProjectResponseBody'
+                $ref: '#/components/schemas/RemoveManagersHandlerProjectReadResponseBody'
           description: Request fulfilled, document follows
           headers: {}
         '400':
