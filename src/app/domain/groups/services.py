@@ -176,7 +176,8 @@ class GroupService:
         options: Iterable[ExecutableOption] | None = None,
     ) -> Group:
         group = await GroupService.get_group(session, id, project_id)
-        group.name = data.name if data.name else group.name
+        if data.name is not None:
+            group.name = data.name
 
         await session.commit()
         await session.refresh(group)

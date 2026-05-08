@@ -4,12 +4,15 @@ from litestar.status_codes import HTTP_200_OK, HTTP_204_NO_CONTENT
 from litestar.testing import TestClient
 
 from ._fixtures import (
+    TEST_PASSWORD,
     admin_header,
     create_group,
     create_project,
     create_question,
+    login,
     register_user,
     test_client,
+    unique_text,
     verify_user,
 )  # pyright: ignore
 
@@ -71,6 +74,38 @@ def test_add_existing_user_to_group(
         finally:
             client.delete(f"/projects/{project['id']}", headers=admin_header)
             client.delete(f"/users/{user['email']}", headers=admin_header)
+
+
+def test_project_manager_can_update_group_without_group_membership(
+    test_client: TestClient[Litestar],
+    admin_header: Headers,
+) -> None:
+    with test_client as client:
+        manager = register_user(client)
+        verify_user(client, admin_header, manager["email"])
+        manager_header = login(client, manager["email"], TEST_PASSWORD)
+        project = create_project(client, admin_header, managers=[manager["email"]])
+        group = create_group(client, admin_header, project["id"])
+        updated_name = unique_text("Updated Group")
+
+        try:
+            group_response = client.get(
+                f"/groups/{project['id']}/{group['id']}",
+                headers=manager_header,
+            )
+            assert group_response.status_code == HTTP_200_OK, group_response.text
+            assert manager["email"] not in {member["email"] for member in group_response.json()["members"]}
+
+            response = client.put(
+                f"/groups/{project['id']}/{group['id']}",
+                json={"name": updated_name},
+                headers=manager_header,
+            )
+            assert response.status_code == HTTP_200_OK, response.text
+            assert response.json()["name"] == updated_name
+        finally:
+            client.delete(f"/projects/{project['id']}", headers=admin_header)
+            client.delete(f"/users/{manager['email']}", headers=admin_header)
 
 
 def test_deleting_project_deletes_groups(
