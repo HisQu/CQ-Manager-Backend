@@ -47,6 +47,61 @@ def test_created_group_is_visible_in_my_groups(
             assert project_delete_response.status_code == HTTP_204_NO_CONTENT
 
 
+def test_group_comments_can_be_created_and_updated(
+    test_client: TestClient[Litestar],
+    admin_header: Headers,
+) -> None:
+    with test_client as client:
+        project = create_project(client, admin_header)
+        comments = "\n".join(
+            [
+                unique_text("Initial group comments"),
+                "This is deliberately a longer free-text field.",
+                "It should preserve line breaks and enough content for notes.",
+            ]
+        )
+        updated_comments = "\n\n".join([comments, unique_text("Follow-up comment")])
+        group = create_group(client, admin_header, project["id"], comments=comments)
+
+        try:
+            assert group["comments"] == comments
+
+            detail_response = client.get(
+                f"/groups/{project['id']}/{group['id']}",
+                headers=admin_header,
+            )
+            assert detail_response.status_code == HTTP_200_OK, detail_response.text
+            assert detail_response.json()["comments"] == comments
+
+            update_response = client.put(
+                f"/groups/{project['id']}/{group['id']}",
+                json={"comments": updated_comments},
+                headers=admin_header,
+            )
+            assert update_response.status_code == HTTP_200_OK, update_response.text
+            assert update_response.json()["comments"] == updated_comments
+
+            project_response = client.get(f"/projects/{project['id']}", headers=admin_header)
+            assert project_response.status_code == HTTP_200_OK, project_response.text
+            project_group = next(
+                group
+                for group in project_response.json()["groups"]
+                if group["id"] == update_response.json()["id"]
+            )
+            assert project_group["comments"] == updated_comments
+
+            clear_response = client.put(
+                f"/groups/{project['id']}/{group['id']}",
+                json={"comments": None},
+                headers=admin_header,
+            )
+            assert clear_response.status_code == HTTP_200_OK, clear_response.text
+            assert clear_response.json()["comments"] is None
+        finally:
+            delete_response = client.delete(f"/projects/{project['id']}", headers=admin_header)
+            assert delete_response.status_code == HTTP_204_NO_CONTENT
+
+
 def test_add_existing_user_to_group(
     test_client: TestClient[Litestar],
     admin_header: Headers,

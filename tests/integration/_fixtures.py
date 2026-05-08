@@ -102,10 +102,15 @@ def create_group(
     project_id: str,
     *,
     name: str | None = None,
+    comments: str | None = None,
 ) -> dict:
+    payload = {"name": name or unique_text("Test Group")}
+    if comments is not None:
+        payload["comments"] = comments
+
     response = client.post(
         f"/groups/{project_id}",
-        json={"name": name or unique_text("Test Group")},
+        json=payload,
         headers=headers,
     )
     assert response.status_code == HTTP_201_CREATED, response.text
@@ -118,9 +123,12 @@ def create_question(
     group_id: str,
     *,
     question: str | None = None,
+    comment: str | None = None,
     sparql_query: str | None = None,
 ) -> dict:
     payload = {"question": question or unique_text("Test question?")}
+    if comment is not None:
+        payload["comment"] = comment
     if sparql_query is not None:
         payload["sparqlQuery"] = sparql_query
 

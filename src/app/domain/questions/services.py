@@ -27,6 +27,7 @@ class QuestionService:
         return UnifiedQuestionOverview(
             id=question.id,
             question=question.question,
+            comment=question.comment,
             sparql_query=question.sparql_query,
             rating=question.aggregated_rating,
             no_consolidations=question.no_consolidations,
@@ -58,6 +59,7 @@ class QuestionService:
             return UnifiedQuestionOverview(
                 id=consolidation.id,
                 question=fallback_question.question,
+                comment=fallback_question.comment,
                 sparql_query=None,
                 rating=0,
                 no_consolidations=0,

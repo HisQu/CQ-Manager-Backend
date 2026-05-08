@@ -19,6 +19,7 @@ class QuestionOverviewDTO(SQLAlchemyDTO[Question]):
             "group.id",
             "group.name",
             "question",
+            "comment",
             "sparql_query",
             "rating",
             "author.id",
@@ -36,6 +37,7 @@ class QuestionDetailDTO(SQLAlchemyDTO[Question]):
         include={
             "id",
             "question",
+            "comment",
             "sparql_query",
             "group_id",
             "version_number",
@@ -70,6 +72,7 @@ class QuestionDetailDTO(SQLAlchemyDTO[Question]):
             "consolidations.0.questions.0.id",
             "consolidations.0.questions.0.group_id",
             "consolidations.0.questions.0.question",
+            "consolidations.0.questions.0.comment",
             "consolidations.0.questions.0.sparql_query",
             "consolidations.0.questions.0.author.id",
             "consolidations.0.questions.0.author.email",
@@ -91,6 +94,7 @@ class QuestionDetailDTO(SQLAlchemyDTO[Question]):
 
 class QuestionCreate(BaseModel):
     question: str
+    comment: str | None = None
     sparql_query: str | None = None
     annotations: list[AnnotationDTO] = []
 
@@ -100,7 +104,8 @@ class QuestionCreateDTO(PydanticDTO[QuestionCreate]):
 
 
 class QuestionUpdate(BaseModel):
-    question: str
+    question: str | None = None
+    comment: str | None = None
     sparql_query: str | None = None
 
 
@@ -111,6 +116,7 @@ class QuestionUpdateDTO(PydanticDTO[QuestionUpdate]):
 class QuestionUpdated(BaseModel):
     id: UUID
     question: str
+    comment: str | None = None
     sparql_query: str | None = None
     author_id: UUID
 
@@ -138,6 +144,7 @@ class UnifiedQuestionAuthor(BaseModel):
 class UnifiedQuestionOverview(BaseModel):
     id: UUID
     question: str
+    comment: str | None = None
     sparql_query: str | None = None
     rating: int = 0
     no_consolidations: int = 0

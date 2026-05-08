@@ -91,6 +91,12 @@ class AsyncSqlPlugin:
             connection.execute(text("ALTER TABLE question ADD COLUMN sparql_query VARCHAR"))
 
     @staticmethod
+    def _ensure_question_comment_column(connection: Connection) -> None:
+        columns = {column["name"] for column in inspect(connection).get_columns("question")}
+        if "comment" not in columns:
+            connection.execute(text("ALTER TABLE question ADD COLUMN comment TEXT"))
+
+    @staticmethod
     def _ensure_consolidation_result_question_id_column(connection: Connection) -> None:
         columns = {
             column["name"]
@@ -100,6 +106,12 @@ class AsyncSqlPlugin:
             connection.execute(
                 text("ALTER TABLE consolidation ADD COLUMN result_question_id CHAR(32)")
             )
+
+    @staticmethod
+    def _ensure_group_comments_column(connection: Connection) -> None:
+        columns = {column["name"] for column in inspect(connection).get_columns("group")}
+        if "comments" not in columns:
+            connection.execute(text('ALTER TABLE "group" ADD COLUMN comments TEXT'))
 
     @staticmethod
     def _remove_consolidation_name_column(connection: Connection) -> None:
@@ -157,7 +169,9 @@ class AsyncSqlPlugin:
             # await conn.run_sync(UUIDBase.metadata.drop_all)
             await conn.run_sync(UUIDBase.metadata.create_all)
             await conn.run_sync(self._ensure_question_sparql_query_column)
+            await conn.run_sync(self._ensure_question_comment_column)
             await conn.run_sync(self._ensure_consolidation_result_question_id_column)
+            await conn.run_sync(self._ensure_group_comments_column)
             await conn.run_sync(self._remove_consolidation_name_column)
 
 

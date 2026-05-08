@@ -25,6 +25,8 @@ from .dtos import (
     QuestionCreateDTO,
     QuestionDetailDTO,
     QuestionOverviewDTO,
+    QuestionUpdate,
+    QuestionUpdateDTO,
     UnifiedQuestionOverview,
     UnifiedQuestionOverviewDTO,
 )
@@ -123,6 +125,7 @@ class QuestionController(Controller):
 
             question = Question(
                 question=data.question,
+                comment=data.comment,
                 sparql_query=data.sparql_query,
                 author_id=request.user.id,
                 editor_id=request.user.id,
@@ -213,14 +216,14 @@ class QuestionController(Controller):
 
     @put(
         "/{group_id:uuid}/{question_id:uuid}",
-        dto=QuestionCreateDTO,
+        dto=QuestionUpdateDTO,
         return_dto=QuestionDetailDTO,
         status_code=HTTP_200_OK,
     )
     async def update_question(
         self,
         session: AsyncSession,
-        data: JsonEncoded[QuestionCreate],
+        data: JsonEncoded[QuestionUpdate],
         question_id: UUID,
         request: Request[User, Any, Any],
     ) -> Question:
@@ -240,8 +243,12 @@ class QuestionController(Controller):
             )
             session.add(version)
             question.editor_id = request.user.id
-            question.question = data.question
-            question.sparql_query = data.sparql_query
+            if data.question is not None:
+                question.question = data.question
+            if "comment" in data.model_fields_set:
+                question.comment = data.comment
+            if "sparql_query" in data.model_fields_set:
+                question.sparql_query = data.sparql_query
             question.version_number = question.version_number + 1
             session.add(question)
             await session.commit()

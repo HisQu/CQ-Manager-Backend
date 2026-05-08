@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 from litestar.contrib.sqlalchemy.base import UUIDAuditBase
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, Text
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -21,6 +21,7 @@ if TYPE_CHECKING:
 class Question(UUIDAuditBase):
     version_number: Mapped[int]
     question: Mapped[str]
+    comment: Mapped[str | None] = mapped_column(Text, default=None)
     sparql_query: Mapped[str | None]
     author_id: Mapped[UUID] = mapped_column(ForeignKey("user.id"))
     editor_id: Mapped[UUID] = mapped_column(ForeignKey("user.id"))

@@ -55,6 +55,7 @@ class ConsolidationService:
         user_id: UUID,
         group_id: UUID,
         question: str,
+        comment: str | None,
         sparql_query: str | None,
     ) -> Question:
         group = await session.scalar(
@@ -68,6 +69,7 @@ class ConsolidationService:
 
         result_question = Question(
             question=question,
+            comment=comment,
             sparql_query=sparql_query,
             author_id=user_id,
             editor_id=user_id,
@@ -174,6 +176,7 @@ class ConsolidationService:
                     user_id=user_id,
                     group_id=group_id,
                     question=data.result_question.question,
+                    comment=data.result_question.comment,
                     sparql_query=data.result_question.sparql_query,
                 )
             else:

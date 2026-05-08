@@ -88,7 +88,7 @@ class GroupService:
         if creator.id not in {member.id for member in members}:
             members.append(creator)
 
-        group = Group(name=data.name, project_id=project_id, members=members)
+        group = Group(name=data.name, comments=data.comments, project_id=project_id, members=members)
         session.add(group)
         await session.commit()
         await session.refresh(group)
@@ -178,6 +178,8 @@ class GroupService:
         group = await GroupService.get_group(session, id, project_id)
         if data.name is not None:
             group.name = data.name
+        if "comments" in data.model_fields_set:
+            group.comments = data.comments
 
         await session.commit()
         await session.refresh(group)

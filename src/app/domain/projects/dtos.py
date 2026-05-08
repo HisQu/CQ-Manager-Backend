@@ -16,6 +16,7 @@ class ProjectUser(BaseModel):
 class ProjectGroup(BaseModel):
     id: UUID
     name: str
+    comments: str | None = None
     no_members: int = 0
     no_questions: int = 0
     created_at: datetime

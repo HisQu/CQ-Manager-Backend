@@ -26,6 +26,7 @@ class ConsolidationQuestion(BaseModel):
     id: UUID
     group: ConsolidationQuestionGroup | None = None
     question: str
+    comment: str | None = None
     sparql_query: str | None = None
     aggregated_rating: int = 0
     author: ConsolidationUser
@@ -48,6 +49,7 @@ class ConsolidationDTO(PydanticDTO[ConsolidationRead]):
 class ConsolidationResultQuestionCreate(BaseModel):
     id: UUID | None = None
     question: str | None = None
+    comment: str | None = None
     group_id: UUID | None = None
     sparql_query: str | None = None
 
