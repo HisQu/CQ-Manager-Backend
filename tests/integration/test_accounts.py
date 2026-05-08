@@ -123,6 +123,61 @@ def test_user_lifecycle(
             client.delete(f"/users/{email}", headers=admin_header)
 
 
+def test_update_user_allows_unchanged_unique_fields(
+    test_client: TestClient[Litestar],
+    admin_header: Headers,
+) -> None:
+    email = _unique_email()
+    new_email = _unique_email()
+    updated_name = f"{email}-updated"
+
+    with test_client as client:
+        try:
+            register_user(client, email=email)
+            verify_user(client, admin_header, email)
+
+            response = client.put(
+                f"/users/{email}",
+                json={
+                    "email": email,
+                    "name": updated_name,
+                    "is_system_admin": False,
+                    "is_verified": False,
+                },
+                headers=admin_header,
+            )
+            assert response.status_code == HTTP_200_OK
+            assert response.json()["email"] == email
+            assert response.json()["name"] == updated_name
+            assert response.json()["is_system_admin"] is False
+            assert response.json()["is_verified"] is False
+
+            response = client.put(
+                f"/users/{email}",
+                json={
+                    "email": new_email,
+                    "is_system_admin": True,
+                    "is_verified": True,
+                },
+                headers=admin_header,
+            )
+            assert response.status_code == HTTP_200_OK
+            assert response.json()["email"] == new_email
+            assert response.json()["is_system_admin"] is True
+            assert response.json()["is_verified"] is True
+
+            response = client.put(
+                f"/users/{new_email}",
+                json={"is_system_admin": False},
+                headers=admin_header,
+            )
+            assert response.status_code == HTTP_200_OK
+            assert response.json()["is_system_admin"] is False
+        finally:
+            client.delete(f"/users/{new_email}", headers=admin_header)
+            client.delete(f"/users/{email}", headers=admin_header)
+
+
 def test_delete_user_referenced_by_entities(
     test_client: TestClient[Litestar],
     admin_header: Headers,

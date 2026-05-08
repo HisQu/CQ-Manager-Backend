@@ -109,24 +109,22 @@ class UserService:
         :param data: Any updates that should be applied to the `User`.
         :return: The updated `User` if found.
         """
-        if data.email and await session.scalar(
-            select(User).where(User.email == data.email)
-        ):
-            raise EmailInUseException(data.email)
-
-        if data.name and await session.scalar(
-            select(User).where(User.name == data.name)
-        ):
-            raise NameInUseException(data.name)
-
         if user := await session.scalar(select(User).where(User.email == user_email)):
-            user.name = data.name if data.name else user.name
-            user.is_system_admin = (
-                data.is_system_admin if data.is_system_admin else user.is_system_admin
-            )
-            user.is_verified = (
-                data.is_verified if data.is_verified else user.is_verified
-            )
+            if data.email is not None and data.email != user.email:
+                if await session.scalar(select(User).where(User.email == data.email)):
+                    raise EmailInUseException(data.email)
+                user.email = data.email
+
+            if data.name is not None and data.name != user.name:
+                if await session.scalar(select(User).where(User.name == data.name)):
+                    raise NameInUseException(data.name)
+                user.name = data.name
+
+            if data.is_system_admin is not None:
+                user.is_system_admin = data.is_system_admin
+
+            if data.is_verified is not None:
+                user.is_verified = data.is_verified
 
             if data.password:
                 password = UserService._encrypt_password(encryption, data.password)
