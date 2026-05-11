@@ -12,6 +12,7 @@ from domain.groups.models import Group, GroupMembers
 from domain.questions.models import Question
 from domain.ratings.models import Rating
 from domain.terms.models import AnnotatedPassages, Passage, Term
+from domain.topics.models import Topic
 from domain.versions.models import Version
 from litestar.exceptions import HTTPException
 from litestar.status_codes import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
@@ -261,6 +262,7 @@ class ProjectService:
             delete(Group).where(Group.project_id == id),
             delete(Passage).where(Passage.term_id.in_(term_ids)),
             delete(Term).where(Term.project_id == id),
+            delete(Topic).where(Topic.project_id == id),
             delete(ProjectManagers).where(ProjectManagers.c.project_id == id),
             delete(ProjectEngineers).where(ProjectEngineers.c.project_id == id),
             delete(Project).where(Project.id == id),

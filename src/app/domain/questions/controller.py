@@ -48,11 +48,13 @@ class QuestionController(Controller):
         selectinload(Question.author),
         selectinload(Question.ratings),
         selectinload(Question.consolidations),
+        selectinload(Question.topic),
         selectinload(Question.group).options(selectinload(Group.project)),
     ]
     unified_options = [
         selectinload(Question.author),
         selectinload(Question.ratings),
+        selectinload(Question.topic),
         selectinload(Question.consolidations).options(
             selectinload(Consolidation.engineer),
             selectinload(Consolidation.questions),
@@ -60,6 +62,7 @@ class QuestionController(Controller):
                 selectinload(Question.author),
                 selectinload(Question.ratings),
                 selectinload(Question.consolidations),
+                selectinload(Question.topic),
                 selectinload(Question.group),
             ),
         ),
@@ -69,6 +72,7 @@ class QuestionController(Controller):
         selectinload(Question.author),
         selectinload(Question.editor),
         selectinload(Question.ratings).options(selectinload(Rating.author)),
+        selectinload(Question.topic),
         selectinload(Question.consolidations).options(
             selectinload(Consolidation.questions).options(
                 selectinload(Question.author)

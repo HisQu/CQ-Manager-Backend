@@ -37,6 +37,10 @@ class QuestionOverviewDTO(SQLAlchemyDTO[Question]):
             "id",
             "group.id",
             "group.name",
+            "topic_id",
+            "topic.id",
+            "topic.identifier",
+            "topic.name",
             "question",
             "comment",
             "reference",
@@ -83,6 +87,10 @@ class QuestionDetailDTO(SQLAlchemyDTO[Question]):
             "group.name",
             "group.project.id",
             "group.project.name",
+            "topic_id",
+            "topic.id",
+            "topic.identifier",
+            "topic.name",
             "comments.0.author.id",
             "comments.0.author.email",
             "comments.0.author.name",
@@ -172,6 +180,12 @@ class UnifiedQuestionAuthor(BaseModel):
     name: str
 
 
+class UnifiedQuestionTopic(BaseModel):
+    id: UUID
+    identifier: str
+    name: str
+
+
 class UnifiedQuestionOverview(QuestionMetadataMixin):
     id: UUID
     question: str
@@ -180,6 +194,7 @@ class UnifiedQuestionOverview(QuestionMetadataMixin):
     rating: int = 0
     no_consolidations: int = 0
     group: UnifiedQuestionGroup | None = None
+    topic: UnifiedQuestionTopic | None = None
     author: UnifiedQuestionAuthor | None = None
     unified_entry_kind: UnifiedQuestionEntryKind
     consolidation_id: UUID | None = None

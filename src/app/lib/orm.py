@@ -131,6 +131,12 @@ class AsyncSqlPlugin:
         connection.execute(text('ALTER TABLE "group" ADD COLUMN "comment" TEXT'))
 
     @staticmethod
+    def _ensure_question_topic_id_column(connection: Connection) -> None:
+        columns = {column["name"] for column in inspect(connection).get_columns("question")}
+        if "topic_id" not in columns:
+            connection.execute(text("ALTER TABLE question ADD COLUMN topic_id CHAR(32)"))
+
+    @staticmethod
     def _remove_consolidation_name_column(connection: Connection) -> None:
         columns = {
             column["name"] for column in inspect(connection).get_columns("consolidation")
@@ -190,6 +196,7 @@ class AsyncSqlPlugin:
             await conn.run_sync(self._ensure_question_metadata_columns)
             await conn.run_sync(self._ensure_consolidation_result_question_id_column)
             await conn.run_sync(self._ensure_group_comment_column)
+            await conn.run_sync(self._ensure_question_topic_id_column)
             await conn.run_sync(self._remove_consolidation_name_column)
 
 

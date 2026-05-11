@@ -1,9 +1,10 @@
 from httpx import Headers
 from litestar import Litestar
-from litestar.status_codes import HTTP_200_OK, HTTP_204_NO_CONTENT, HTTP_401_UNAUTHORIZED
+from litestar.status_codes import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT, HTTP_401_UNAUTHORIZED
 from litestar.testing import TestClient
 
 from ._fixtures import (
+    MANAGER_EMAIL,
     TEST_PASSWORD,
     admin_header,
     create_group,
@@ -68,6 +69,26 @@ def test_non_project_manager_cannot_create_group(
         finally:
             client.delete(f"/projects/{project['id']}", headers=admin_header)
             client.delete(f"/users/{user['email']}", headers=admin_header)
+
+
+def test_system_admin_can_create_group_without_project_manager_role(
+    test_client: TestClient[Litestar],
+    admin_header: Headers,
+) -> None:
+    with test_client as client:
+        project = create_project(client, admin_header, managers=[MANAGER_EMAIL])
+
+        try:
+            response = client.post(
+                f"/groups/{project['id']}",
+                json={"name": unique_text("Admin Created Group")},
+                headers=admin_header,
+            )
+
+            assert response.status_code == HTTP_201_CREATED, response.text
+            assert response.json()["project"]["id"] == project["id"]
+        finally:
+            client.delete(f"/projects/{project['id']}", headers=admin_header)
 
 
 def test_group_comment_can_be_created_and_updated(

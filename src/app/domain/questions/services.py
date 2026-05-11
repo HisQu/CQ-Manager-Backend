@@ -12,6 +12,7 @@ from .dtos import (
     UnifiedQuestionEntryKind,
     UnifiedQuestionGroup,
     UnifiedQuestionOverview,
+    UnifiedQuestionTopic,
 )
 from .models import Question
 
@@ -36,6 +37,15 @@ class QuestionService:
             rating=question.aggregated_rating,
             no_consolidations=question.no_consolidations,
             group=UnifiedQuestionGroup(id=question.group.id, name=question.group.name),
+            topic=(
+                UnifiedQuestionTopic(
+                    id=question.topic.id,
+                    identifier=question.topic.identifier,
+                    name=question.topic.name,
+                )
+                if question.topic
+                else None
+            ),
             author=UnifiedQuestionAuthor(
                 id=question.author.id,
                 email=question.author.email,
@@ -73,6 +83,15 @@ class QuestionService:
                 no_consolidations=0,
                 group=UnifiedQuestionGroup(
                     id=fallback_question.group.id, name=fallback_question.group.name
+                ),
+                topic=(
+                    UnifiedQuestionTopic(
+                        id=fallback_question.topic.id,
+                        identifier=fallback_question.topic.identifier,
+                        name=fallback_question.topic.name,
+                    )
+                    if fallback_question.topic
+                    else None
                 ),
                 author=UnifiedQuestionAuthor(
                     id=consolidation.engineer.id,

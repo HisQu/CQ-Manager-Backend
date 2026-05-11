@@ -15,6 +15,7 @@ from domain.projects.controllers import ProjectController
 from domain.questions.controller import QuestionController
 from domain.ratings.controller import RatingController
 from domain.terms.controllers import TermController
+from domain.topics.controllers import TopicController
 from lib.mails import MailService
 from lib.services import MockDataService
 from litestar import Litestar
@@ -49,6 +50,7 @@ app = Litestar(
         ConsolidationController,
         CommentController,
         TermController,
+        TopicController,
     ],
     cors_config=cors_config,
     openapi_config=openapi_config,

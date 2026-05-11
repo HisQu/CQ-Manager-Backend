@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from domain.consolidations.models import Consolidation
     from domain.groups.models import Group
     from domain.ratings.models import Rating
+    from domain.topics.models import Topic
     from domain.versions.models import Version
     from domain.terms.models import Passage
 
@@ -30,10 +31,12 @@ class Question(UUIDAuditBase):
     author_id: Mapped[UUID] = mapped_column(ForeignKey("user.id"))
     editor_id: Mapped[UUID] = mapped_column(ForeignKey("user.id"))
     group_id: Mapped[UUID] = mapped_column(ForeignKey("group.id", ondelete="CASCADE"))
+    topic_id: Mapped[UUID | None] = mapped_column(ForeignKey("topic.id"), default=None)
 
     author: Mapped[User] = relationship(foreign_keys=[author_id], back_populates="questions")
     editor: Mapped[User] = relationship(foreign_keys=[editor_id], back_populates="edited_questions")
     group: Mapped[Group] = relationship(back_populates="questions")
+    topic: Mapped[Topic | None] = relationship(back_populates="questions")
     ratings: Mapped[list[Rating]] = relationship(back_populates="question", cascade="all, delete-orphan")
     comments: Mapped[list[Comment]] = relationship(back_populates="question", cascade="all, delete-orphan")
     consolidations: Mapped[list[Consolidation]] = relationship(

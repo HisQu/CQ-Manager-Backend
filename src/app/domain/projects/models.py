@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from domain.consolidations.models import Consolidation
     from domain.groups.models import Group
     from domain.terms.models import Term
+    from domain.topics.models import Topic
 
 ProjectManagers = Table(
     "project_managers",
@@ -45,6 +46,10 @@ class Project(UUIDAuditBase):
         cascade="all, delete-orphan",
     )
     terms: Mapped[list[Term]] = relationship(back_populates="project")
+    topics: Mapped[list[Topic]] = relationship(
+        back_populates="project",
+        cascade="all, delete-orphan",
+    )
 
     @hybrid_property
     def no_managers(self) -> int:
