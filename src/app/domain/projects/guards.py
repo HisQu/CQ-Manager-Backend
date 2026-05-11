@@ -21,6 +21,9 @@ async def project_manager_guard(connection: ASGIConnection[Any, User, Any, Any],
 
     Requires a `project_id: UUID` path parameter to be set.
     """
+    if connection.user.is_system_admin:
+        return
+
     if project_id := get_path_param(UUID, "project_id", connection):
         async with session() as session_:
             if await ProjectService.is_manager(session_, project_id, connection.user.id):
@@ -35,6 +38,9 @@ async def ontology_engineer_guard(connection: ASGIConnection[Any, User, Any, Any
 
     Requires a `project_id: UUID` path parameter to be set.
     """
+    if connection.user.is_system_admin:
+        return
+
     if project_id := get_path_param(UUID, "project_id", connection):
         async with session() as session_:
             if await ProjectService.is_engineer(session_, project_id, connection.user.id):
@@ -49,6 +55,8 @@ async def project_member_guard(connection: ASGIConnection[Any, User, Any, Any], 
 
     Requires a `project_id: UUID` path parameter to be set.
     """
+    if connection.user.is_system_admin:
+        return
 
     if project_id := get_path_param(UUID, "project_id", connection):
         async with session() as session_:
