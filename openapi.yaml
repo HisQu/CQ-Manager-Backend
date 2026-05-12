@@ -276,7 +276,7 @@ components:
       - term
       title: AnnotationDTO
       type: object
-    ByProjectQuestionGroupResponseBody:
+    AssignQuestionTopicQuestionGroup_0QuestionProjectResponseBody:
       properties:
         id:
           format: uuid
@@ -284,18 +284,25 @@ components:
         name:
           type: string
       required:
+      - id
       - name
-      title: ByProjectQuestionGroupResponseBody
+      title: AssignQuestionTopicQuestionGroup_0QuestionProjectResponseBody
       type: object
-    ByProjectQuestionResponseBody:
+    AssignQuestionTopicQuestionOverviewResponseBody:
       properties:
         anchor:
           oneOf:
           - type: string
           - type: 'null'
         author:
-          $ref: '#/components/schemas/ByProjectQuestionUserResponseBody'
+          oneOf:
+          - $ref: '#/components/schemas/AssignQuestionTopicQuestionOverview_0QuestionUserResponseBody'
+          - type: 'null'
         comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        cqCatalogueIdentifier:
           oneOf:
           - type: string
           - type: 'null'
@@ -304,14 +311,20 @@ components:
           - type: string
           - type: 'null'
         group:
-          $ref: '#/components/schemas/ByProjectQuestionGroupResponseBody'
+          oneOf:
+          - $ref: '#/components/schemas/AssignQuestionTopicQuestionOverview_0QuestionGroupResponseBody'
+          - type: 'null'
         id:
           format: uuid
           type: string
         noConsolidations:
+          default: 0
           type: integer
         question:
           type: string
+        rating:
+          default: 0
+          type: integer
         reference:
           oneOf:
           - type: string
@@ -320,18 +333,62 @@ components:
           oneOf:
           - type: string
           - type: 'null'
-        type:
+        topic:
           oneOf:
-          - type: string
+          - $ref: '#/components/schemas/AssignQuestionTopicQuestionOverview_0QuestionTopicResponseBody'
+          - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
+      required:
+      - id
+      - question
+      title: AssignQuestionTopicQuestionOverviewResponseBody
+      type: object
+    AssignQuestionTopicQuestionOverview_0QuestionGroupResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        project:
+          oneOf:
+          - $ref: '#/components/schemas/AssignQuestionTopicQuestionGroup_0QuestionProjectResponseBody'
           - type: 'null'
       required:
-      - author
-      - group
-      - noConsolidations
-      - question
-      title: ByProjectQuestionResponseBody
+      - id
+      - name
+      title: AssignQuestionTopicQuestionOverview_0QuestionGroupResponseBody
       type: object
-    ByProjectQuestionUserResponseBody:
+    AssignQuestionTopicQuestionOverview_0QuestionTopicResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        identifier:
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - identifier
+      - name
+      title: AssignQuestionTopicQuestionOverview_0QuestionTopicResponseBody
+      type: object
+    AssignQuestionTopicQuestionOverview_0QuestionUserResponseBody:
       properties:
         email:
           type: string
@@ -342,8 +399,136 @@ components:
           type: string
       required:
       - email
+      - id
       - name
-      title: ByProjectQuestionUserResponseBody
+      title: AssignQuestionTopicQuestionOverview_0QuestionUserResponseBody
+      type: object
+    ByProjectQuestionGroup_0QuestionProjectResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: ByProjectQuestionGroup_0QuestionProjectResponseBody
+      type: object
+    ByProjectQuestionOverviewResponseBody:
+      properties:
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
+        author:
+          oneOf:
+          - $ref: '#/components/schemas/ByProjectQuestionOverview_0QuestionUserResponseBody'
+          - type: 'null'
+        comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        cqCatalogueIdentifier:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
+        group:
+          oneOf:
+          - $ref: '#/components/schemas/ByProjectQuestionOverview_0QuestionGroupResponseBody'
+          - type: 'null'
+        id:
+          format: uuid
+          type: string
+        noConsolidations:
+          default: 0
+          type: integer
+        question:
+          type: string
+        rating:
+          default: 0
+          type: integer
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        topic:
+          oneOf:
+          - $ref: '#/components/schemas/ByProjectQuestionOverview_0QuestionTopicResponseBody'
+          - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
+      required:
+      - id
+      - question
+      title: ByProjectQuestionOverviewResponseBody
+      type: object
+    ByProjectQuestionOverview_0QuestionGroupResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        project:
+          oneOf:
+          - $ref: '#/components/schemas/ByProjectQuestionGroup_0QuestionProjectResponseBody'
+          - type: 'null'
+      required:
+      - id
+      - name
+      title: ByProjectQuestionOverview_0QuestionGroupResponseBody
+      type: object
+    ByProjectQuestionOverview_0QuestionTopicResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        identifier:
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - identifier
+      - name
+      title: ByProjectQuestionOverview_0QuestionTopicResponseBody
+      type: object
+    ByProjectQuestionOverview_0QuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: ByProjectQuestionOverview_0QuestionUserResponseBody
       type: object
     ByProjectUnifiedUnifiedQuestionOverviewResponseBody:
       properties:
@@ -368,6 +553,10 @@ components:
           oneOf:
           - format: uuid
             type: string
+          - type: 'null'
+        cqCatalogueIdentifier:
+          oneOf:
+          - type: string
           - type: 'null'
         exampleAnswer:
           oneOf:
@@ -395,6 +584,10 @@ components:
         sparqlQuery:
           oneOf:
           - type: string
+          - type: 'null'
+        topic:
+          oneOf:
+          - $ref: '#/components/schemas/ByProjectUnifiedUnifiedQuestionOverview_0UnifiedQuestionTopicResponseBody'
           - type: 'null'
         type:
           enum:
@@ -445,6 +638,148 @@ components:
       - id
       - name
       title: ByProjectUnifiedUnifiedQuestionOverview_0UnifiedQuestionGroupResponseBody
+      type: object
+    ByProjectUnifiedUnifiedQuestionOverview_0UnifiedQuestionTopicResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        identifier:
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - identifier
+      - name
+      title: ByProjectUnifiedUnifiedQuestionOverview_0UnifiedQuestionTopicResponseBody
+      type: object
+    ChangeQuestionTopicQuestionGroup_0QuestionProjectResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: ChangeQuestionTopicQuestionGroup_0QuestionProjectResponseBody
+      type: object
+    ChangeQuestionTopicQuestionOverviewResponseBody:
+      properties:
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
+        author:
+          oneOf:
+          - $ref: '#/components/schemas/ChangeQuestionTopicQuestionOverview_0QuestionUserResponseBody'
+          - type: 'null'
+        comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        cqCatalogueIdentifier:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
+        group:
+          oneOf:
+          - $ref: '#/components/schemas/ChangeQuestionTopicQuestionOverview_0QuestionGroupResponseBody'
+          - type: 'null'
+        id:
+          format: uuid
+          type: string
+        noConsolidations:
+          default: 0
+          type: integer
+        question:
+          type: string
+        rating:
+          default: 0
+          type: integer
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        topic:
+          oneOf:
+          - $ref: '#/components/schemas/ChangeQuestionTopicQuestionOverview_0QuestionTopicResponseBody'
+          - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
+      required:
+      - id
+      - question
+      title: ChangeQuestionTopicQuestionOverviewResponseBody
+      type: object
+    ChangeQuestionTopicQuestionOverview_0QuestionGroupResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        project:
+          oneOf:
+          - $ref: '#/components/schemas/ChangeQuestionTopicQuestionGroup_0QuestionProjectResponseBody'
+          - type: 'null'
+      required:
+      - id
+      - name
+      title: ChangeQuestionTopicQuestionOverview_0QuestionGroupResponseBody
+      type: object
+    ChangeQuestionTopicQuestionOverview_0QuestionTopicResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        identifier:
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - identifier
+      - name
+      title: ChangeQuestionTopicQuestionOverview_0QuestionTopicResponseBody
+      type: object
+    ChangeQuestionTopicQuestionOverview_0QuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: ChangeQuestionTopicQuestionOverview_0QuestionUserResponseBody
       type: object
     CreateCommentCommentCreateRequestBody:
       properties:
@@ -766,7 +1101,7 @@ components:
       - name
       title: CreateProjectHandlerProjectReadResponseBody
       type: object
-    CreateQuestionPassageTermResponseBody:
+    CreateQuestionQuestionAnnotationQuestionAnnotationTermResponseBody:
       properties:
         content:
           type: string
@@ -775,7 +1110,123 @@ components:
           type: string
       required:
       - content
-      title: CreateQuestionPassageTermResponseBody
+      - id
+      title: CreateQuestionQuestionAnnotationQuestionAnnotationTermResponseBody
+      type: object
+    CreateQuestionQuestionCommentQuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: CreateQuestionQuestionCommentQuestionUserResponseBody
+      type: object
+    CreateQuestionQuestionConsolidationQuestionProjectResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: CreateQuestionQuestionConsolidationQuestionProjectResponseBody
+      type: object
+    CreateQuestionQuestionConsolidationQuestionQuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: CreateQuestionQuestionConsolidationQuestionQuestionUserResponseBody
+      type: object
+    CreateQuestionQuestionConsolidationQuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: CreateQuestionQuestionConsolidationQuestionUserResponseBody
+      type: object
+    CreateQuestionQuestionConsolidation_0QuestionConsolidationQuestionResponseBody:
+      properties:
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
+        author:
+          $ref: '#/components/schemas/CreateQuestionQuestionConsolidationQuestionQuestionUserResponseBody'
+        comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        cqCatalogueIdentifier:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
+        groupId:
+          format: uuid
+          type: string
+        id:
+          format: uuid
+          type: string
+        question:
+          type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
+      required:
+      - author
+      - groupId
+      - id
+      - question
+      title: CreateQuestionQuestionConsolidation_0QuestionConsolidationQuestionResponseBody
       type: object
     CreateQuestionQuestionCreateRequestBody:
       properties:
@@ -835,9 +1286,41 @@ components:
       - term
       title: CreateQuestionQuestionCreate_0AnnotationDTORequestBody
       type: object
-    CreateQuestionQuestionResponseBody:
+    CreateQuestionQuestionDetailQuestionGroupResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        project:
+          oneOf:
+          - $ref: '#/components/schemas/CreateQuestionQuestionGroup_0QuestionProjectResponseBody'
+          - type: 'null'
+      required:
+      - id
+      - name
+      title: CreateQuestionQuestionDetailQuestionGroupResponseBody
+      type: object
+    CreateQuestionQuestionDetailQuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: CreateQuestionQuestionDetailQuestionUserResponseBody
+      type: object
+    CreateQuestionQuestionDetailResponseBody:
       properties:
         aggregatedRating:
+          default: 0
           type: integer
         anchor:
           oneOf:
@@ -845,30 +1328,34 @@ components:
           - type: 'null'
         annotations:
           items:
-            $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionQuestion_0PassageResponseBody_9'
+            $ref: '#/components/schemas/CreateQuestionQuestionDetail_0QuestionAnnotationResponseBody'
           type: array
         author:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionQuestionUserResponseBody_2'
+          $ref: '#/components/schemas/CreateQuestionQuestionDetailQuestionUserResponseBody'
         comment:
           oneOf:
           - type: string
           - type: 'null'
         comments:
           items:
-            $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionQuestion_0CommentResponseBody_5'
+            $ref: '#/components/schemas/CreateQuestionQuestionDetail_0QuestionCommentResponseBody'
           type: array
         consolidations:
           items:
-            $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionQuestion_0ConsolidationResponseBody_7'
+            $ref: '#/components/schemas/CreateQuestionQuestionDetail_0QuestionConsolidationResponseBody'
           type: array
+        cqCatalogueIdentifier:
+          oneOf:
+          - type: string
+          - type: 'null'
         editor:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionQuestionUserResponseBody_7'
+          $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionQuestionDetailQuestionUserResponseBody'
         exampleAnswer:
           oneOf:
           - type: string
           - type: 'null'
         group:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionQuestionGroupResponseBody_3'
+          $ref: '#/components/schemas/CreateQuestionQuestionDetailQuestionGroupResponseBody'
         groupId:
           format: uuid
           type: string
@@ -876,12 +1363,13 @@ components:
           format: uuid
           type: string
         noConsolidations:
+          default: 0
           type: integer
         question:
           type: string
         ratings:
           items:
-            $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionQuestion_0RatingResponseBody_4'
+            $ref: '#/components/schemas/CreateQuestionQuestionDetail_0QuestionRatingResponseBody'
           type: array
         reference:
           oneOf:
@@ -891,31 +1379,204 @@ components:
           oneOf:
           - type: string
           - type: 'null'
-        type:
+        topic:
           oneOf:
-          - type: string
+          - $ref: '#/components/schemas/CreateQuestionQuestionDetail_0QuestionTopicResponseBody'
           - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
         versionNumber:
           type: integer
         versions:
           items:
-            $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionQuestion_0VersionResponseBody_8'
+            $ref: '#/components/schemas/CreateQuestionQuestionDetail_0QuestionVersionResponseBody'
           type: array
       required:
-      - aggregatedRating
-      - annotations
       - author
-      - comments
-      - consolidations
       - editor
       - group
       - groupId
-      - noConsolidations
+      - id
       - question
-      - ratings
       - versionNumber
-      - versions
-      title: CreateQuestionQuestionResponseBody
+      title: CreateQuestionQuestionDetailResponseBody
+      type: object
+    CreateQuestionQuestionDetail_0QuestionAnnotationResponseBody:
+      properties:
+        content:
+          type: string
+        id:
+          format: uuid
+          type: string
+        term:
+          $ref: '#/components/schemas/CreateQuestionQuestionAnnotationQuestionAnnotationTermResponseBody'
+      required:
+      - content
+      - id
+      - term
+      title: CreateQuestionQuestionDetail_0QuestionAnnotationResponseBody
+      type: object
+    CreateQuestionQuestionDetail_0QuestionCommentResponseBody:
+      properties:
+        author:
+          $ref: '#/components/schemas/CreateQuestionQuestionCommentQuestionUserResponseBody'
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+      required:
+      - author
+      - comment
+      - createdAt
+      title: CreateQuestionQuestionDetail_0QuestionCommentResponseBody
+      type: object
+    CreateQuestionQuestionDetail_0QuestionConsolidationResponseBody:
+      properties:
+        engineer:
+          $ref: '#/components/schemas/CreateQuestionQuestionConsolidationQuestionUserResponseBody'
+        id:
+          format: uuid
+          type: string
+        noQuestions:
+          default: 0
+          type: integer
+        project:
+          $ref: '#/components/schemas/CreateQuestionQuestionConsolidationQuestionProjectResponseBody'
+        questions:
+          items:
+            $ref: '#/components/schemas/CreateQuestionQuestionConsolidation_0QuestionConsolidationQuestionResponseBody'
+          type: array
+      required:
+      - engineer
+      - id
+      - project
+      title: CreateQuestionQuestionDetail_0QuestionConsolidationResponseBody
+      type: object
+    CreateQuestionQuestionDetail_0QuestionRatingResponseBody:
+      properties:
+        author:
+          $ref: '#/components/schemas/CreateQuestionQuestionRatingQuestionUserResponseBody'
+        rating:
+          type: integer
+      required:
+      - author
+      - rating
+      title: CreateQuestionQuestionDetail_0QuestionRatingResponseBody
+      type: object
+    CreateQuestionQuestionDetail_0QuestionTopicResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        identifier:
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - identifier
+      - name
+      title: CreateQuestionQuestionDetail_0QuestionTopicResponseBody
+      type: object
+    CreateQuestionQuestionDetail_0QuestionVersionResponseBody:
+      properties:
+        editor:
+          $ref: '#/components/schemas/CreateQuestionQuestionVersionQuestionUserResponseBody'
+        questionString:
+          type: string
+        versionNumber:
+          type: integer
+      required:
+      - editor
+      - questionString
+      - versionNumber
+      title: CreateQuestionQuestionDetail_0QuestionVersionResponseBody
+      type: object
+    CreateQuestionQuestionGroup_0QuestionProjectResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: CreateQuestionQuestionGroup_0QuestionProjectResponseBody
+      type: object
+    CreateQuestionQuestionRatingQuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: CreateQuestionQuestionRatingQuestionUserResponseBody
+      type: object
+    CreateQuestionQuestionVersionQuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: CreateQuestionQuestionVersionQuestionUserResponseBody
+      type: object
+    CreateTopicTopicCreateRequestBody:
+      properties:
+        identifier:
+          oneOf:
+          - type: string
+          - type: 'null'
+        name:
+          type: string
+      required:
+      - name
+      title: CreateTopicTopicCreateRequestBody
+      type: object
+    CreateTopicTopicResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        identifier:
+          type: string
+        name:
+          type: string
+        projectId:
+          format: uuid
+          type: string
+      required:
+      - identifier
+      - name
+      - projectId
+      title: CreateTopicTopicResponseBody
       type: object
     ExtendMembersHandlerGroupReadResponseBody:
       properties:
@@ -1019,75 +1680,6 @@ components:
       - content
       - projectId
       title: GetAllTermResponseBody
-      type: object
-    GetByTermQuestionGroupResponseBody:
-      properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - name
-      title: GetByTermQuestionGroupResponseBody
-      type: object
-    GetByTermQuestionResponseBody:
-      properties:
-        anchor:
-          oneOf:
-          - type: string
-          - type: 'null'
-        author:
-          $ref: '#/components/schemas/GetByTermQuestionUserResponseBody'
-        comment:
-          oneOf:
-          - type: string
-          - type: 'null'
-        exampleAnswer:
-          oneOf:
-          - type: string
-          - type: 'null'
-        group:
-          $ref: '#/components/schemas/GetByTermQuestionGroupResponseBody'
-        id:
-          format: uuid
-          type: string
-        noConsolidations:
-          type: integer
-        question:
-          type: string
-        reference:
-          oneOf:
-          - type: string
-          - type: 'null'
-        sparqlQuery:
-          oneOf:
-          - type: string
-          - type: 'null'
-        type:
-          oneOf:
-          - type: string
-          - type: 'null'
-      required:
-      - author
-      - group
-      - noConsolidations
-      - question
-      title: GetByTermQuestionResponseBody
-      type: object
-    GetByTermQuestionUserResponseBody:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - name
-      title: GetByTermQuestionUserResponseBody
       type: object
     GetCommentCommentResponseBody:
       properties:
@@ -1339,9 +1931,17 @@ components:
         aggregatedRating:
           default: 0
           type: integer
+        cqCatalogueIdentifier:
+          oneOf:
+          - type: string
+          - type: 'null'
         question:
           type: string
         sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        type:
           oneOf:
           - type: string
           - type: 'null'
@@ -1435,9 +2035,17 @@ components:
         aggregatedRating:
           default: 0
           type: integer
+        cqCatalogueIdentifier:
+          oneOf:
+          - type: string
+          - type: 'null'
         question:
           type: string
         sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        type:
           oneOf:
           - type: string
           - type: 'null'
@@ -1460,7 +2068,7 @@ components:
       - name
       title: GetGroupHandlerGroupDetail_0GroupUserResponseBody
       type: object
-    GetGroupQuestionsQuestionGroupResponseBody:
+    GetGroupQuestionsQuestionGroup_0QuestionProjectResponseBody:
       properties:
         id:
           format: uuid
@@ -1468,18 +2076,25 @@ components:
         name:
           type: string
       required:
+      - id
       - name
-      title: GetGroupQuestionsQuestionGroupResponseBody
+      title: GetGroupQuestionsQuestionGroup_0QuestionProjectResponseBody
       type: object
-    GetGroupQuestionsQuestionResponseBody:
+    GetGroupQuestionsQuestionOverviewResponseBody:
       properties:
         anchor:
           oneOf:
           - type: string
           - type: 'null'
         author:
-          $ref: '#/components/schemas/GetGroupQuestionsQuestionUserResponseBody'
+          oneOf:
+          - $ref: '#/components/schemas/GetGroupQuestionsQuestionOverview_0QuestionUserResponseBody'
+          - type: 'null'
         comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        cqCatalogueIdentifier:
           oneOf:
           - type: string
           - type: 'null'
@@ -1488,14 +2103,20 @@ components:
           - type: string
           - type: 'null'
         group:
-          $ref: '#/components/schemas/GetGroupQuestionsQuestionGroupResponseBody'
+          oneOf:
+          - $ref: '#/components/schemas/GetGroupQuestionsQuestionOverview_0QuestionGroupResponseBody'
+          - type: 'null'
         id:
           format: uuid
           type: string
         noConsolidations:
+          default: 0
           type: integer
         question:
           type: string
+        rating:
+          default: 0
+          type: integer
         reference:
           oneOf:
           - type: string
@@ -1504,18 +2125,62 @@ components:
           oneOf:
           - type: string
           - type: 'null'
-        type:
+        topic:
           oneOf:
-          - type: string
+          - $ref: '#/components/schemas/GetGroupQuestionsQuestionOverview_0QuestionTopicResponseBody'
+          - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
+      required:
+      - id
+      - question
+      title: GetGroupQuestionsQuestionOverviewResponseBody
+      type: object
+    GetGroupQuestionsQuestionOverview_0QuestionGroupResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        project:
+          oneOf:
+          - $ref: '#/components/schemas/GetGroupQuestionsQuestionGroup_0QuestionProjectResponseBody'
           - type: 'null'
       required:
-      - author
-      - group
-      - noConsolidations
-      - question
-      title: GetGroupQuestionsQuestionResponseBody
+      - id
+      - name
+      title: GetGroupQuestionsQuestionOverview_0QuestionGroupResponseBody
       type: object
-    GetGroupQuestionsQuestionUserResponseBody:
+    GetGroupQuestionsQuestionOverview_0QuestionTopicResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        identifier:
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - identifier
+      - name
+      title: GetGroupQuestionsQuestionOverview_0QuestionTopicResponseBody
+      type: object
+    GetGroupQuestionsQuestionOverview_0QuestionUserResponseBody:
       properties:
         email:
           type: string
@@ -1526,8 +2191,9 @@ components:
           type: string
       required:
       - email
+      - id
       - name
-      title: GetGroupQuestionsQuestionUserResponseBody
+      title: GetGroupQuestionsQuestionOverview_0QuestionUserResponseBody
       type: object
     GetGroupQuestionsUnifiedUnifiedQuestionOverviewResponseBody:
       properties:
@@ -1552,6 +2218,10 @@ components:
           oneOf:
           - format: uuid
             type: string
+          - type: 'null'
+        cqCatalogueIdentifier:
+          oneOf:
+          - type: string
           - type: 'null'
         exampleAnswer:
           oneOf:
@@ -1579,6 +2249,10 @@ components:
         sparqlQuery:
           oneOf:
           - type: string
+          - type: 'null'
+        topic:
+          oneOf:
+          - $ref: '#/components/schemas/GetGroupQuestionsUnifiedUnifiedQuestionOverview_0UnifiedQuestionTopicResponseBody'
           - type: 'null'
         type:
           enum:
@@ -1629,6 +2303,21 @@ components:
       - id
       - name
       title: GetGroupQuestionsUnifiedUnifiedQuestionOverview_0UnifiedQuestionGroupResponseBody
+      type: object
+    GetGroupQuestionsUnifiedUnifiedQuestionOverview_0UnifiedQuestionTopicResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        identifier:
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - identifier
+      - name
+      title: GetGroupQuestionsUnifiedUnifiedQuestionOverview_0UnifiedQuestionTopicResponseBody
       type: object
     GetGroupsHandlerGroupReadResponseBody:
       properties:
@@ -2107,7 +2796,7 @@ components:
       - name
       title: GetProjectsHandlerProjectReadResponseBody
       type: object
-    GetQuestionPassageTermResponseBody:
+    GetQuestionQuestionAnnotationQuestionAnnotationTermResponseBody:
       properties:
         content:
           type: string
@@ -2116,146 +2805,10 @@ components:
           type: string
       required:
       - content
-      title: GetQuestionPassageTermResponseBody
+      - id
+      title: GetQuestionQuestionAnnotationQuestionAnnotationTermResponseBody
       type: object
-    GetQuestionQuestionResponseBody:
-      properties:
-        aggregatedRating:
-          type: integer
-        anchor:
-          oneOf:
-          - type: string
-          - type: 'null'
-        annotations:
-          items:
-            $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionQuestion_0PassageResponseBody_9'
-          type: array
-        author:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionQuestionUserResponseBody_2'
-        comment:
-          oneOf:
-          - type: string
-          - type: 'null'
-        comments:
-          items:
-            $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionQuestion_0CommentResponseBody_5'
-          type: array
-        consolidations:
-          items:
-            $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionQuestion_0ConsolidationResponseBody_7'
-          type: array
-        editor:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionQuestionUserResponseBody_7'
-        exampleAnswer:
-          oneOf:
-          - type: string
-          - type: 'null'
-        group:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionQuestionGroupResponseBody_3'
-        groupId:
-          format: uuid
-          type: string
-        id:
-          format: uuid
-          type: string
-        noConsolidations:
-          type: integer
-        question:
-          type: string
-        ratings:
-          items:
-            $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionQuestion_0RatingResponseBody_4'
-          type: array
-        reference:
-          oneOf:
-          - type: string
-          - type: 'null'
-        sparqlQuery:
-          oneOf:
-          - type: string
-          - type: 'null'
-        type:
-          oneOf:
-          - type: string
-          - type: 'null'
-        versionNumber:
-          type: integer
-        versions:
-          items:
-            $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionQuestion_0VersionResponseBody_8'
-          type: array
-      required:
-      - aggregatedRating
-      - annotations
-      - author
-      - comments
-      - consolidations
-      - editor
-      - group
-      - groupId
-      - noConsolidations
-      - question
-      - ratings
-      - versionNumber
-      - versions
-      title: GetQuestionQuestionResponseBody
-      type: object
-    GetQuestionsQuestionGroupResponseBody:
-      properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - name
-      title: GetQuestionsQuestionGroupResponseBody
-      type: object
-    GetQuestionsQuestionResponseBody:
-      properties:
-        anchor:
-          oneOf:
-          - type: string
-          - type: 'null'
-        author:
-          $ref: '#/components/schemas/GetQuestionsQuestionUserResponseBody'
-        comment:
-          oneOf:
-          - type: string
-          - type: 'null'
-        exampleAnswer:
-          oneOf:
-          - type: string
-          - type: 'null'
-        group:
-          $ref: '#/components/schemas/GetQuestionsQuestionGroupResponseBody'
-        id:
-          format: uuid
-          type: string
-        noConsolidations:
-          type: integer
-        question:
-          type: string
-        reference:
-          oneOf:
-          - type: string
-          - type: 'null'
-        sparqlQuery:
-          oneOf:
-          - type: string
-          - type: 'null'
-        type:
-          oneOf:
-          - type: string
-          - type: 'null'
-      required:
-      - author
-      - group
-      - noConsolidations
-      - question
-      title: GetQuestionsQuestionResponseBody
-      type: object
-    GetQuestionsQuestionUserResponseBody:
+    GetQuestionQuestionCommentQuestionUserResponseBody:
       properties:
         email:
           type: string
@@ -2266,8 +2819,498 @@ components:
           type: string
       required:
       - email
+      - id
       - name
-      title: GetQuestionsQuestionUserResponseBody
+      title: GetQuestionQuestionCommentQuestionUserResponseBody
+      type: object
+    GetQuestionQuestionConsolidationQuestionProjectResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: GetQuestionQuestionConsolidationQuestionProjectResponseBody
+      type: object
+    GetQuestionQuestionConsolidationQuestionQuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: GetQuestionQuestionConsolidationQuestionQuestionUserResponseBody
+      type: object
+    GetQuestionQuestionConsolidationQuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: GetQuestionQuestionConsolidationQuestionUserResponseBody
+      type: object
+    GetQuestionQuestionConsolidation_0QuestionConsolidationQuestionResponseBody:
+      properties:
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
+        author:
+          $ref: '#/components/schemas/GetQuestionQuestionConsolidationQuestionQuestionUserResponseBody'
+        comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        cqCatalogueIdentifier:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
+        groupId:
+          format: uuid
+          type: string
+        id:
+          format: uuid
+          type: string
+        question:
+          type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
+      required:
+      - author
+      - groupId
+      - id
+      - question
+      title: GetQuestionQuestionConsolidation_0QuestionConsolidationQuestionResponseBody
+      type: object
+    GetQuestionQuestionDetailQuestionGroupResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        project:
+          oneOf:
+          - $ref: '#/components/schemas/GetQuestionQuestionGroup_0QuestionProjectResponseBody'
+          - type: 'null'
+      required:
+      - id
+      - name
+      title: GetQuestionQuestionDetailQuestionGroupResponseBody
+      type: object
+    GetQuestionQuestionDetailQuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: GetQuestionQuestionDetailQuestionUserResponseBody
+      type: object
+    GetQuestionQuestionDetailResponseBody:
+      properties:
+        aggregatedRating:
+          default: 0
+          type: integer
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
+        annotations:
+          items:
+            $ref: '#/components/schemas/GetQuestionQuestionDetail_0QuestionAnnotationResponseBody'
+          type: array
+        author:
+          $ref: '#/components/schemas/GetQuestionQuestionDetailQuestionUserResponseBody'
+        comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        comments:
+          items:
+            $ref: '#/components/schemas/GetQuestionQuestionDetail_0QuestionCommentResponseBody'
+          type: array
+        consolidations:
+          items:
+            $ref: '#/components/schemas/GetQuestionQuestionDetail_0QuestionConsolidationResponseBody'
+          type: array
+        cqCatalogueIdentifier:
+          oneOf:
+          - type: string
+          - type: 'null'
+        editor:
+          $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionQuestionDetailQuestionUserResponseBody'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
+        group:
+          $ref: '#/components/schemas/GetQuestionQuestionDetailQuestionGroupResponseBody'
+        groupId:
+          format: uuid
+          type: string
+        id:
+          format: uuid
+          type: string
+        noConsolidations:
+          default: 0
+          type: integer
+        question:
+          type: string
+        ratings:
+          items:
+            $ref: '#/components/schemas/GetQuestionQuestionDetail_0QuestionRatingResponseBody'
+          type: array
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        topic:
+          oneOf:
+          - $ref: '#/components/schemas/GetQuestionQuestionDetail_0QuestionTopicResponseBody'
+          - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
+        versionNumber:
+          type: integer
+        versions:
+          items:
+            $ref: '#/components/schemas/GetQuestionQuestionDetail_0QuestionVersionResponseBody'
+          type: array
+      required:
+      - author
+      - editor
+      - group
+      - groupId
+      - id
+      - question
+      - versionNumber
+      title: GetQuestionQuestionDetailResponseBody
+      type: object
+    GetQuestionQuestionDetail_0QuestionAnnotationResponseBody:
+      properties:
+        content:
+          type: string
+        id:
+          format: uuid
+          type: string
+        term:
+          $ref: '#/components/schemas/GetQuestionQuestionAnnotationQuestionAnnotationTermResponseBody'
+      required:
+      - content
+      - id
+      - term
+      title: GetQuestionQuestionDetail_0QuestionAnnotationResponseBody
+      type: object
+    GetQuestionQuestionDetail_0QuestionCommentResponseBody:
+      properties:
+        author:
+          $ref: '#/components/schemas/GetQuestionQuestionCommentQuestionUserResponseBody'
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+      required:
+      - author
+      - comment
+      - createdAt
+      title: GetQuestionQuestionDetail_0QuestionCommentResponseBody
+      type: object
+    GetQuestionQuestionDetail_0QuestionConsolidationResponseBody:
+      properties:
+        engineer:
+          $ref: '#/components/schemas/GetQuestionQuestionConsolidationQuestionUserResponseBody'
+        id:
+          format: uuid
+          type: string
+        noQuestions:
+          default: 0
+          type: integer
+        project:
+          $ref: '#/components/schemas/GetQuestionQuestionConsolidationQuestionProjectResponseBody'
+        questions:
+          items:
+            $ref: '#/components/schemas/GetQuestionQuestionConsolidation_0QuestionConsolidationQuestionResponseBody'
+          type: array
+      required:
+      - engineer
+      - id
+      - project
+      title: GetQuestionQuestionDetail_0QuestionConsolidationResponseBody
+      type: object
+    GetQuestionQuestionDetail_0QuestionRatingResponseBody:
+      properties:
+        author:
+          $ref: '#/components/schemas/GetQuestionQuestionRatingQuestionUserResponseBody'
+        rating:
+          type: integer
+      required:
+      - author
+      - rating
+      title: GetQuestionQuestionDetail_0QuestionRatingResponseBody
+      type: object
+    GetQuestionQuestionDetail_0QuestionTopicResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        identifier:
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - identifier
+      - name
+      title: GetQuestionQuestionDetail_0QuestionTopicResponseBody
+      type: object
+    GetQuestionQuestionDetail_0QuestionVersionResponseBody:
+      properties:
+        editor:
+          $ref: '#/components/schemas/GetQuestionQuestionVersionQuestionUserResponseBody'
+        questionString:
+          type: string
+        versionNumber:
+          type: integer
+      required:
+      - editor
+      - questionString
+      - versionNumber
+      title: GetQuestionQuestionDetail_0QuestionVersionResponseBody
+      type: object
+    GetQuestionQuestionGroup_0QuestionProjectResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: GetQuestionQuestionGroup_0QuestionProjectResponseBody
+      type: object
+    GetQuestionQuestionRatingQuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: GetQuestionQuestionRatingQuestionUserResponseBody
+      type: object
+    GetQuestionQuestionVersionQuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: GetQuestionQuestionVersionQuestionUserResponseBody
+      type: object
+    GetQuestionsQuestionGroup_0QuestionProjectResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: GetQuestionsQuestionGroup_0QuestionProjectResponseBody
+      type: object
+    GetQuestionsQuestionOverviewResponseBody:
+      properties:
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
+        author:
+          oneOf:
+          - $ref: '#/components/schemas/GetQuestionsQuestionOverview_0QuestionUserResponseBody'
+          - type: 'null'
+        comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        cqCatalogueIdentifier:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
+        group:
+          oneOf:
+          - $ref: '#/components/schemas/GetQuestionsQuestionOverview_0QuestionGroupResponseBody'
+          - type: 'null'
+        id:
+          format: uuid
+          type: string
+        noConsolidations:
+          default: 0
+          type: integer
+        question:
+          type: string
+        rating:
+          default: 0
+          type: integer
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        topic:
+          oneOf:
+          - $ref: '#/components/schemas/GetQuestionsQuestionOverview_0QuestionTopicResponseBody'
+          - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
+      required:
+      - id
+      - question
+      title: GetQuestionsQuestionOverviewResponseBody
+      type: object
+    GetQuestionsQuestionOverview_0QuestionGroupResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        project:
+          oneOf:
+          - $ref: '#/components/schemas/GetQuestionsQuestionGroup_0QuestionProjectResponseBody'
+          - type: 'null'
+      required:
+      - id
+      - name
+      title: GetQuestionsQuestionOverview_0QuestionGroupResponseBody
+      type: object
+    GetQuestionsQuestionOverview_0QuestionTopicResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        identifier:
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - identifier
+      - name
+      title: GetQuestionsQuestionOverview_0QuestionTopicResponseBody
+      type: object
+    GetQuestionsQuestionOverview_0QuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: GetQuestionsQuestionOverview_0QuestionUserResponseBody
       type: object
     GetRatingRatingResponseBody:
       properties:
@@ -2297,6 +3340,45 @@ components:
       - email
       - name
       title: GetRatingRatingUserResponseBody
+      type: object
+    GetTopicTopicDetailResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        identifier:
+          type: string
+        name:
+          type: string
+        projectId:
+          format: uuid
+          type: string
+        questions:
+          items:
+            $ref: '#/components/schemas/GetTopicTopicDetail_0TopicQuestionResponseBody'
+          type: array
+      required:
+      - id
+      - identifier
+      - name
+      - projectId
+      title: GetTopicTopicDetailResponseBody
+      type: object
+    GetTopicTopicDetail_0TopicQuestionResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        question:
+          type: string
+        type:
+          oneOf:
+          - type: string
+          - type: 'null'
+      required:
+      - id
+      - question
+      title: GetTopicTopicDetail_0TopicQuestionResponseBody
       type: object
     GroupCreateDTO:
       properties:
@@ -2351,6 +3433,24 @@ components:
       required:
       - ids
       title: GroupUsersRemoveDTO
+      type: object
+    ListTopicsTopicResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        identifier:
+          type: string
+        name:
+          type: string
+        projectId:
+          format: uuid
+          type: string
+      required:
+      - identifier
+      - name
+      - projectId
+      title: ListTopicsTopicResponseBody
       type: object
     MyGroupsByProjectsGroupReadResponseBody:
       properties:
@@ -2834,6 +3934,149 @@ components:
       - ids
       title: RemoveQuestionHandlerMoveQuestionRequestBody
       type: object
+    RemoveQuestionTopicQuestionGroup_0QuestionProjectResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: RemoveQuestionTopicQuestionGroup_0QuestionProjectResponseBody
+      type: object
+    RemoveQuestionTopicQuestionOverviewResponseBody:
+      properties:
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
+        author:
+          oneOf:
+          - $ref: '#/components/schemas/RemoveQuestionTopicQuestionOverview_0QuestionUserResponseBody'
+          - type: 'null'
+        comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        cqCatalogueIdentifier:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
+        group:
+          oneOf:
+          - $ref: '#/components/schemas/RemoveQuestionTopicQuestionOverview_0QuestionGroupResponseBody'
+          - type: 'null'
+        id:
+          format: uuid
+          type: string
+        noConsolidations:
+          default: 0
+          type: integer
+        question:
+          type: string
+        rating:
+          default: 0
+          type: integer
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        topic:
+          oneOf:
+          - $ref: '#/components/schemas/RemoveQuestionTopicQuestionOverview_0QuestionTopicResponseBody'
+          - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
+      required:
+      - id
+      - question
+      title: RemoveQuestionTopicQuestionOverviewResponseBody
+      type: object
+    RemoveQuestionTopicQuestionOverview_0QuestionGroupResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        project:
+          oneOf:
+          - $ref: '#/components/schemas/RemoveQuestionTopicQuestionGroup_0QuestionProjectResponseBody'
+          - type: 'null'
+      required:
+      - id
+      - name
+      title: RemoveQuestionTopicQuestionOverview_0QuestionGroupResponseBody
+      type: object
+    RemoveQuestionTopicQuestionOverview_0QuestionTopicResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        identifier:
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - identifier
+      - name
+      title: RemoveQuestionTopicQuestionOverview_0QuestionTopicResponseBody
+      type: object
+    RemoveQuestionTopicQuestionOverview_0QuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: RemoveQuestionTopicQuestionOverview_0QuestionUserResponseBody
+      type: object
+    ResolveCatalogueIdentifierQuestionCatalogueResolutionResponseBody:
+      properties:
+        cqCatalogueIdentifier:
+          type: string
+        groupId:
+          format: uuid
+          type: string
+        id:
+          format: uuid
+          type: string
+      required:
+      - cqCatalogueIdentifier
+      - groupId
+      - id
+      title: ResolveCatalogueIdentifierQuestionCatalogueResolutionResponseBody
+      type: object
     SetRatingRatingResponseBody:
       properties:
         author:
@@ -3117,7 +4360,7 @@ components:
       - name
       title: UpdateProjectHandlerProjectReadResponseBody
       type: object
-    UpdateQuestionPassageTermResponseBody:
+    UpdateQuestionQuestionAnnotationQuestionAnnotationTermResponseBody:
       properties:
         content:
           type: string
@@ -3126,56 +4369,94 @@ components:
           type: string
       required:
       - content
-      title: UpdateQuestionPassageTermResponseBody
+      - id
+      title: UpdateQuestionQuestionAnnotationQuestionAnnotationTermResponseBody
       type: object
-    UpdateQuestionQuestionResponseBody:
+    UpdateQuestionQuestionCommentQuestionUserResponseBody:
       properties:
-        aggregatedRating:
-          type: integer
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: UpdateQuestionQuestionCommentQuestionUserResponseBody
+      type: object
+    UpdateQuestionQuestionConsolidationQuestionProjectResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: UpdateQuestionQuestionConsolidationQuestionProjectResponseBody
+      type: object
+    UpdateQuestionQuestionConsolidationQuestionQuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: UpdateQuestionQuestionConsolidationQuestionQuestionUserResponseBody
+      type: object
+    UpdateQuestionQuestionConsolidationQuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: UpdateQuestionQuestionConsolidationQuestionUserResponseBody
+      type: object
+    UpdateQuestionQuestionConsolidation_0QuestionConsolidationQuestionResponseBody:
+      properties:
         anchor:
           oneOf:
           - type: string
           - type: 'null'
-        annotations:
-          items:
-            $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionQuestion_0PassageResponseBody_9'
-          type: array
         author:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionQuestionUserResponseBody_2'
+          $ref: '#/components/schemas/UpdateQuestionQuestionConsolidationQuestionQuestionUserResponseBody'
         comment:
           oneOf:
           - type: string
           - type: 'null'
-        comments:
-          items:
-            $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionQuestion_0CommentResponseBody_5'
-          type: array
-        consolidations:
-          items:
-            $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionQuestion_0ConsolidationResponseBody_7'
-          type: array
-        editor:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionQuestionUserResponseBody_7'
+        cqCatalogueIdentifier:
+          oneOf:
+          - type: string
+          - type: 'null'
         exampleAnswer:
           oneOf:
           - type: string
           - type: 'null'
-        group:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionQuestionGroupResponseBody_3'
         groupId:
           format: uuid
           type: string
         id:
           format: uuid
           type: string
-        noConsolidations:
-          type: integer
         question:
           type: string
-        ratings:
-          items:
-            $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionQuestion_0RatingResponseBody_4'
-          type: array
         reference:
           oneOf:
           - type: string
@@ -3185,30 +4466,273 @@ components:
           - type: string
           - type: 'null'
         type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
+      required:
+      - author
+      - groupId
+      - id
+      - question
+      title: UpdateQuestionQuestionConsolidation_0QuestionConsolidationQuestionResponseBody
+      type: object
+    UpdateQuestionQuestionDetailQuestionGroupResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        project:
+          oneOf:
+          - $ref: '#/components/schemas/UpdateQuestionQuestionGroup_0QuestionProjectResponseBody'
+          - type: 'null'
+      required:
+      - id
+      - name
+      title: UpdateQuestionQuestionDetailQuestionGroupResponseBody
+      type: object
+    UpdateQuestionQuestionDetailQuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: UpdateQuestionQuestionDetailQuestionUserResponseBody
+      type: object
+    UpdateQuestionQuestionDetailResponseBody:
+      properties:
+        aggregatedRating:
+          default: 0
+          type: integer
+        anchor:
           oneOf:
           - type: string
           - type: 'null'
+        annotations:
+          items:
+            $ref: '#/components/schemas/UpdateQuestionQuestionDetail_0QuestionAnnotationResponseBody'
+          type: array
+        author:
+          $ref: '#/components/schemas/UpdateQuestionQuestionDetailQuestionUserResponseBody'
+        comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        comments:
+          items:
+            $ref: '#/components/schemas/UpdateQuestionQuestionDetail_0QuestionCommentResponseBody'
+          type: array
+        consolidations:
+          items:
+            $ref: '#/components/schemas/UpdateQuestionQuestionDetail_0QuestionConsolidationResponseBody'
+          type: array
+        cqCatalogueIdentifier:
+          oneOf:
+          - type: string
+          - type: 'null'
+        editor:
+          $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionQuestionDetailQuestionUserResponseBody'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
+        group:
+          $ref: '#/components/schemas/UpdateQuestionQuestionDetailQuestionGroupResponseBody'
+        groupId:
+          format: uuid
+          type: string
+        id:
+          format: uuid
+          type: string
+        noConsolidations:
+          default: 0
+          type: integer
+        question:
+          type: string
+        ratings:
+          items:
+            $ref: '#/components/schemas/UpdateQuestionQuestionDetail_0QuestionRatingResponseBody'
+          type: array
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        topic:
+          oneOf:
+          - $ref: '#/components/schemas/UpdateQuestionQuestionDetail_0QuestionTopicResponseBody'
+          - type: 'null'
+        type:
+          enum:
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
         versionNumber:
           type: integer
         versions:
           items:
-            $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionQuestion_0VersionResponseBody_8'
+            $ref: '#/components/schemas/UpdateQuestionQuestionDetail_0QuestionVersionResponseBody'
           type: array
       required:
-      - aggregatedRating
-      - annotations
       - author
-      - comments
-      - consolidations
       - editor
       - group
       - groupId
-      - noConsolidations
+      - id
       - question
-      - ratings
       - versionNumber
-      - versions
-      title: UpdateQuestionQuestionResponseBody
+      title: UpdateQuestionQuestionDetailResponseBody
+      type: object
+    UpdateQuestionQuestionDetail_0QuestionAnnotationResponseBody:
+      properties:
+        content:
+          type: string
+        id:
+          format: uuid
+          type: string
+        term:
+          $ref: '#/components/schemas/UpdateQuestionQuestionAnnotationQuestionAnnotationTermResponseBody'
+      required:
+      - content
+      - id
+      - term
+      title: UpdateQuestionQuestionDetail_0QuestionAnnotationResponseBody
+      type: object
+    UpdateQuestionQuestionDetail_0QuestionCommentResponseBody:
+      properties:
+        author:
+          $ref: '#/components/schemas/UpdateQuestionQuestionCommentQuestionUserResponseBody'
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+      required:
+      - author
+      - comment
+      - createdAt
+      title: UpdateQuestionQuestionDetail_0QuestionCommentResponseBody
+      type: object
+    UpdateQuestionQuestionDetail_0QuestionConsolidationResponseBody:
+      properties:
+        engineer:
+          $ref: '#/components/schemas/UpdateQuestionQuestionConsolidationQuestionUserResponseBody'
+        id:
+          format: uuid
+          type: string
+        noQuestions:
+          default: 0
+          type: integer
+        project:
+          $ref: '#/components/schemas/UpdateQuestionQuestionConsolidationQuestionProjectResponseBody'
+        questions:
+          items:
+            $ref: '#/components/schemas/UpdateQuestionQuestionConsolidation_0QuestionConsolidationQuestionResponseBody'
+          type: array
+      required:
+      - engineer
+      - id
+      - project
+      title: UpdateQuestionQuestionDetail_0QuestionConsolidationResponseBody
+      type: object
+    UpdateQuestionQuestionDetail_0QuestionRatingResponseBody:
+      properties:
+        author:
+          $ref: '#/components/schemas/UpdateQuestionQuestionRatingQuestionUserResponseBody'
+        rating:
+          type: integer
+      required:
+      - author
+      - rating
+      title: UpdateQuestionQuestionDetail_0QuestionRatingResponseBody
+      type: object
+    UpdateQuestionQuestionDetail_0QuestionTopicResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        identifier:
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - identifier
+      - name
+      title: UpdateQuestionQuestionDetail_0QuestionTopicResponseBody
+      type: object
+    UpdateQuestionQuestionDetail_0QuestionVersionResponseBody:
+      properties:
+        editor:
+          $ref: '#/components/schemas/UpdateQuestionQuestionVersionQuestionUserResponseBody'
+        questionString:
+          type: string
+        versionNumber:
+          type: integer
+      required:
+      - editor
+      - questionString
+      - versionNumber
+      title: UpdateQuestionQuestionDetail_0QuestionVersionResponseBody
+      type: object
+    UpdateQuestionQuestionGroup_0QuestionProjectResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: UpdateQuestionQuestionGroup_0QuestionProjectResponseBody
+      type: object
+    UpdateQuestionQuestionRatingQuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: UpdateQuestionQuestionRatingQuestionUserResponseBody
       type: object
     UpdateQuestionQuestionUpdateRequestBody:
       properties:
@@ -3254,6 +4778,21 @@ components:
       required: []
       title: UpdateQuestionQuestionUpdateRequestBody
       type: object
+    UpdateQuestionQuestionVersionQuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: UpdateQuestionQuestionVersionQuestionUserResponseBody
+      type: object
     UpdateTermTermResponseBody:
       properties:
         content:
@@ -3276,6 +4815,32 @@ components:
       required:
       - content
       title: UpdateTermTermUpdateRequestBody
+      type: object
+    UpdateTopicTopicResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        identifier:
+          type: string
+        name:
+          type: string
+        projectId:
+          format: uuid
+          type: string
+      required:
+      - identifier
+      - name
+      - projectId
+      title: UpdateTopicTopicResponseBody
+      type: object
+    UpdateTopicTopicUpdateRequestBody:
+      properties:
+        name:
+          type: string
+      required:
+      - name
+      title: UpdateTopicTopicUpdateRequestBody
       type: object
     UserAccessDTO:
       properties:
@@ -3745,7 +5310,7 @@ components:
       - name
       title: domain.projects.controllers.ProjectController.get_project_handlerProjectDetail_0ProjectUserResponseBody
       type: object
-    domain.questions.controller.QuestionController.create_questionCommentUserResponseBody_0:
+    domain.questions.controller.QuestionController.create_questionQuestionDetailQuestionUserResponseBody:
       properties:
         email:
           type: string
@@ -3756,21 +5321,11 @@ components:
           type: string
       required:
       - email
+      - id
       - name
-      title: domain.questions.controller.QuestionController.create_questionCommentUserResponseBody_0
+      title: domain.questions.controller.QuestionController.create_questionQuestionDetailQuestionUserResponseBody
       type: object
-    domain.questions.controller.QuestionController.create_questionConsolidationProjectResponseBody_0:
-      properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - name
-      title: domain.questions.controller.QuestionController.create_questionConsolidationProjectResponseBody_0
-      type: object
-    domain.questions.controller.QuestionController.create_questionConsolidationUserResponseBody_0:
+    domain.questions.controller.QuestionController.get_questionQuestionDetailQuestionUserResponseBody:
       properties:
         email:
           type: string
@@ -3781,77 +5336,11 @@ components:
           type: string
       required:
       - email
+      - id
       - name
-      title: domain.questions.controller.QuestionController.create_questionConsolidationUserResponseBody_0
+      title: domain.questions.controller.QuestionController.get_questionQuestionDetailQuestionUserResponseBody
       type: object
-    domain.questions.controller.QuestionController.create_questionConsolidation_0QuestionResponseBody_2:
-      properties:
-        anchor:
-          oneOf:
-          - type: string
-          - type: 'null'
-        author:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionQuestionUserResponseBody_14'
-        comment:
-          oneOf:
-          - type: string
-          - type: 'null'
-        exampleAnswer:
-          oneOf:
-          - type: string
-          - type: 'null'
-        groupId:
-          format: uuid
-          type: string
-        id:
-          format: uuid
-          type: string
-        question:
-          type: string
-        reference:
-          oneOf:
-          - type: string
-          - type: 'null'
-        sparqlQuery:
-          oneOf:
-          - type: string
-          - type: 'null'
-        type:
-          oneOf:
-          - type: string
-          - type: 'null'
-      required:
-      - author
-      - groupId
-      - question
-      title: domain.questions.controller.QuestionController.create_questionConsolidation_0QuestionResponseBody_2
-      type: object
-    domain.questions.controller.QuestionController.create_questionGroupProjectResponseBody_0:
-      properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - name
-      title: domain.questions.controller.QuestionController.create_questionGroupProjectResponseBody_0
-      type: object
-    domain.questions.controller.QuestionController.create_questionQuestionGroupResponseBody_3:
-      properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-        project:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionGroupProjectResponseBody_0'
-      required:
-      - name
-      - project
-      title: domain.questions.controller.QuestionController.create_questionQuestionGroupResponseBody_3
-      type: object
-    domain.questions.controller.QuestionController.create_questionQuestionUserResponseBody_14:
+    domain.questions.controller.QuestionController.update_questionQuestionDetailQuestionUserResponseBody:
       properties:
         email:
           type: string
@@ -3862,641 +5351,9 @@ components:
           type: string
       required:
       - email
+      - id
       - name
-      title: domain.questions.controller.QuestionController.create_questionQuestionUserResponseBody_14
-      type: object
-    domain.questions.controller.QuestionController.create_questionQuestionUserResponseBody_2:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - name
-      title: domain.questions.controller.QuestionController.create_questionQuestionUserResponseBody_2
-      type: object
-    domain.questions.controller.QuestionController.create_questionQuestionUserResponseBody_7:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - name
-      title: domain.questions.controller.QuestionController.create_questionQuestionUserResponseBody_7
-      type: object
-    domain.questions.controller.QuestionController.create_questionQuestion_0CommentResponseBody_5:
-      properties:
-        author:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionCommentUserResponseBody_0'
-        comment:
-          type: string
-        createdAt:
-          format: date-time
-          type: string
-      required:
-      - author
-      - comment
-      title: domain.questions.controller.QuestionController.create_questionQuestion_0CommentResponseBody_5
-      type: object
-    domain.questions.controller.QuestionController.create_questionQuestion_0ConsolidationResponseBody_7:
-      properties:
-        engineer:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionConsolidationUserResponseBody_0'
-        id:
-          format: uuid
-          type: string
-        noQuestions:
-          type: integer
-        project:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionConsolidationProjectResponseBody_0'
-        questions:
-          items:
-            $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionConsolidation_0QuestionResponseBody_2'
-          type: array
-      required:
-      - engineer
-      - noQuestions
-      - project
-      - questions
-      title: domain.questions.controller.QuestionController.create_questionQuestion_0ConsolidationResponseBody_7
-      type: object
-    domain.questions.controller.QuestionController.create_questionQuestion_0PassageResponseBody_9:
-      properties:
-        content:
-          type: string
-        id:
-          format: uuid
-          type: string
-        term:
-          $ref: '#/components/schemas/CreateQuestionPassageTermResponseBody'
-      required:
-      - content
-      - term
-      title: domain.questions.controller.QuestionController.create_questionQuestion_0PassageResponseBody_9
-      type: object
-    domain.questions.controller.QuestionController.create_questionQuestion_0RatingResponseBody_4:
-      properties:
-        author:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionRatingUserResponseBody_0'
-        rating:
-          type: integer
-      required:
-      - author
-      - rating
-      title: domain.questions.controller.QuestionController.create_questionQuestion_0RatingResponseBody_4
-      type: object
-    domain.questions.controller.QuestionController.create_questionQuestion_0VersionResponseBody_8:
-      properties:
-        editor:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionVersionUserResponseBody_0'
-        questionString:
-          type: string
-        versionNumber:
-          type: integer
-      required:
-      - editor
-      - questionString
-      - versionNumber
-      title: domain.questions.controller.QuestionController.create_questionQuestion_0VersionResponseBody_8
-      type: object
-    domain.questions.controller.QuestionController.create_questionRatingUserResponseBody_0:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - name
-      title: domain.questions.controller.QuestionController.create_questionRatingUserResponseBody_0
-      type: object
-    domain.questions.controller.QuestionController.create_questionVersionUserResponseBody_0:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - name
-      title: domain.questions.controller.QuestionController.create_questionVersionUserResponseBody_0
-      type: object
-    domain.questions.controller.QuestionController.get_questionCommentUserResponseBody_0:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - name
-      title: domain.questions.controller.QuestionController.get_questionCommentUserResponseBody_0
-      type: object
-    domain.questions.controller.QuestionController.get_questionConsolidationProjectResponseBody_0:
-      properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - name
-      title: domain.questions.controller.QuestionController.get_questionConsolidationProjectResponseBody_0
-      type: object
-    domain.questions.controller.QuestionController.get_questionConsolidationUserResponseBody_0:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - name
-      title: domain.questions.controller.QuestionController.get_questionConsolidationUserResponseBody_0
-      type: object
-    domain.questions.controller.QuestionController.get_questionConsolidation_0QuestionResponseBody_2:
-      properties:
-        anchor:
-          oneOf:
-          - type: string
-          - type: 'null'
-        author:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionQuestionUserResponseBody_14'
-        comment:
-          oneOf:
-          - type: string
-          - type: 'null'
-        exampleAnswer:
-          oneOf:
-          - type: string
-          - type: 'null'
-        groupId:
-          format: uuid
-          type: string
-        id:
-          format: uuid
-          type: string
-        question:
-          type: string
-        reference:
-          oneOf:
-          - type: string
-          - type: 'null'
-        sparqlQuery:
-          oneOf:
-          - type: string
-          - type: 'null'
-        type:
-          oneOf:
-          - type: string
-          - type: 'null'
-      required:
-      - author
-      - groupId
-      - question
-      title: domain.questions.controller.QuestionController.get_questionConsolidation_0QuestionResponseBody_2
-      type: object
-    domain.questions.controller.QuestionController.get_questionGroupProjectResponseBody_0:
-      properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - name
-      title: domain.questions.controller.QuestionController.get_questionGroupProjectResponseBody_0
-      type: object
-    domain.questions.controller.QuestionController.get_questionQuestionGroupResponseBody_3:
-      properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-        project:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionGroupProjectResponseBody_0'
-      required:
-      - name
-      - project
-      title: domain.questions.controller.QuestionController.get_questionQuestionGroupResponseBody_3
-      type: object
-    domain.questions.controller.QuestionController.get_questionQuestionUserResponseBody_14:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - name
-      title: domain.questions.controller.QuestionController.get_questionQuestionUserResponseBody_14
-      type: object
-    domain.questions.controller.QuestionController.get_questionQuestionUserResponseBody_2:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - name
-      title: domain.questions.controller.QuestionController.get_questionQuestionUserResponseBody_2
-      type: object
-    domain.questions.controller.QuestionController.get_questionQuestionUserResponseBody_7:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - name
-      title: domain.questions.controller.QuestionController.get_questionQuestionUserResponseBody_7
-      type: object
-    domain.questions.controller.QuestionController.get_questionQuestion_0CommentResponseBody_5:
-      properties:
-        author:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionCommentUserResponseBody_0'
-        comment:
-          type: string
-        createdAt:
-          format: date-time
-          type: string
-      required:
-      - author
-      - comment
-      title: domain.questions.controller.QuestionController.get_questionQuestion_0CommentResponseBody_5
-      type: object
-    domain.questions.controller.QuestionController.get_questionQuestion_0ConsolidationResponseBody_7:
-      properties:
-        engineer:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionConsolidationUserResponseBody_0'
-        id:
-          format: uuid
-          type: string
-        noQuestions:
-          type: integer
-        project:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionConsolidationProjectResponseBody_0'
-        questions:
-          items:
-            $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionConsolidation_0QuestionResponseBody_2'
-          type: array
-      required:
-      - engineer
-      - noQuestions
-      - project
-      - questions
-      title: domain.questions.controller.QuestionController.get_questionQuestion_0ConsolidationResponseBody_7
-      type: object
-    domain.questions.controller.QuestionController.get_questionQuestion_0PassageResponseBody_9:
-      properties:
-        content:
-          type: string
-        id:
-          format: uuid
-          type: string
-        term:
-          $ref: '#/components/schemas/GetQuestionPassageTermResponseBody'
-      required:
-      - content
-      - term
-      title: domain.questions.controller.QuestionController.get_questionQuestion_0PassageResponseBody_9
-      type: object
-    domain.questions.controller.QuestionController.get_questionQuestion_0RatingResponseBody_4:
-      properties:
-        author:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionRatingUserResponseBody_0'
-        rating:
-          type: integer
-      required:
-      - author
-      - rating
-      title: domain.questions.controller.QuestionController.get_questionQuestion_0RatingResponseBody_4
-      type: object
-    domain.questions.controller.QuestionController.get_questionQuestion_0VersionResponseBody_8:
-      properties:
-        editor:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionVersionUserResponseBody_0'
-        questionString:
-          type: string
-        versionNumber:
-          type: integer
-      required:
-      - editor
-      - questionString
-      - versionNumber
-      title: domain.questions.controller.QuestionController.get_questionQuestion_0VersionResponseBody_8
-      type: object
-    domain.questions.controller.QuestionController.get_questionRatingUserResponseBody_0:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - name
-      title: domain.questions.controller.QuestionController.get_questionRatingUserResponseBody_0
-      type: object
-    domain.questions.controller.QuestionController.get_questionVersionUserResponseBody_0:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - name
-      title: domain.questions.controller.QuestionController.get_questionVersionUserResponseBody_0
-      type: object
-    domain.questions.controller.QuestionController.update_questionCommentUserResponseBody_0:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - name
-      title: domain.questions.controller.QuestionController.update_questionCommentUserResponseBody_0
-      type: object
-    domain.questions.controller.QuestionController.update_questionConsolidationProjectResponseBody_0:
-      properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - name
-      title: domain.questions.controller.QuestionController.update_questionConsolidationProjectResponseBody_0
-      type: object
-    domain.questions.controller.QuestionController.update_questionConsolidationUserResponseBody_0:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - name
-      title: domain.questions.controller.QuestionController.update_questionConsolidationUserResponseBody_0
-      type: object
-    domain.questions.controller.QuestionController.update_questionConsolidation_0QuestionResponseBody_2:
-      properties:
-        anchor:
-          oneOf:
-          - type: string
-          - type: 'null'
-        author:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionQuestionUserResponseBody_14'
-        comment:
-          oneOf:
-          - type: string
-          - type: 'null'
-        exampleAnswer:
-          oneOf:
-          - type: string
-          - type: 'null'
-        groupId:
-          format: uuid
-          type: string
-        id:
-          format: uuid
-          type: string
-        question:
-          type: string
-        reference:
-          oneOf:
-          - type: string
-          - type: 'null'
-        sparqlQuery:
-          oneOf:
-          - type: string
-          - type: 'null'
-        type:
-          oneOf:
-          - type: string
-          - type: 'null'
-      required:
-      - author
-      - groupId
-      - question
-      title: domain.questions.controller.QuestionController.update_questionConsolidation_0QuestionResponseBody_2
-      type: object
-    domain.questions.controller.QuestionController.update_questionGroupProjectResponseBody_0:
-      properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - name
-      title: domain.questions.controller.QuestionController.update_questionGroupProjectResponseBody_0
-      type: object
-    domain.questions.controller.QuestionController.update_questionQuestionGroupResponseBody_3:
-      properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-        project:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionGroupProjectResponseBody_0'
-      required:
-      - name
-      - project
-      title: domain.questions.controller.QuestionController.update_questionQuestionGroupResponseBody_3
-      type: object
-    domain.questions.controller.QuestionController.update_questionQuestionUserResponseBody_14:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - name
-      title: domain.questions.controller.QuestionController.update_questionQuestionUserResponseBody_14
-      type: object
-    domain.questions.controller.QuestionController.update_questionQuestionUserResponseBody_2:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - name
-      title: domain.questions.controller.QuestionController.update_questionQuestionUserResponseBody_2
-      type: object
-    domain.questions.controller.QuestionController.update_questionQuestionUserResponseBody_7:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - name
-      title: domain.questions.controller.QuestionController.update_questionQuestionUserResponseBody_7
-      type: object
-    domain.questions.controller.QuestionController.update_questionQuestion_0CommentResponseBody_5:
-      properties:
-        author:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionCommentUserResponseBody_0'
-        comment:
-          type: string
-        createdAt:
-          format: date-time
-          type: string
-      required:
-      - author
-      - comment
-      title: domain.questions.controller.QuestionController.update_questionQuestion_0CommentResponseBody_5
-      type: object
-    domain.questions.controller.QuestionController.update_questionQuestion_0ConsolidationResponseBody_7:
-      properties:
-        engineer:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionConsolidationUserResponseBody_0'
-        id:
-          format: uuid
-          type: string
-        noQuestions:
-          type: integer
-        project:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionConsolidationProjectResponseBody_0'
-        questions:
-          items:
-            $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionConsolidation_0QuestionResponseBody_2'
-          type: array
-      required:
-      - engineer
-      - noQuestions
-      - project
-      - questions
-      title: domain.questions.controller.QuestionController.update_questionQuestion_0ConsolidationResponseBody_7
-      type: object
-    domain.questions.controller.QuestionController.update_questionQuestion_0PassageResponseBody_9:
-      properties:
-        content:
-          type: string
-        id:
-          format: uuid
-          type: string
-        term:
-          $ref: '#/components/schemas/UpdateQuestionPassageTermResponseBody'
-      required:
-      - content
-      - term
-      title: domain.questions.controller.QuestionController.update_questionQuestion_0PassageResponseBody_9
-      type: object
-    domain.questions.controller.QuestionController.update_questionQuestion_0RatingResponseBody_4:
-      properties:
-        author:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionRatingUserResponseBody_0'
-        rating:
-          type: integer
-      required:
-      - author
-      - rating
-      title: domain.questions.controller.QuestionController.update_questionQuestion_0RatingResponseBody_4
-      type: object
-    domain.questions.controller.QuestionController.update_questionQuestion_0VersionResponseBody_8:
-      properties:
-        editor:
-          $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionVersionUserResponseBody_0'
-        questionString:
-          type: string
-        versionNumber:
-          type: integer
-      required:
-      - editor
-      - questionString
-      - versionNumber
-      title: domain.questions.controller.QuestionController.update_questionQuestion_0VersionResponseBody_8
-      type: object
-    domain.questions.controller.QuestionController.update_questionRatingUserResponseBody_0:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - name
-      title: domain.questions.controller.QuestionController.update_questionRatingUserResponseBody_0
-      type: object
-    domain.questions.controller.QuestionController.update_questionVersionUserResponseBody_0:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - name
-      title: domain.questions.controller.QuestionController.update_questionVersionUserResponseBody_0
+      title: domain.questions.controller.QuestionController.update_questionQuestionDetailQuestionUserResponseBody
       type: object
   securitySchemes:
     BearerToken:
@@ -6081,7 +6938,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/GetQuestionsQuestionResponseBody'
+                  $ref: '#/components/schemas/GetQuestionsQuestionOverviewResponseBody'
                 type: array
           description: Request fulfilled, document follows
           headers: {}
@@ -6107,7 +6964,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/ByProjectQuestionResponseBody'
+                  $ref: '#/components/schemas/ByProjectQuestionOverviewResponseBody'
                 type: array
           description: Request fulfilled, document follows
           headers: {}
@@ -6137,6 +6994,61 @@ paths:
                 type: object
           description: Bad request syntax or unsupported method
       summary: Gets all Questions that are part of a Project
+      tags:
+      - Questions
+  /questions/by_project/{project_id}/catalogue/{catalogue_identifier}:
+    get:
+      deprecated: false
+      operationId: QuestionsByProjectProjectIdCatalogueCatalogueIdentifierResolveCatalogueIdentifier
+      parameters:
+      - deprecated: false
+        in: path
+        name: project_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - deprecated: false
+        in: path
+        name: catalogue_identifier
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResolveCatalogueIdentifierQuestionCatalogueResolutionResponseBody'
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: Resolves a CQ catalogue identifier to the real Question id and Group
+        id
       tags:
       - Questions
   /questions/by_project/{project_id}/unified:
@@ -6210,7 +7122,7 @@ paths:
             application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/GetGroupQuestionsQuestionResponseBody'
+                  $ref: '#/components/schemas/GetGroupQuestionsQuestionOverviewResponseBody'
                 type: array
           description: Request fulfilled, document follows
           headers: {}
@@ -6276,7 +7188,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CreateQuestionQuestionResponseBody'
+                $ref: '#/components/schemas/CreateQuestionQuestionDetailResponseBody'
           description: Document created, URL follows
           headers: {}
         '400':
@@ -6457,7 +7369,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetQuestionQuestionResponseBody'
+                $ref: '#/components/schemas/GetQuestionQuestionDetailResponseBody'
           description: Request fulfilled, document follows
           headers: {}
         '400':
@@ -6517,7 +7429,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UpdateQuestionQuestionResponseBody'
+                $ref: '#/components/schemas/UpdateQuestionQuestionDetailResponseBody'
           description: Request fulfilled, document follows
           headers: {}
         '400':
@@ -7033,8 +7945,7 @@ paths:
           content:
             application/json:
               schema:
-                items:
-                  $ref: '#/components/schemas/GetByTermQuestionResponseBody'
+                items: {}
                 type: array
           description: Request fulfilled, document follows
           headers: {}
@@ -7127,6 +8038,409 @@ paths:
       summary: Edit a Term
       tags:
       - Terms
+  /topics/{project_id}:
+    get:
+      deprecated: false
+      description: Lists all `Topic`s for a `Project`, ordered by topic identifier.
+      operationId: TopicsProjectIdListTopics
+      parameters:
+      - deprecated: false
+        in: path
+        name: project_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/ListTopicsTopicResponseBody'
+                type: array
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: ListTopics
+      tags:
+      - Topics
+    post:
+      deprecated: false
+      description: Creates a `Topic` within a `Project`.
+      operationId: TopicsProjectIdCreateTopic
+      parameters:
+      - deprecated: false
+        in: path
+        name: project_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTopicTopicCreateRequestBody'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateTopicTopicResponseBody'
+          description: Document created, URL follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: CreateTopic
+      tags:
+      - Topics
+  /topics/{project_id}/questions/{question_id}:
+    delete:
+      deprecated: false
+      description: Removes a `Question` topic assignment.
+      operationId: TopicsProjectIdQuestionsQuestionIdRemoveQuestionTopic
+      parameters:
+      - deprecated: false
+        in: path
+        name: project_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - deprecated: false
+        in: path
+        name: question_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RemoveQuestionTopicQuestionOverviewResponseBody'
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: RemoveQuestionTopic
+      tags:
+      - Topics
+  /topics/{project_id}/{topic_id}:
+    get:
+      deprecated: false
+      description: Gets a `Topic` and its linked `Question`s.
+      operationId: TopicsProjectIdTopicIdGetTopic
+      parameters:
+      - deprecated: false
+        in: path
+        name: project_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - deprecated: false
+        in: path
+        name: topic_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetTopicTopicDetailResponseBody'
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: GetTopic
+      tags:
+      - Topics
+    put:
+      deprecated: false
+      description: Updates a `Topic` name. Topic identifiers are immutable.
+      operationId: TopicsProjectIdTopicIdUpdateTopic
+      parameters:
+      - deprecated: false
+        in: path
+        name: project_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - deprecated: false
+        in: path
+        name: topic_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTopicTopicUpdateRequestBody'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateTopicTopicResponseBody'
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: UpdateTopic
+      tags:
+      - Topics
+  /topics/{project_id}/{topic_id}/questions/{question_id}:
+    post:
+      deprecated: false
+      description: Assigns a `Question` to a `Topic` if it does not already have one.
+      operationId: TopicsProjectIdTopicIdQuestionsQuestionIdAssignQuestionTopic
+      parameters:
+      - deprecated: false
+        in: path
+        name: project_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - deprecated: false
+        in: path
+        name: topic_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - deprecated: false
+        in: path
+        name: question_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssignQuestionTopicQuestionOverviewResponseBody'
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: AssignQuestionTopic
+      tags:
+      - Topics
+    put:
+      deprecated: false
+      description: Changes a `Question` topic assignment.
+      operationId: TopicsProjectIdTopicIdQuestionsQuestionIdChangeQuestionTopic
+      parameters:
+      - deprecated: false
+        in: path
+        name: project_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - deprecated: false
+        in: path
+        name: topic_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - deprecated: false
+        in: path
+        name: question_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangeQuestionTopicQuestionOverviewResponseBody'
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: ChangeQuestionTopic
+      tags:
+      - Topics
   /users:
     get:
       deprecated: false

@@ -2,8 +2,9 @@ from typing import Annotated, Sequence, TypeVar
 from uuid import UUID
 
 from domain.projects.guards import ontology_engineer_guard
-from domain.questions.dtos import QuestionOverviewDTO
+from domain.questions.dtos import QuestionOverview, QuestionOverviewDTO
 from domain.questions.models import Question
+from domain.questions.services import QuestionService
 from litestar import Controller, delete, get, post, put
 from litestar.enums import RequestEncodingType
 from litestar.params import Body
@@ -110,15 +111,16 @@ class TopicController(Controller):
         project_id: UUID,
         topic_id: UUID,
         question_id: UUID,
-    ) -> Question:
+    ) -> QuestionOverview:
         """Assigns a `Question` to a `Topic` if it does not already have one."""
-        return await TopicService.assign_question(
+        question = await TopicService.assign_question(
             session,
             project_id,
             topic_id,
             question_id,
             self.question_options,
         )
+        return QuestionService.to_question_overview(question)
 
     @put(
         "/{project_id:uuid}/{topic_id:uuid}/questions/{question_id:uuid}",
@@ -132,15 +134,16 @@ class TopicController(Controller):
         project_id: UUID,
         topic_id: UUID,
         question_id: UUID,
-    ) -> Question:
+    ) -> QuestionOverview:
         """Changes a `Question` topic assignment."""
-        return await TopicService.change_question_topic(
+        question = await TopicService.change_question_topic(
             session,
             project_id,
             topic_id,
             question_id,
             self.question_options,
         )
+        return QuestionService.to_question_overview(question)
 
     @delete(
         "/{project_id:uuid}/questions/{question_id:uuid}",
@@ -153,11 +156,12 @@ class TopicController(Controller):
         session: AsyncSession,
         project_id: UUID,
         question_id: UUID,
-    ) -> Question:
+    ) -> QuestionOverview:
         """Removes a `Question` topic assignment."""
-        return await TopicService.remove_question_topic(
+        question = await TopicService.remove_question_topic(
             session,
             project_id,
             question_id,
             self.question_options,
         )
+        return QuestionService.to_question_overview(question)

@@ -5,6 +5,7 @@ from domain.accounts.authentication.services import EncryptionService
 from domain.accounts.models import User
 from domain.consolidations.models import Consolidation
 from domain.groups.models import Group
+from domain.questions.models import Question
 from litestar import Controller, delete, get, post, put
 from litestar.connection.request import Request
 from litestar.enums import RequestEncodingType
@@ -49,7 +50,7 @@ class ProjectController(Controller):
         ),
         selectinload(Project.consolidations).options(
             selectinload(Consolidation.engineer),
-            selectinload(Consolidation.questions),
+            selectinload(Consolidation.questions).options(selectinload(Question.topic)),
         ),
     ]
 

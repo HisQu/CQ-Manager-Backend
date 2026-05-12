@@ -46,6 +46,7 @@ class GroupController(Controller):
         selectinload(Group.questions).options(
             selectinload(Question.author),
             selectinload(Question.ratings),
+            selectinload(Question.topic),
         ),
     ]
 

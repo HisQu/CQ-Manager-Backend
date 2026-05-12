@@ -40,6 +40,7 @@ class ConsolidationController(Controller):
             selectinload(Question.author),
             selectinload(Question.editor),
             selectinload(Question.ratings),
+            selectinload(Question.topic),
             selectinload(Question.group).options(
                 selectinload(Group.members),
                 selectinload(Group.questions),
@@ -49,6 +50,7 @@ class ConsolidationController(Controller):
             selectinload(Question.author),
             selectinload(Question.editor),
             selectinload(Question.ratings),
+            selectinload(Question.topic),
             selectinload(Question.group).options(
                 selectinload(Group.members),
                 selectinload(Group.questions),

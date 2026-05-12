@@ -24,6 +24,7 @@ class GroupUser(BaseModel):
 class GroupQuestion(BaseModel):
     question: str
     type: str | None = None
+    cq_catalogue_identifier: str | None = None
     sparql_query: str | None = None
     aggregated_rating: int = 0
     author: GroupUser

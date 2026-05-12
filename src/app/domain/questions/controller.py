@@ -21,16 +21,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from .dtos import (
+    QuestionCatalogueResolution,
+    QuestionCatalogueResolutionDTO,
     QuestionCreate,
     QuestionCreateDTO,
+    QuestionDetail,
     QuestionDetailDTO,
+    QuestionOverview,
     QuestionOverviewDTO,
     QuestionUpdate,
     QuestionUpdateDTO,
     UnifiedQuestionOverview,
     UnifiedQuestionOverviewDTO,
 )
-from .models import Question
+from .models import Question, QuestionCatalogueReservation
 from domain.terms.services import AnnotationService
 from domain.terms.models import Passage
 
@@ -75,7 +79,8 @@ class QuestionController(Controller):
         selectinload(Question.topic),
         selectinload(Question.consolidations).options(
             selectinload(Consolidation.questions).options(
-                selectinload(Question.author)
+                selectinload(Question.author),
+                selectinload(Question.topic),
             ),
             selectinload(Consolidation.engineer),
         ),
@@ -97,7 +102,7 @@ class QuestionController(Controller):
         data: JsonEncoded[QuestionCreate],
         request: Request[User, Any, Any],
         group_id: UUID,
-    ) -> Question:
+    ) -> QuestionDetail:
         """
         Creates a new `Question`
 
@@ -152,30 +157,32 @@ class QuestionController(Controller):
                 .options(*self.detail_options)
             )
             if question:
-                return question
+                return QuestionDetail.model_validate(question)
             else:
                 raise HTTPException(status_code=404, detail="Question not found.")
         except IntegrityError:
             raise HTTPException(status_code=400, detail="Integrity violated.")
 
     @get("/", return_dto=QuestionOverviewDTO, status_code=HTTP_200_OK)
-    async def get_questions(self, session: AsyncSession) -> Sequence[Question]:
+    async def get_questions(self, session: AsyncSession) -> Sequence[QuestionOverview]:
         """
         :param session: AsyncSession object used to execute the database query and retrieve questions.
         :return: A list of QuestionDTO objects representing the retrieved questions.
         """
-        return (
+        questions = (
             await session.scalars(select(Question).options(*self.default_options))
         ).all()
+        return QuestionService.to_question_overviews(questions)
 
     @get("/{group_id:uuid}", return_dto=QuestionOverviewDTO, status_code=HTTP_200_OK)
     async def get_group_questions(
         self, session: AsyncSession, group_id: UUID
-    ) -> Sequence[Question]:
+    ) -> Sequence[QuestionOverview]:
         """Gets all `Question`s belonging to a given `Group`."""
-        return await QuestionService.get_questions_by_group(
+        questions = await QuestionService.get_questions_by_group(
             session, group_id, self.default_options
         )
+        return QuestionService.to_question_overviews(questions)
 
     @get(
         "/{group_id:uuid}/unified",
@@ -200,7 +207,7 @@ class QuestionController(Controller):
     )
     async def get_question(
         self, session: AsyncSession, question_id: UUID, group_id: UUID
-    ) -> Question:
+    ) -> QuestionDetail:
         """
         Retrieves a question by its ID.
 
@@ -220,7 +227,7 @@ class QuestionController(Controller):
         if not question:
             raise HTTPException(status_code=404, detail="Question not found")
 
-        return question
+        return QuestionDetail.model_validate(question)
 
     @put(
         "/{group_id:uuid}/{question_id:uuid}",
@@ -234,7 +241,7 @@ class QuestionController(Controller):
         data: JsonEncoded[QuestionUpdate],
         question_id: UUID,
         request: Request[User, Any, Any],
-    ) -> Question:
+    ) -> QuestionDetail:
         question = await session.scalar(
             select(Question).where(Question.id == question_id)
         )
@@ -276,7 +283,7 @@ class QuestionController(Controller):
                 .where(Question.id == question.id)
                 .options(*self.detail_options)
             ):
-                return updated_question
+                return QuestionDetail.model_validate(updated_question)
             else:
                 raise HTTPException(status_code=404, detail="Question not found.")
 
@@ -306,6 +313,17 @@ class QuestionController(Controller):
         if not question:
             raise HTTPException(status_code=404, detail="Question not found")
 
+        if question.topic_id is not None and question.catalogue_index is not None:
+            reservation = await session.scalar(
+                select(QuestionCatalogueReservation).where(
+                    QuestionCatalogueReservation.topic_id == question.topic_id,
+                    QuestionCatalogueReservation.catalogue_index == question.catalogue_index,
+                    QuestionCatalogueReservation.question_id == question.id,
+                )
+            )
+            if reservation:
+                reservation.question_id = None
+
         await session.delete(question)
         return
 
@@ -316,11 +334,12 @@ class QuestionController(Controller):
     )
     async def by_project(
         self, session: AsyncSession, project_id: UUID
-    ) -> Sequence[Question]:
+    ) -> Sequence[QuestionOverview]:
         """Gets all `Question`s that are part of a `Project`."""
-        return await QuestionService.get_questions_by_project(
+        questions = await QuestionService.get_questions_by_project(
             session, project_id, self.detail_options
         )
+        return QuestionService.to_question_overviews(questions)
 
     @get(
         "/by_project/{project_id:uuid}/unified",
@@ -333,4 +352,28 @@ class QuestionController(Controller):
         """Gets all `Question`s of a `Project` with consolidated sets collapsed to one representative each."""
         return await QuestionService.get_unified_questions_by_project(
             session, project_id, self.unified_options
+        )
+
+    @get(
+        "/by_project/{project_id:uuid}/catalogue/{catalogue_identifier:str}",
+        summary="Resolves a CQ catalogue identifier to the real Question id and Group id",
+        return_dto=QuestionCatalogueResolutionDTO,
+        status_code=HTTP_200_OK,
+    )
+    async def resolve_catalogue_identifier(
+        self,
+        session: AsyncSession,
+        project_id: UUID,
+        catalogue_identifier: str,
+    ) -> QuestionCatalogueResolution:
+        question = await QuestionService.resolve_cq_catalogue_identifier(
+            session,
+            project_id,
+            catalogue_identifier,
+            [selectinload(Question.topic)],
+        )
+        return QuestionCatalogueResolution(
+            id=question.id,
+            group_id=question.group_id,
+            cq_catalogue_identifier=question.cq_catalogue_identifier or catalogue_identifier,
         )

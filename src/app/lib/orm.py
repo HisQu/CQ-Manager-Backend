@@ -137,6 +137,90 @@ class AsyncSqlPlugin:
             connection.execute(text("ALTER TABLE question ADD COLUMN topic_id CHAR(32)"))
 
     @staticmethod
+    def _ensure_question_catalogue_index_column(connection: Connection) -> None:
+        columns = {column["name"] for column in inspect(connection).get_columns("question")}
+        if "catalogue_index" not in columns:
+            connection.execute(text("ALTER TABLE question ADD COLUMN catalogue_index INTEGER"))
+
+    @staticmethod
+    def _ensure_question_catalogue_reservations(connection: Connection) -> None:
+        tables = set(inspect(connection).get_table_names())
+        if "question_catalogue_reservation" not in tables:
+            return
+
+        connection.execute(
+            text(
+                """
+                INSERT INTO question_catalogue_reservation (
+                    id, topic_id, catalogue_index, question_id,
+                    sa_orm_sentinel, created_at, updated_at
+                )
+                SELECT
+                    randomblob(16), question.topic_id, question.catalogue_index,
+                    question.id, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+                FROM question
+                WHERE
+                    question.topic_id IS NOT NULL
+                    AND question.catalogue_index IS NOT NULL
+                    AND NOT EXISTS (
+                        SELECT 1
+                        FROM question_catalogue_reservation reservation
+                        WHERE
+                            reservation.topic_id = question.topic_id
+                            AND reservation.catalogue_index = question.catalogue_index
+                    )
+                    AND NOT EXISTS (
+                        SELECT 1
+                        FROM question_catalogue_reservation reservation
+                        WHERE reservation.question_id = question.id
+                    )
+                """
+            )
+        )
+
+    @staticmethod
+    def _remove_group_identifier_column(connection: Connection) -> None:
+        columns = {column["name"] for column in inspect(connection).get_columns("group")}
+        if "identifier" not in columns:
+            return
+
+        connection.execute(text("PRAGMA foreign_keys=OFF"))
+        connection.execute(text("DROP TABLE IF EXISTS group_new"))
+        connection.execute(
+            text(
+                """
+                CREATE TABLE group_new (
+                    id BINARY(16) NOT NULL,
+                    name VARCHAR NOT NULL,
+                    comment TEXT,
+                    project_id BINARY(16) NOT NULL,
+                    sa_orm_sentinel INTEGER,
+                    created_at DATETIME NOT NULL,
+                    updated_at DATETIME NOT NULL,
+                    CONSTRAINT pk_group PRIMARY KEY (id),
+                    CONSTRAINT fk_group_project_id_project
+                        FOREIGN KEY(project_id) REFERENCES project (id) ON DELETE CASCADE
+                )
+                """
+            )
+        )
+        connection.execute(
+            text(
+                """
+                INSERT INTO group_new (
+                    id, name, comment, project_id, sa_orm_sentinel, created_at, updated_at
+                )
+                SELECT
+                    id, name, comment, project_id, sa_orm_sentinel, created_at, updated_at
+                FROM "group"
+                """
+            )
+        )
+        connection.execute(text('DROP TABLE "group"'))
+        connection.execute(text('ALTER TABLE group_new RENAME TO "group"'))
+        connection.execute(text("PRAGMA foreign_keys=ON"))
+
+    @staticmethod
     def _remove_consolidation_name_column(connection: Connection) -> None:
         columns = {
             column["name"] for column in inspect(connection).get_columns("consolidation")
@@ -197,6 +281,9 @@ class AsyncSqlPlugin:
             await conn.run_sync(self._ensure_consolidation_result_question_id_column)
             await conn.run_sync(self._ensure_group_comment_column)
             await conn.run_sync(self._ensure_question_topic_id_column)
+            await conn.run_sync(self._ensure_question_catalogue_index_column)
+            await conn.run_sync(self._ensure_question_catalogue_reservations)
+            await conn.run_sync(self._remove_group_identifier_column)
             await conn.run_sync(self._remove_consolidation_name_column)
 
 

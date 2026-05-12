@@ -1,18 +1,17 @@
+from datetime import datetime
 from enum import Enum
 from typing import Literal, TypeAlias, get_args
 from uuid import UUID
 
 from lib.dto import BaseModel
 from litestar.contrib.pydantic.pydantic_dto_factory import PydanticDTO
-from litestar.contrib.sqlalchemy.dto import SQLAlchemyDTO, SQLAlchemyDTOConfig
 from litestar.dto import DTOConfig
 from pydantic import Field, field_validator
 
-from .models import Question
 from domain.terms.dtos import AnnotationDTO
 
 
-CQType: TypeAlias = Literal["SCQ", "VCQ", "FCQ", "RCQ", "aRCQ", "efRCQ", "drRCQ", "rpRCQ", "MpCQ"]
+CQType: TypeAlias = Literal["LCQ", "SCQ", "VCQ", "FCQ", "RCQ", "aRCQ", "efRCQ", "drRCQ", "rpRCQ", "MpCQ"]
 CQ_TYPES = frozenset(get_args(CQType))
 
 
@@ -31,104 +30,115 @@ class QuestionMetadataMixin(BaseModel):
         return value
 
 
-class QuestionOverviewDTO(SQLAlchemyDTO[Question]):
-    config = SQLAlchemyDTOConfig(
-        include={
-            "id",
-            "group.id",
-            "group.name",
-            "topic_id",
-            "topic.id",
-            "topic.identifier",
-            "topic.name",
-            "question",
-            "comment",
-            "reference",
-            "anchor",
-            "example_answer",
-            "type",
-            "sparql_query",
-            "rating",
-            "author.id",
-            "author.email",
-            "author.name",
-            "no_consolidations",
-        },
-        rename_strategy="camel",
-    )
+class QuestionUser(BaseModel):
+    id: UUID
+    email: str
+    name: str
 
 
-class QuestionDetailDTO(SQLAlchemyDTO[Question]):
-    config = SQLAlchemyDTOConfig(
-        max_nested_depth=3,
-        include={
-            "id",
-            "question",
-            "comment",
-            "reference",
-            "anchor",
-            "example_answer",
-            "type",
-            "sparql_query",
-            "group_id",
-            "version_number",
-            "ratings.0.rating",
-            "ratings.0.author.id",
-            "ratings.0.author.email",
-            "ratings.0.author.name",
-            "aggregated_rating",
-            "author.id",
-            "author.email",
-            "author.name",
-            "editor.id",
-            "editor.email",
-            "editor.name",
-            "group.id",
-            "group.name",
-            "group.project.id",
-            "group.project.name",
-            "topic_id",
-            "topic.id",
-            "topic.identifier",
-            "topic.name",
-            "comments.0.author.id",
-            "comments.0.author.email",
-            "comments.0.author.name",
-            "comments.0.comment",
-            "comments.0.created_at",
-            "no_consolidations",
-            "consolidations.0.id",
-            "consolidations.0.no_questions",
-            "consolidations.0.project.id",
-            "consolidations.0.project.name",
-            "consolidations.0.engineer.id",
-            "consolidations.0.engineer.email",
-            "consolidations.0.engineer.name",
-            "consolidations.0.questions.0.id",
-            "consolidations.0.questions.0.group_id",
-            "consolidations.0.questions.0.question",
-            "consolidations.0.questions.0.comment",
-            "consolidations.0.questions.0.reference",
-            "consolidations.0.questions.0.anchor",
-            "consolidations.0.questions.0.example_answer",
-            "consolidations.0.questions.0.type",
-            "consolidations.0.questions.0.sparql_query",
-            "consolidations.0.questions.0.author.id",
-            "consolidations.0.questions.0.author.email",
-            "consolidations.0.questions.0.author.name",
-            "versions.0.question_string",
-            "versions.0.version_number",
-            "versions.0.editor.id",
-            "versions.0.editor.email",
-            "versions.0.editor.name",
-            "annotations.0.id",
-            "annotations.0.content",
-            "annotations.0.term.id",
-            "annotations.0.term.content",
+class QuestionProject(BaseModel):
+    id: UUID
+    name: str
 
-        },
-        rename_strategy="camel",
-    )
+
+class QuestionGroup(BaseModel):
+    id: UUID
+    name: str
+    project: QuestionProject | None = None
+
+
+class QuestionTopic(BaseModel):
+    id: UUID
+    identifier: str
+    name: str
+
+
+class QuestionOverview(QuestionMetadataMixin):
+    id: UUID
+    question: str
+    comment: str | None = None
+    cq_catalogue_identifier: str | None = None
+    sparql_query: str | None = None
+    rating: int = 0
+    no_consolidations: int = 0
+    group: QuestionGroup | None = None
+    topic: QuestionTopic | None = None
+    author: QuestionUser | None = None
+
+
+class QuestionOverviewDTO(PydanticDTO[QuestionOverview]):
+    config = DTOConfig(rename_strategy="camel", max_nested_depth=2)
+
+
+class QuestionRating(BaseModel):
+    rating: int
+    author: QuestionUser
+
+
+class QuestionComment(BaseModel):
+    comment: str
+    created_at: datetime
+    author: QuestionUser
+
+
+class QuestionVersion(BaseModel):
+    question_string: str
+    version_number: int
+    editor: QuestionUser
+
+
+class QuestionAnnotationTerm(BaseModel):
+    id: UUID
+    content: str
+
+
+class QuestionAnnotation(BaseModel):
+    id: UUID
+    content: str
+    term: QuestionAnnotationTerm
+
+
+class QuestionConsolidationQuestion(QuestionMetadataMixin):
+    id: UUID
+    group_id: UUID
+    question: str
+    comment: str | None = None
+    cq_catalogue_identifier: str | None = None
+    sparql_query: str | None = None
+    author: QuestionUser
+
+
+class QuestionConsolidation(BaseModel):
+    id: UUID
+    no_questions: int = 0
+    project: QuestionProject
+    engineer: QuestionUser
+    questions: list[QuestionConsolidationQuestion] = Field(default_factory=list)
+
+
+class QuestionDetail(QuestionMetadataMixin):
+    id: UUID
+    question: str
+    comment: str | None = None
+    cq_catalogue_identifier: str | None = None
+    sparql_query: str | None = None
+    group_id: UUID
+    version_number: int
+    ratings: list[QuestionRating] = Field(default_factory=list)
+    aggregated_rating: int = 0
+    author: QuestionUser
+    editor: QuestionUser
+    group: QuestionGroup
+    topic: QuestionTopic | None = None
+    comments: list[QuestionComment] = Field(default_factory=list)
+    no_consolidations: int = 0
+    consolidations: list[QuestionConsolidation] = Field(default_factory=list)
+    versions: list[QuestionVersion] = Field(default_factory=list)
+    annotations: list[QuestionAnnotation] = Field(default_factory=list)
+
+
+class QuestionDetailDTO(PydanticDTO[QuestionDetail]):
+    config = DTOConfig(rename_strategy="camel", max_nested_depth=3)
 
 
 class QuestionCreate(QuestionMetadataMixin):
@@ -190,6 +200,7 @@ class UnifiedQuestionOverview(QuestionMetadataMixin):
     id: UUID
     question: str
     comment: str | None = None
+    cq_catalogue_identifier: str | None = None
     sparql_query: str | None = None
     rating: int = 0
     no_consolidations: int = 0
@@ -202,4 +213,14 @@ class UnifiedQuestionOverview(QuestionMetadataMixin):
 
 
 class UnifiedQuestionOverviewDTO(PydanticDTO[UnifiedQuestionOverview]):
+    config = DTOConfig(rename_strategy="camel")
+
+
+class QuestionCatalogueResolution(BaseModel):
+    id: UUID
+    group_id: UUID
+    cq_catalogue_identifier: str
+
+
+class QuestionCatalogueResolutionDTO(PydanticDTO[QuestionCatalogueResolution]):
     config = DTOConfig(rename_strategy="camel")

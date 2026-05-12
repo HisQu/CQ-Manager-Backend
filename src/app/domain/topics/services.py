@@ -3,7 +3,7 @@ from typing import Iterable, Sequence
 from uuid import UUID
 
 from domain.groups.models import Group
-from domain.questions.models import Question
+from domain.questions.models import Question, QuestionCatalogueReservation
 from litestar.exceptions import HTTPException
 from litestar.status_codes import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 from sqlalchemy import select
@@ -54,6 +54,11 @@ def next_topic_identifier(identifiers: Iterable[str]) -> str:
     while candidate in used_numbers:
         candidate += 1
     return number_to_topic_identifier(candidate)
+
+
+def next_catalogue_index(indices: Iterable[int | None]) -> int:
+    used_indices = {index for index in indices if index is not None and index > 0}
+    return max(used_indices, default=0) + 1
 
 
 def topic_identifier_sort_key(topic: Topic) -> int:
@@ -117,6 +122,52 @@ class TopicService:
         return topic
 
     @staticmethod
+    async def get_next_catalogue_index(session: AsyncSession, topic_id: UUID) -> int:
+        existing_indices = (
+            await session.scalars(
+                select(QuestionCatalogueReservation.catalogue_index).where(
+                    QuestionCatalogueReservation.topic_id == topic_id
+                )
+            )
+        ).all()
+        return next_catalogue_index(existing_indices)
+
+    @staticmethod
+    async def reserve_catalogue_identifier(
+        session: AsyncSession,
+        topic_id: UUID,
+        question_id: UUID,
+    ) -> int:
+        catalogue_index = await TopicService.get_next_catalogue_index(session, topic_id)
+        session.add(
+            QuestionCatalogueReservation(
+                topic_id=topic_id,
+                catalogue_index=catalogue_index,
+                question_id=question_id,
+            )
+        )
+        await session.flush()
+        return catalogue_index
+
+    @staticmethod
+    async def unassign_catalogue_identifier(
+        session: AsyncSession,
+        question: Question,
+    ) -> None:
+        if question.topic_id is None or question.catalogue_index is None:
+            return
+
+        reservation = await session.scalar(
+            select(QuestionCatalogueReservation).where(
+                QuestionCatalogueReservation.topic_id == question.topic_id,
+                QuestionCatalogueReservation.catalogue_index == question.catalogue_index,
+                QuestionCatalogueReservation.question_id == question.id,
+            )
+        )
+        if reservation:
+            reservation.question_id = None
+
+    @staticmethod
     async def get_project_question(
         session: AsyncSession,
         project_id: UUID,
@@ -155,6 +206,9 @@ class TopicService:
             )
 
         question.topic_id = topic_id
+        question.catalogue_index = await TopicService.reserve_catalogue_identifier(
+            session, topic_id, question.id
+        )
         await session.commit()
         await session.refresh(question)
         return await TopicService.get_project_question(session, project_id, question.id, options)
@@ -169,6 +223,11 @@ class TopicService:
     ) -> Question:
         await TopicService.get_topic(session, project_id, topic_id)
         question = await TopicService.get_project_question(session, project_id, question_id)
+        if question.topic_id != topic_id or question.catalogue_index is None:
+            await TopicService.unassign_catalogue_identifier(session, question)
+            question.catalogue_index = await TopicService.reserve_catalogue_identifier(
+                session, topic_id, question.id
+            )
         question.topic_id = topic_id
         await session.commit()
         await session.refresh(question)
@@ -182,7 +241,9 @@ class TopicService:
         options: Iterable[ExecutableOption] | None = None,
     ) -> Question:
         question = await TopicService.get_project_question(session, project_id, question_id)
+        await TopicService.unassign_catalogue_identifier(session, question)
         question.topic_id = None
+        question.catalogue_index = None
         await session.commit()
         await session.refresh(question)
         return await TopicService.get_project_question(session, project_id, question.id, options)
