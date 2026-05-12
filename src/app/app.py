@@ -34,7 +34,11 @@ cors_config = CORSConfig(
 )
 openapi_config = OpenAPIConfig("CQ Manager", "0.1.0", use_handler_docstrings=True)
 
-authenticator = AuthenticationMiddleware("Super Secret Token", "Authorization", 24)
+authentication_secret = os.environ.get(
+    "AUTHENTICATION_SECRET",
+    "cq-manager-development-authentication-secret-change-me",
+)
+authenticator = AuthenticationMiddleware(authentication_secret, "Authorization", 24)
 encryption = EncryptionService()
 
 mock_data = MockDataService()

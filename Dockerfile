@@ -5,6 +5,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PATH="/usr/src/app/.venv/bin:$PATH" \
     UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
+    AUTHENTICATION_SECRET="cq-manager-development-authentication-secret-change-me" \
     CORS_ALLOW_ORIGIN="*" \
     CONNECTION_STRING="sqlite+aiosqlite:///database/cq-database.sqlite" \
     SMPT_SERVER="" \
