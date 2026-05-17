@@ -180,9 +180,7 @@ def test_question_topic_assignment_change_and_remove(
                 headers=admin_header,
             )
             assert list_response.status_code == HTTP_200_OK, list_response.text
-            listed_question = next(
-                item for item in list_response.json() if item["id"] == question["id"]
-            )
+            listed_question = next(item for item in list_response.json() if item["id"] == question["id"])
             assert "topicId" not in listed_question
             assert set(listed_question["topic"]) == {"id", "identifier", "name"}
             assert listed_question["topic"]["identifier"] == "B"
@@ -312,7 +310,7 @@ def test_question_detail_loads_catalogue_identifier_for_consolidated_questions(
                 admin_header,
                 project["id"],
                 question_ids=[first_question["id"], second_question["id"]],
-                result_question={"question": unique_text("Consolidated result?")},
+                target_question={"question": unique_text("Consolidated target?")},
             )
 
             detail_response = client.get(
@@ -320,10 +318,15 @@ def test_question_detail_loads_catalogue_identifier_for_consolidated_questions(
                 headers=admin_header,
             )
             assert detail_response.status_code == HTTP_200_OK, detail_response.text
-            consolidated_questions = detail_response.json()["consolidations"][0]["questions"]
+            consolidation = detail_response.json()["consolidations"][0]
+            consolidated_questions = consolidation["sourceQuestions"]
             catalogued_question = next(
                 question for question in consolidated_questions if question["id"] == first_question["id"]
             )
             assert catalogued_question["cqCatalogueIdentifier"] == "A.1"
+            assert {question["id"] for question in consolidated_questions} == {
+                first_question["id"],
+                second_question["id"],
+            }
         finally:
             client.delete(f"/projects/{project['id']}", headers=login(client))

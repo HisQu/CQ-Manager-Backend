@@ -10,7 +10,6 @@ from pydantic import Field, field_validator
 
 from domain.terms.dtos import AnnotationDTO
 
-
 CQType: TypeAlias = Literal["LCQ", "SCQ", "VCQ", "FCQ", "RCQ", "aRCQ", "efRCQ", "drRCQ", "rpRCQ", "MpCQ"]
 CQ_TYPES = frozenset(get_args(CQType))
 
@@ -53,6 +52,18 @@ class QuestionTopic(BaseModel):
     name: str
 
 
+class QuestionConsolidationRole(str, Enum):
+    SOURCE = "source"
+    TARGET = "target"
+
+
+class QuestionConsolidationContext(BaseModel):
+    id: UUID
+    role: QuestionConsolidationRole
+    source_question_ids: list[UUID] = Field(default_factory=list)
+    target_question_id: UUID | None = None
+
+
 class QuestionOverview(QuestionMetadataMixin):
     id: UUID
     question: str
@@ -64,6 +75,7 @@ class QuestionOverview(QuestionMetadataMixin):
     group: QuestionGroup | None = None
     topic: QuestionTopic | None = None
     author: QuestionUser | None = None
+    consolidations: list[QuestionConsolidationContext] = Field(default_factory=list)
 
 
 class QuestionOverviewDTO(PydanticDTO[QuestionOverview]):
@@ -98,22 +110,29 @@ class QuestionAnnotation(BaseModel):
     term: QuestionAnnotationTerm
 
 
-class QuestionConsolidationQuestion(QuestionMetadataMixin):
+class QuestionDetailConsolidationQuestionGroup(BaseModel):
     id: UUID
-    group_id: UUID
+    name: str
+
+
+class QuestionDetailConsolidationQuestion(QuestionMetadataMixin):
+    id: UUID
+    group: QuestionDetailConsolidationQuestionGroup | None = None
     question: str
     comment: str | None = None
     cq_catalogue_identifier: str | None = None
     sparql_query: str | None = None
+    aggregated_rating: int = 0
     author: QuestionUser
 
 
-class QuestionConsolidation(BaseModel):
+class QuestionDetailConsolidation(BaseModel):
     id: UUID
-    no_questions: int = 0
+    target_question: QuestionDetailConsolidationQuestion | None = None
+    no_source_questions: int = 0
     project: QuestionProject
     engineer: QuestionUser
-    questions: list[QuestionConsolidationQuestion] = Field(default_factory=list)
+    source_questions: list[QuestionDetailConsolidationQuestion] = Field(default_factory=list)
 
 
 class QuestionDetail(QuestionMetadataMixin):
@@ -132,7 +151,7 @@ class QuestionDetail(QuestionMetadataMixin):
     topic: QuestionTopic | None = None
     comments: list[QuestionComment] = Field(default_factory=list)
     no_consolidations: int = 0
-    consolidations: list[QuestionConsolidation] = Field(default_factory=list)
+    consolidations: list[QuestionDetailConsolidation] = Field(default_factory=list)
     versions: list[QuestionVersion] = Field(default_factory=list)
     annotations: list[QuestionAnnotation] = Field(default_factory=list)
 
@@ -208,8 +227,7 @@ class UnifiedQuestionOverview(QuestionMetadataMixin):
     topic: UnifiedQuestionTopic | None = None
     author: UnifiedQuestionAuthor | None = None
     unified_entry_kind: UnifiedQuestionEntryKind
-    consolidation_id: UUID | None = None
-    consolidated_question_ids: list[UUID] = Field(default_factory=list)
+    consolidation: QuestionConsolidationContext | None = None
 
 
 class UnifiedQuestionOverviewDTO(PydanticDTO[UnifiedQuestionOverview]):

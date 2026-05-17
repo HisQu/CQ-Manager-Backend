@@ -27,20 +27,13 @@ class ConsolidationService:
         raise HTTPException(
             status_code=HTTP_400_BAD_REQUEST,
             detail=(
-                "resultQuestion.groupId is required when the group cannot be "
-                "inferred from the consolidated questions."
+                "targetQuestion.groupId is required when the group cannot be " "inferred from the source questions."
             ),
         )
 
     @staticmethod
-    async def _get_project_question(
-        session: AsyncSession, project_id: UUID, question_id: UUID
-    ) -> Question:
-        statement = (
-            select(Question)
-            .join(Group)
-            .where(Question.id == question_id, Group.project_id == project_id)
-        )
+    async def _get_project_question(session: AsyncSession, project_id: UUID, question_id: UUID) -> Question:
+        statement = select(Question).join(Group).where(Question.id == question_id, Group.project_id == project_id)
         if question := await session.scalar(statement):
             return question
         raise HTTPException(
@@ -62,9 +55,7 @@ class ConsolidationService:
         type: str | None,
         sparql_query: str | None,
     ) -> Question:
-        group = await session.scalar(
-            select(Group).where(Group.id == group_id, Group.project_id == project_id)
-        )
+        group = await session.scalar(select(Group).where(Group.id == group_id, Group.project_id == project_id))
         if group is None:
             raise HTTPException(
                 status_code=HTTP_400_BAD_REQUEST,
@@ -156,45 +147,44 @@ class ConsolidationService:
         :return: The created `Consolidation`.
         """
         questions: Sequence[Question] = []
-        if data.ids:
-            questions_ = await session.scalars(select(Question).where(Question.id.in_(data.ids)))
+        if data.source_question_ids:
+            questions_ = await session.scalars(select(Question).where(Question.id.in_(data.source_question_ids)))
             questions = questions_.all()
 
         try:
-            if data.result_question_id is not None:
+            if data.target_question.id is not None:
                 result_question = await ConsolidationService._get_project_question(
                     session=session,
                     project_id=project_id,
-                    question_id=data.result_question_id,
+                    question_id=data.target_question.id,
                 )
-            elif data.result_question is not None:
-                if data.result_question.question is None:
+            elif data.target_question.question is not None:
+                if data.target_question.question is None:
                     raise HTTPException(
                         status_code=HTTP_400_BAD_REQUEST,
-                        detail="resultQuestion.question is required.",
+                        detail="targetQuestion.question is required.",
                     )
 
-                group_id = (
-                    data.result_question.group_id
-                    or ConsolidationService._infer_result_question_group_id(questions)
+                group_id = data.target_question.group_id or ConsolidationService._infer_result_question_group_id(
+                    questions
                 )
                 result_question = await ConsolidationService._create_result_question(
                     session=session,
                     project_id=project_id,
                     user_id=user_id,
                     group_id=group_id,
-                    question=data.result_question.question,
-                    comment=data.result_question.comment,
-                    reference=data.result_question.reference,
-                    anchor=data.result_question.anchor,
-                    example_answer=data.result_question.example_answer,
-                    type=data.result_question.type,
-                    sparql_query=data.result_question.sparql_query,
+                    question=data.target_question.question,
+                    comment=data.target_question.comment,
+                    reference=data.target_question.reference,
+                    anchor=data.target_question.anchor,
+                    example_answer=data.target_question.example_answer,
+                    type=data.target_question.type,
+                    sparql_query=data.target_question.sparql_query,
                 )
             else:
                 raise HTTPException(
                     status_code=HTTP_400_BAD_REQUEST,
-                    detail="Provide exactly one of resultQuestion or resultQuestionId.",
+                    detail="Provide either an id or question/groupId for targetQuestion.",
                 )
             consolidation = Consolidation(
                 questions=questions,
@@ -242,12 +232,10 @@ class ConsolidationService:
         :raises HTTPException: If no `Consolidation` was found.
         :return: The updated `Consolidation`.
         """
-        consolidation = await ConsolidationService.get_consolidation(
-            session, id, project_id, options=options
-        )
-        if data.result_question_id is not None:
+        consolidation = await ConsolidationService.get_consolidation(session, id, project_id, options=options)
+        if data.target_question is not None and data.target_question.id is not None:
             consolidation.result_question = await ConsolidationService._get_project_question(
-                session, project_id, data.result_question_id
+                session, project_id, data.target_question.id
             )
 
         try:
@@ -274,11 +262,11 @@ class ConsolidationService:
         :raises HTTPException: If no `Consolidation` was found.
         :return: The updated `Consolidation`.
         """
-        if not data.ids:
+        if not data.source_question_ids:
             raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="No Ids were given.")
 
         consolidation = await ConsolidationService.get_consolidation(session, id, project_id, options=options)
-        questions = await session.scalars(select(Question).where(Question.id.in_(data.ids)))
+        questions = await session.scalars(select(Question).where(Question.id.in_(data.source_question_ids)))
 
         consolidation.questions = [*set(chain(consolidation.questions, questions))]
         await session.commit()
@@ -302,11 +290,11 @@ class ConsolidationService:
         :raises HTTPException: If no `Consolidation` was found.
         :return: The updated `Consolidation`.
         """
-        if not data.ids:
+        if not data.source_question_ids:
             raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="No Ids were given.")
 
         consolidation = await ConsolidationService.get_consolidation(session, id, project_id, options=options)
-        questions = await session.scalars(select(Question).where(Question.id.in_(data.ids)))
+        questions = await session.scalars(select(Question).where(Question.id.in_(data.source_question_ids)))
         for question in questions:
             if question in consolidation.questions:
                 consolidation.questions.remove(question)

@@ -155,14 +155,14 @@ def create_consolidation(
     project_id: str,
     *,
     question_ids: list[str],
-    result_question: dict | None = None,
-    result_question_id: str | None = None,
+    target_question: dict | None = None,
+    target_question_id: str | None = None,
 ) -> dict:
-    payload: dict = {"ids": question_ids}
-    if result_question_id is not None:
-        payload["resultQuestion"] = {"id": result_question_id}
+    payload: dict = {"sourceQuestionIds": question_ids}
+    if target_question_id is not None:
+        payload["targetQuestion"] = {"id": target_question_id}
     else:
-        payload["resultQuestion"] = result_question or {"question": unique_text("Result question?")}
+        payload["targetQuestion"] = target_question or {"question": unique_text("Target question?")}
 
     response = client.post(f"/consolidations/{project_id}", json=payload, headers=headers)
     assert response.status_code == HTTP_201_CREATED, response.text

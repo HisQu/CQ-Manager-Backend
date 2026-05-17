@@ -26,7 +26,7 @@ def _create_consolidated_questions(
         admin_header,
         project["id"],
         question_ids=[question["id"] for question in questions],
-        result_question={
+        target_question={
             "question": f"Consolidated {uuid4().hex}",
             "reference": "S. 138.",
             "anchor": "S. 138 Abs. 4 - Kanzlei.",
@@ -57,12 +57,15 @@ def test_get_group_questions_unified(
                 result
                 for result in results
                 if result["unifiedEntryKind"] == "consolidation_result"
-                and result["consolidationId"] == consolidation["id"]
+                and result["consolidation"]["id"] == consolidation["id"]
             ]
             assert len(consolidation_results) == 1
-            assert consolidation_results[0]["id"] == consolidation["resultQuestion"]["id"]
-            assert consolidation_results[0]["consolidationId"] == consolidation["id"]
-            assert set(consolidation_results[0]["consolidatedQuestionIds"]) == consolidated_ids
+            assert consolidation_results[0]["id"] == consolidation["targetQuestion"]["id"]
+            assert consolidation_results[0]["consolidation"]["role"] == "target"
+            assert (
+                consolidation_results[0]["consolidation"]["targetQuestionId"] == consolidation["targetQuestion"]["id"]
+            )
+            assert set(consolidation_results[0]["consolidation"]["sourceQuestionIds"]) == consolidated_ids
             assert consolidation_results[0]["reference"] == "S. 138."
             assert consolidation_results[0]["anchor"] == "S. 138 Abs. 4 - Kanzlei."
             assert consolidation_results[0]["exampleAnswer"] == "Nikolaus Hertnid."
@@ -81,7 +84,7 @@ def test_get_project_questions_unified(
     with test_client as client:
         project, _, consolidation, questions = _create_consolidated_questions(client, admin_header)
         consolidated_ids = {question["id"] for question in questions}
-        result_question_id = consolidation["resultQuestion"]["id"]
+        target_question_id = consolidation["targetQuestion"]["id"]
 
         try:
             unified = client.get(
@@ -97,11 +100,62 @@ def test_get_project_questions_unified(
             ]
 
             assert all(
-                question["id"] not in consolidated_ids and question["id"] != result_question_id
+                question["id"] not in consolidated_ids and question["id"] != target_question_id
                 for question in question_entries
             )
             assert len(consolidation_entries) == 1
-            assert consolidation_entries[0]["id"] == result_question_id
-            assert set(consolidation_entries[0]["consolidatedQuestionIds"]) == consolidated_ids
+            assert consolidation_entries[0]["id"] == target_question_id
+            assert consolidation_entries[0]["consolidation"]["role"] == "target"
+            assert consolidation_entries[0]["consolidation"]["targetQuestionId"] == target_question_id
+            assert set(consolidation_entries[0]["consolidation"]["sourceQuestionIds"]) == consolidated_ids
+        finally:
+            client.delete(f"/projects/{project['id']}", headers=admin_header)
+
+
+def test_plain_question_responses_include_consolidation_context(
+    test_client: TestClient[Litestar],
+    admin_header,
+) -> None:
+    with test_client as client:
+        project, group, consolidation, questions = _create_consolidated_questions(client, admin_header)
+        source_ids = {question["id"] for question in questions}
+        target_question_id = consolidation["targetQuestion"]["id"]
+
+        try:
+            list_response = client.get(
+                f"/questions/{group['id']}",
+                headers=admin_header,
+            )
+            assert list_response.status_code == HTTP_200_OK, list_response.text
+
+            listed_questions = list_response.json()
+            source_entry = next(question for question in listed_questions if question["id"] == questions[0]["id"])
+            target_entry = next(question for question in listed_questions if question["id"] == target_question_id)
+
+            source_context = source_entry["consolidations"][0]
+            assert source_context["id"] == consolidation["id"]
+            assert source_context["role"] == "source"
+            assert source_context["targetQuestionId"] == target_question_id
+            assert set(source_context["sourceQuestionIds"]) == source_ids
+
+            target_context = target_entry["consolidations"][0]
+            assert target_context["id"] == consolidation["id"]
+            assert target_context["role"] == "target"
+            assert target_context["targetQuestionId"] == target_question_id
+            assert set(target_context["sourceQuestionIds"]) == source_ids
+
+            detail_response = client.get(
+                f"/questions/{group['id']}/{questions[1]['id']}",
+                headers=admin_header,
+            )
+            assert detail_response.status_code == HTTP_200_OK, detail_response.text
+            detail_consolidation = detail_response.json()["consolidations"][0]
+            assert detail_consolidation["id"] == consolidation["id"]
+            assert detail_consolidation["targetQuestion"]["id"] == target_question_id
+            assert detail_consolidation["targetQuestion"]["question"] == consolidation["targetQuestion"]["question"]
+            assert {question["id"] for question in detail_consolidation["sourceQuestions"]} == source_ids
+            assert detail_consolidation["noSourceQuestions"] == len(source_ids)
+            assert detail_consolidation["project"]["id"] == project["id"]
+            assert "engineer" in detail_consolidation
         finally:
             client.delete(f"/projects/{project['id']}", headers=admin_header)

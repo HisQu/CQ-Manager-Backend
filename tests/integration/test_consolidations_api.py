@@ -47,7 +47,7 @@ def test_get_consolidation_includes_questions(
                 admin_header,
                 project["id"],
                 question_ids=question_ids,
-                result_question={"question": f"Result {uuid4().hex}"},
+                target_question={"question": f"Target {uuid4().hex}"},
             )
 
             response = client.get(
@@ -58,9 +58,9 @@ def test_get_consolidation_includes_questions(
             assert response.status_code == HTTP_200_OK, response.text
             consolidation = response.json()
             assert consolidation["id"] == created["id"]
-            assert consolidation["resultQuestion"]["id"] == created["resultQuestion"]["id"]
-            assert {question["id"] for question in consolidation["questions"]} == set(question_ids)
-            assert all("question" in question for question in consolidation["questions"])
+            assert consolidation["targetQuestion"]["id"] == created["targetQuestion"]["id"]
+            assert {question["id"] for question in consolidation["sourceQuestions"]} == set(question_ids)
+            assert all("question" in question for question in consolidation["sourceQuestions"])
         finally:
             client.delete(f"/projects/{project['id']}", headers=admin_header)
 
@@ -82,8 +82,8 @@ def test_create_consolidation_with_existing_target_question_id(
             consolidation_response = client.post(
                 f"/consolidations/{project['id']}",
                 json={
-                    "resultQuestion": {"id": target["id"]},
-                    "ids": [questions[0]["id"]],
+                    "targetQuestion": {"id": target["id"]},
+                    "sourceQuestionIds": [questions[0]["id"]],
                 },
                 headers=admin_header,
             )
@@ -93,7 +93,7 @@ def test_create_consolidation_with_existing_target_question_id(
             client.delete(f"/projects/{project['id']}", headers=admin_header)
 
 
-def test_create_consolidation_infers_result_question_group(
+def test_create_consolidation_infers_target_question_group(
     test_client: TestClient[Litestar],
     admin_header,
 ) -> None:
@@ -107,22 +107,22 @@ def test_create_consolidation_infers_result_question_group(
                 admin_header,
                 project["id"],
                 question_ids=[source_id],
-                result_question={"question": "Test"},
+                target_question={"question": "Test"},
             )
 
-            assert consolidation["resultQuestion"]["question"] == "Test"
-            assert [question["id"] for question in consolidation["questions"]] == [source_id]
+            assert consolidation["targetQuestion"]["question"] == "Test"
+            assert [question["id"] for question in consolidation["sourceQuestions"]] == [source_id]
 
-            result_question = client.get(
-                f"/questions/{group['id']}/{consolidation['resultQuestion']['id']}",
+            target_question = client.get(
+                f"/questions/{group['id']}/{consolidation['targetQuestion']['id']}",
                 headers=admin_header,
             )
-            assert result_question.status_code == HTTP_200_OK, result_question.text
+            assert target_question.status_code == HTTP_200_OK, target_question.text
         finally:
             client.delete(f"/projects/{project['id']}", headers=admin_header)
 
 
-def test_create_consolidation_result_question_with_metadata(
+def test_create_consolidation_target_question_with_metadata(
     test_client: TestClient[Litestar],
     admin_header,
 ) -> None:
@@ -135,7 +135,7 @@ def test_create_consolidation_result_question_with_metadata(
                 admin_header,
                 project["id"],
                 question_ids=[questions[0]["id"]],
-                result_question={
+                target_question={
                     "question": "Which persons were members of the papal chancery?",
                     "reference": "S. 138.",
                     "anchor": "S. 138 Abs. 4 - namentliche Aufzählung.",
@@ -144,14 +144,14 @@ def test_create_consolidation_result_question_with_metadata(
                 },
             )
 
-            result_question = consolidation["resultQuestion"]
-            assert result_question["reference"] == "S. 138."
-            assert result_question["anchor"] == "S. 138 Abs. 4 - namentliche Aufzählung."
-            assert result_question["exampleAnswer"] == "Nikolaus Hertnid, Heinrich Massheim."
-            assert result_question["type"] == "VCQ"
+            target_question = consolidation["targetQuestion"]
+            assert target_question["reference"] == "S. 138."
+            assert target_question["anchor"] == "S. 138 Abs. 4 - namentliche Aufzählung."
+            assert target_question["exampleAnswer"] == "Nikolaus Hertnid, Heinrich Massheim."
+            assert target_question["type"] == "VCQ"
 
             detail_response = client.get(
-                f"/questions/{group['id']}/{result_question['id']}",
+                f"/questions/{group['id']}/{target_question['id']}",
                 headers=admin_header,
             )
             assert detail_response.status_code == HTTP_200_OK, detail_response.text
@@ -173,7 +173,7 @@ def test_deleting_project_deletes_consolidations(
             admin_header,
             project["id"],
             question_ids=[question["id"]],
-            result_question={"question": f"Result question {uuid4().hex}"},
+            target_question={"question": f"Target question {uuid4().hex}"},
         )
 
         try:

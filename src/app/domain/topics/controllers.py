@@ -2,6 +2,7 @@ from typing import Annotated, Sequence, TypeVar
 from uuid import UUID
 
 from domain.projects.guards import ontology_engineer_guard
+from domain.consolidations.models import Consolidation
 from domain.questions.dtos import QuestionOverview, QuestionOverviewDTO
 from domain.questions.models import Question
 from domain.questions.services import QuestionService
@@ -38,7 +39,8 @@ class TopicController(Controller):
         selectinload(Question.author),
         selectinload(Question.editor),
         selectinload(Question.ratings),
-        selectinload(Question.consolidations),
+        selectinload(Question.consolidations).options(selectinload(Consolidation.questions)),
+        selectinload(Question.target_consolidations).options(selectinload(Consolidation.questions)),
         selectinload(Question.group),
         selectinload(Question.topic),
     ]

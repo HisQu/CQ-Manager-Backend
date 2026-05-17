@@ -13,63 +13,61 @@ GROUP_ID = uuid4()
 QUESTION_ID = uuid4()
 
 
-def test_consolidation_create_accepts_new_result_question() -> None:
+def test_consolidation_create_accepts_new_target_question() -> None:
     payload = ConsolidationCreate(
-        ids=[QUESTION_ID],
-        result_question={
-            "question": "A generated result question",
+        source_question_ids=[QUESTION_ID],
+        target_question={
+            "question": "A generated target question",
             "group_id": GROUP_ID,
         },
     )
-    assert payload.result_question is not None
-    assert payload.result_question_id is None
+    assert payload.target_question is not None
+    assert payload.target_question.id is None
 
 
-def test_consolidation_create_accepts_new_result_question_without_group() -> None:
+def test_consolidation_create_accepts_new_target_question_without_group() -> None:
     payload = ConsolidationCreate(
-        ids=[QUESTION_ID],
-        result_question={
-            "question": "A generated result question",
+        source_question_ids=[QUESTION_ID],
+        target_question={
+            "question": "A generated target question",
         },
     )
-    assert payload.result_question is not None
-    assert payload.result_question.group_id is None
-    assert payload.result_question_id is None
+    assert payload.target_question is not None
+    assert payload.target_question.group_id is None
+    assert payload.target_question.id is None
 
 
-def test_consolidation_create_accepts_existing_result_question() -> None:
+def test_consolidation_create_accepts_existing_target_question() -> None:
     payload = ConsolidationCreate(
-        ids=[QUESTION_ID],
-        result_question_id=QUESTION_ID,
+        source_question_ids=[QUESTION_ID],
+        target_question={"id": QUESTION_ID},
     )
-    assert payload.result_question is None
-    assert payload.result_question_id == QUESTION_ID
+    assert payload.target_question.id == QUESTION_ID
 
 
-def test_consolidation_create_accepts_existing_result_question_nested_id() -> None:
+def test_consolidation_create_accepts_existing_target_question_nested_id() -> None:
     payload = ConsolidationCreate(
-        ids=[QUESTION_ID],
-        result_question={"id": QUESTION_ID},
+        source_question_ids=[QUESTION_ID],
+        target_question={"id": QUESTION_ID},
     )
-    assert payload.result_question is None
-    assert payload.result_question_id == QUESTION_ID
+    assert payload.target_question.id == QUESTION_ID
 
 
-def test_consolidation_create_rejects_both_result_sources() -> None:
+def test_consolidation_create_rejects_both_target_sources() -> None:
     with pytest.raises(ValidationError):
         ConsolidationCreate(
-            ids=[QUESTION_ID],
-            result_question={
-                "question": "A generated result question",
+            source_question_ids=[QUESTION_ID],
+            target_question={
+                "id": QUESTION_ID,
+                "question": "A generated target question",
                 "group_id": GROUP_ID,
             },
-            result_question_id=QUESTION_ID,
         )
 
 
-def test_consolidation_create_rejects_missing_result_source() -> None:
+def test_consolidation_create_rejects_missing_target_source() -> None:
     with pytest.raises(ValidationError):
-        ConsolidationCreate(ids=[QUESTION_ID])
+        ConsolidationCreate(source_question_ids=[QUESTION_ID])
 
 
 def test_consolidation_read_accepts_questions_without_group() -> None:
@@ -98,6 +96,6 @@ def test_consolidation_read_accepts_questions_without_group() -> None:
 
     payload = ConsolidationRead.model_validate(consolidation)
 
-    assert payload.result_question is not None
-    assert payload.result_question.group is None
-    assert payload.questions[0].group is None
+    assert payload.target_question is not None
+    assert payload.target_question.group is None
+    assert payload.source_questions[0].group is None

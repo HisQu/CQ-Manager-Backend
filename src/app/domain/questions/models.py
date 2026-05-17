@@ -57,6 +57,12 @@ class Question(UUIDAuditBase):
     consolidations: Mapped[list[Consolidation]] = relationship(
         secondary="consolidated_questions", back_populates="questions"
     )
+    target_consolidations: Mapped[list[Consolidation]] = relationship(
+        "Consolidation",
+        primaryjoin="Question.id == Consolidation.result_question_id",
+        foreign_keys="Consolidation.result_question_id",
+        viewonly=True,
+    )
     versions: Mapped[list[Version]] = relationship(back_populates="question", cascade="all, delete-orphan")
     annotations: Mapped[list[Passage]] = relationship(secondary="annotated_passages", back_populates="questions")
 

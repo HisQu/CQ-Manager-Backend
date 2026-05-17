@@ -38,7 +38,6 @@ from .models import Question, QuestionCatalogueReservation
 from domain.terms.services import AnnotationService
 from domain.terms.models import Passage
 
-
 T = TypeVar("T")
 JsonEncoded = Annotated[T, Body(media_type=RequestEncodingType.JSON)]
 
@@ -51,7 +50,8 @@ class QuestionController(Controller):
     default_options = [
         selectinload(Question.author),
         selectinload(Question.ratings),
-        selectinload(Question.consolidations),
+        selectinload(Question.consolidations).options(selectinload(Consolidation.questions)),
+        selectinload(Question.target_consolidations).options(selectinload(Consolidation.questions)),
         selectinload(Question.topic),
         selectinload(Question.group).options(selectinload(Group.project)),
     ]
@@ -70,6 +70,7 @@ class QuestionController(Controller):
                 selectinload(Question.group),
             ),
         ),
+        selectinload(Question.target_consolidations).options(selectinload(Consolidation.questions)),
         selectinload(Question.group).options(selectinload(Group.project)),
     ]
     detail_options = [
@@ -80,9 +81,34 @@ class QuestionController(Controller):
         selectinload(Question.consolidations).options(
             selectinload(Consolidation.questions).options(
                 selectinload(Question.author),
+                selectinload(Question.ratings),
                 selectinload(Question.topic),
+                selectinload(Question.group),
+            ),
+            selectinload(Consolidation.result_question).options(
+                selectinload(Question.author),
+                selectinload(Question.ratings),
+                selectinload(Question.topic),
+                selectinload(Question.group),
             ),
             selectinload(Consolidation.engineer),
+            selectinload(Consolidation.project),
+        ),
+        selectinload(Question.target_consolidations).options(
+            selectinload(Consolidation.questions).options(
+                selectinload(Question.author),
+                selectinload(Question.ratings),
+                selectinload(Question.topic),
+                selectinload(Question.group),
+            ),
+            selectinload(Consolidation.result_question).options(
+                selectinload(Question.author),
+                selectinload(Question.ratings),
+                selectinload(Question.topic),
+                selectinload(Question.group),
+            ),
+            selectinload(Consolidation.engineer),
+            selectinload(Consolidation.project),
         ),
         selectinload(Question.group).options(selectinload(Group.project)),
         selectinload(Question.versions).options(selectinload(Version.editor)),
@@ -113,23 +139,15 @@ class QuestionController(Controller):
         :return: The created question data.
         """
         try:
-            statement = (
-                select(Group)
-                .where(Group.id == group_id)
-                .options(selectinload(Group.project))
-            )
+            statement = select(Group).where(Group.id == group_id).options(selectinload(Group.project))
             if not (group := await session.scalar(statement)):
                 raise HTTPException(status_code=404, detail="Group not found.")
 
             passages: Sequence[Passage] = []
             if data.annotations:
                 for annotation in data.annotations:
-                    term = await AnnotationService.get_or_create_term(
-                        session, group.project_id, annotation.term
-                    )
-                    passage = await AnnotationService.get_or_create_passage(
-                        session, term.id, annotation.passage
-                    )
+                    term = await AnnotationService.get_or_create_term(session, group.project_id, annotation.term)
+                    passage = await AnnotationService.get_or_create_passage(session, term.id, annotation.passage)
                     passages += [passage]
 
             question = Question(
@@ -152,12 +170,10 @@ class QuestionController(Controller):
             await session.refresh(question)
 
             question = await session.scalar(
-                select(Question)
-                .where(Question.id == question.id)
-                .options(*self.detail_options)
+                select(Question).where(Question.id == question.id).options(*self.detail_options)
             )
             if question:
-                return QuestionDetail.model_validate(question)
+                return QuestionService.to_question_detail(question)
             else:
                 raise HTTPException(status_code=404, detail="Question not found.")
         except IntegrityError:
@@ -169,19 +185,13 @@ class QuestionController(Controller):
         :param session: AsyncSession object used to execute the database query and retrieve questions.
         :return: A list of QuestionDTO objects representing the retrieved questions.
         """
-        questions = (
-            await session.scalars(select(Question).options(*self.default_options))
-        ).all()
+        questions = (await session.scalars(select(Question).options(*self.default_options))).all()
         return QuestionService.to_question_overviews(questions)
 
     @get("/{group_id:uuid}", return_dto=QuestionOverviewDTO, status_code=HTTP_200_OK)
-    async def get_group_questions(
-        self, session: AsyncSession, group_id: UUID
-    ) -> Sequence[QuestionOverview]:
+    async def get_group_questions(self, session: AsyncSession, group_id: UUID) -> Sequence[QuestionOverview]:
         """Gets all `Question`s belonging to a given `Group`."""
-        questions = await QuestionService.get_questions_by_group(
-            session, group_id, self.default_options
-        )
+        questions = await QuestionService.get_questions_by_group(session, group_id, self.default_options)
         return QuestionService.to_question_overviews(questions)
 
     @get(
@@ -196,18 +206,14 @@ class QuestionController(Controller):
         group_id: UUID,
     ) -> Sequence[UnifiedQuestionOverview]:
         """Gets all `Question`s of a `Group` with consolidated sets collapsed to one representative each."""
-        return await QuestionService.get_unified_questions_by_group(
-            session, group_id, self.unified_options
-        )
+        return await QuestionService.get_unified_questions_by_group(session, group_id, self.unified_options)
 
     @get(
         "/{group_id:uuid}/{question_id:uuid}",
         return_dto=QuestionDetailDTO,
         status_code=HTTP_200_OK,
     )
-    async def get_question(
-        self, session: AsyncSession, question_id: UUID, group_id: UUID
-    ) -> QuestionDetail:
+    async def get_question(self, session: AsyncSession, question_id: UUID, group_id: UUID) -> QuestionDetail:
         """
         Retrieves a question by its ID.
 
@@ -227,7 +233,7 @@ class QuestionController(Controller):
         if not question:
             raise HTTPException(status_code=404, detail="Question not found")
 
-        return QuestionDetail.model_validate(question)
+        return QuestionService.to_question_detail(question)
 
     @put(
         "/{group_id:uuid}/{question_id:uuid}",
@@ -242,9 +248,7 @@ class QuestionController(Controller):
         question_id: UUID,
         request: Request[User, Any, Any],
     ) -> QuestionDetail:
-        question = await session.scalar(
-            select(Question).where(Question.id == question_id)
-        )
+        question = await session.scalar(select(Question).where(Question.id == question_id))
 
         if not question:
             raise HTTPException(status_code=404, detail="Question not found.")
@@ -279,11 +283,9 @@ class QuestionController(Controller):
             await session.refresh(version)
 
             if updated_question := await session.scalar(
-                select(Question)
-                .where(Question.id == question.id)
-                .options(*self.detail_options)
+                select(Question).where(Question.id == question.id).options(*self.detail_options)
             ):
-                return QuestionDetail.model_validate(updated_question)
+                return QuestionService.to_question_detail(updated_question)
             else:
                 raise HTTPException(status_code=404, detail="Question not found.")
 
@@ -291,9 +293,7 @@ class QuestionController(Controller):
             raise HTTPException(status_code=400, detail="Integrity violated.")
 
     @delete("/{group_id:uuid}/{question_id:uuid}", status_code=HTTP_204_NO_CONTENT)
-    async def delete_question(
-        self, session: AsyncSession, question_id: UUID, group_id: UUID
-    ) -> None:
+    async def delete_question(self, session: AsyncSession, question_id: UUID, group_id: UUID) -> None:
         """
         Deletes a question from the database.
 
@@ -305,9 +305,7 @@ class QuestionController(Controller):
         """
 
         question = await session.scalar(
-            select(Question).where(
-                Question.id == question_id, Question.group_id == group_id
-            )
+            select(Question).where(Question.id == question_id, Question.group_id == group_id)
         )
 
         if not question:
@@ -332,13 +330,9 @@ class QuestionController(Controller):
         summary="Gets all Questions that are part of a Project",
         return_dto=QuestionOverviewDTO,
     )
-    async def by_project(
-        self, session: AsyncSession, project_id: UUID
-    ) -> Sequence[QuestionOverview]:
+    async def by_project(self, session: AsyncSession, project_id: UUID) -> Sequence[QuestionOverview]:
         """Gets all `Question`s that are part of a `Project`."""
-        questions = await QuestionService.get_questions_by_project(
-            session, project_id, self.detail_options
-        )
+        questions = await QuestionService.get_questions_by_project(session, project_id, self.detail_options)
         return QuestionService.to_question_overviews(questions)
 
     @get(
@@ -346,13 +340,9 @@ class QuestionController(Controller):
         summary="Gets unified Questions that are part of a Project",
         return_dto=UnifiedQuestionOverviewDTO,
     )
-    async def by_project_unified(
-        self, session: AsyncSession, project_id: UUID
-    ) -> Sequence[UnifiedQuestionOverview]:
+    async def by_project_unified(self, session: AsyncSession, project_id: UUID) -> Sequence[UnifiedQuestionOverview]:
         """Gets all `Question`s of a `Project` with consolidated sets collapsed to one representative each."""
-        return await QuestionService.get_unified_questions_by_project(
-            session, project_id, self.unified_options
-        )
+        return await QuestionService.get_unified_questions_by_project(session, project_id, self.unified_options)
 
     @get(
         "/by_project/{project_id:uuid}/catalogue/{catalogue_identifier:str}",

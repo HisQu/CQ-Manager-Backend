@@ -12,10 +12,22 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.base import ExecutableOption
 
 from .dtos import (
+    QuestionAnnotation,
+    QuestionAnnotationTerm,
+    QuestionComment,
+    QuestionConsolidationContext,
+    QuestionConsolidationRole,
+    QuestionDetail,
+    QuestionDetailConsolidation,
+    QuestionDetailConsolidationQuestion,
+    QuestionDetailConsolidationQuestionGroup,
     QuestionGroup,
     QuestionOverview,
+    QuestionProject,
+    QuestionRating,
     QuestionTopic,
     QuestionUser,
+    QuestionVersion,
     UnifiedQuestionAuthor,
     UnifiedQuestionEntryKind,
     UnifiedQuestionGroup,
@@ -55,23 +67,26 @@ class QuestionService:
             sparql_query=question.sparql_query,
             rating=question.aggregated_rating,
             no_consolidations=question.no_consolidations,
-            group=QuestionGroup(id=question.group.id, name=question.group.name)
-            if question.group
-            else None,
-            topic=QuestionTopic(
-                id=question.topic.id,
-                identifier=question.topic.identifier,
-                name=question.topic.name,
-            )
-            if question.topic
-            else None,
-            author=QuestionUser(
-                id=question.author.id,
-                email=question.author.email,
-                name=question.author.name,
-            )
-            if question.author
-            else None,
+            group=QuestionGroup(id=question.group.id, name=question.group.name) if question.group else None,
+            topic=(
+                QuestionTopic(
+                    id=question.topic.id,
+                    identifier=question.topic.identifier,
+                    name=question.topic.name,
+                )
+                if question.topic
+                else None
+            ),
+            author=(
+                QuestionUser(
+                    id=question.author.id,
+                    email=question.author.email,
+                    name=question.author.name,
+                )
+                if question.author
+                else None
+            ),
+            consolidations=QuestionService._to_consolidation_contexts(question),
         )
 
     @staticmethod
@@ -79,11 +94,223 @@ class QuestionService:
         return [QuestionService.to_question_overview(question) for question in questions]
 
     @staticmethod
+    def _to_consolidation_context(
+        consolidation: Consolidation,
+        role: QuestionConsolidationRole,
+    ) -> QuestionConsolidationContext:
+        source_question_ids = sorted(
+            (source_question.id for source_question in consolidation.questions),
+            key=str,
+        )
+        return QuestionConsolidationContext(
+            id=consolidation.id,
+            role=role,
+            source_question_ids=source_question_ids,
+            target_question_id=consolidation.result_question_id,
+        )
+
+    @staticmethod
+    def _to_consolidation_contexts(
+        question: Question,
+    ) -> list[QuestionConsolidationContext]:
+        contexts: list[QuestionConsolidationContext] = []
+        seen: set[tuple[UUID, QuestionConsolidationRole]] = set()
+
+        for consolidation in question.target_consolidations:
+            key = (consolidation.id, QuestionConsolidationRole.TARGET)
+            if key not in seen:
+                contexts.append(
+                    QuestionService._to_consolidation_context(
+                        consolidation,
+                        QuestionConsolidationRole.TARGET,
+                    )
+                )
+                seen.add(key)
+
+        for consolidation in question.consolidations:
+            role = (
+                QuestionConsolidationRole.TARGET
+                if consolidation.result_question_id == question.id
+                else QuestionConsolidationRole.SOURCE
+            )
+            key = (consolidation.id, role)
+            if key not in seen:
+                contexts.append(QuestionService._to_consolidation_context(consolidation, role))
+                seen.add(key)
+
+        return sorted(contexts, key=lambda context: (str(context.id), context.role.value))
+
+    @staticmethod
+    def _to_detail_consolidation_question(
+        question: Question | None,
+    ) -> QuestionDetailConsolidationQuestion | None:
+        if question is None:
+            return None
+
+        return QuestionDetailConsolidationQuestion(
+            id=question.id,
+            group=(
+                QuestionDetailConsolidationQuestionGroup(
+                    id=question.group.id,
+                    name=question.group.name,
+                )
+                if question.group
+                else None
+            ),
+            question=question.question,
+            comment=question.comment,
+            cq_catalogue_identifier=question.cq_catalogue_identifier,
+            reference=question.reference,
+            anchor=question.anchor,
+            example_answer=question.example_answer,
+            type=question.type,
+            sparql_query=question.sparql_query,
+            aggregated_rating=question.aggregated_rating,
+            author=QuestionUser(
+                id=question.author.id,
+                email=question.author.email,
+                name=question.author.name,
+            ),
+        )
+
+    @staticmethod
+    def _to_detail_consolidation(consolidation: Consolidation) -> QuestionDetailConsolidation:
+        return QuestionDetailConsolidation(
+            id=consolidation.id,
+            target_question=QuestionService._to_detail_consolidation_question(consolidation.result_question),
+            no_source_questions=consolidation.no_questions,
+            project=QuestionProject(
+                id=consolidation.project.id,
+                name=consolidation.project.name,
+            ),
+            engineer=QuestionUser(
+                id=consolidation.engineer.id,
+                email=consolidation.engineer.email,
+                name=consolidation.engineer.name,
+            ),
+            source_questions=[
+                source_question
+                for source_question in (
+                    QuestionService._to_detail_consolidation_question(question)
+                    for question in sorted(consolidation.questions, key=lambda item: str(item.id))
+                )
+                if source_question is not None
+            ],
+        )
+
+    @staticmethod
+    def _to_detail_consolidations(question: Question) -> list[QuestionDetailConsolidation]:
+        consolidations_by_id: dict[UUID, Consolidation] = {
+            consolidation.id: consolidation
+            for consolidation in [*question.consolidations, *question.target_consolidations]
+        }
+        return [
+            QuestionService._to_detail_consolidation(consolidation)
+            for consolidation in sorted(consolidations_by_id.values(), key=lambda item: str(item.id))
+        ]
+
+    @staticmethod
+    def to_question_detail(question: Question) -> QuestionDetail:
+        return QuestionDetail(
+            id=question.id,
+            question=question.question,
+            comment=question.comment,
+            cq_catalogue_identifier=question.cq_catalogue_identifier,
+            reference=question.reference,
+            anchor=question.anchor,
+            example_answer=question.example_answer,
+            type=question.type,
+            sparql_query=question.sparql_query,
+            group_id=question.group_id,
+            version_number=question.version_number,
+            ratings=[
+                QuestionRating(
+                    rating=rating.rating,
+                    author=QuestionUser(
+                        id=rating.author.id,
+                        email=rating.author.email,
+                        name=rating.author.name,
+                    ),
+                )
+                for rating in question.ratings
+            ],
+            aggregated_rating=question.aggregated_rating,
+            author=QuestionUser(
+                id=question.author.id,
+                email=question.author.email,
+                name=question.author.name,
+            ),
+            editor=QuestionUser(
+                id=question.editor.id,
+                email=question.editor.email,
+                name=question.editor.name,
+            ),
+            group=QuestionGroup(
+                id=question.group.id,
+                name=question.group.name,
+                project=(
+                    QuestionProject(
+                        id=question.group.project.id,
+                        name=question.group.project.name,
+                    )
+                    if question.group.project
+                    else None
+                ),
+            ),
+            topic=(
+                QuestionTopic(
+                    id=question.topic.id,
+                    identifier=question.topic.identifier,
+                    name=question.topic.name,
+                )
+                if question.topic
+                else None
+            ),
+            comments=[
+                QuestionComment(
+                    comment=comment.comment,
+                    created_at=comment.created_at,
+                    author=QuestionUser(
+                        id=comment.author.id,
+                        email=comment.author.email,
+                        name=comment.author.name,
+                    ),
+                )
+                for comment in question.comments
+            ],
+            no_consolidations=question.no_consolidations,
+            consolidations=QuestionService._to_detail_consolidations(question),
+            versions=[
+                QuestionVersion(
+                    question_string=version.question_string,
+                    version_number=version.version_number,
+                    editor=QuestionUser(
+                        id=version.editor.id,
+                        email=version.editor.email,
+                        name=version.editor.name,
+                    ),
+                )
+                for version in question.versions
+            ],
+            annotations=[
+                QuestionAnnotation(
+                    id=annotation.id,
+                    content=annotation.content,
+                    term=QuestionAnnotationTerm(
+                        id=annotation.term.id,
+                        content=annotation.term.content,
+                    ),
+                )
+                for annotation in question.annotations
+            ],
+        )
+
+    @staticmethod
     def _to_unified_question_entry(
         question: Question,
         entry_kind: UnifiedQuestionEntryKind = UnifiedQuestionEntryKind.QUESTION,
         consolidation_id: UUID | None = None,
-        consolidated_question_ids: list[UUID] | None = None,
+        consolidation_context: QuestionConsolidationContext | None = None,
     ) -> UnifiedQuestionOverview:
         return UnifiedQuestionOverview(
             id=question.id,
@@ -113,20 +340,16 @@ class QuestionService:
                 name=question.author.name,
             ),
             unified_entry_kind=entry_kind,
-            consolidation_id=consolidation_id,
-            consolidated_question_ids=consolidated_question_ids or [],
+            consolidation=consolidation_context,
         )
 
     @staticmethod
     def _to_unified_consolidation_entry(
         consolidation: Consolidation, fallback_question: Question
     ) -> UnifiedQuestionOverview:
-        consolidated_question_ids = sorted(
-            (
-                consolidated_question.id
-                for consolidated_question in consolidation.questions
-            ),
-            key=str,
+        consolidation_context = QuestionService._to_consolidation_context(
+            consolidation,
+            QuestionConsolidationRole.TARGET,
         )
 
         result_question = consolidation.result_question
@@ -143,9 +366,7 @@ class QuestionService:
                 sparql_query=None,
                 rating=0,
                 no_consolidations=0,
-                group=UnifiedQuestionGroup(
-                    id=fallback_question.group.id, name=fallback_question.group.name
-                ),
+                group=UnifiedQuestionGroup(id=fallback_question.group.id, name=fallback_question.group.name),
                 topic=(
                     UnifiedQuestionTopic(
                         id=fallback_question.topic.id,
@@ -161,15 +382,14 @@ class QuestionService:
                     name=consolidation.engineer.name,
                 ),
                 unified_entry_kind=UnifiedQuestionEntryKind.CONSOLIDATION_RESULT,
-                consolidation_id=consolidation.id,
-                consolidated_question_ids=consolidated_question_ids,
+                consolidation=consolidation_context,
             )
 
         return QuestionService._to_unified_question_entry(
             result_question,
             entry_kind=UnifiedQuestionEntryKind.CONSOLIDATION_RESULT,
             consolidation_id=consolidation.id,
-            consolidated_question_ids=consolidated_question_ids,
+            consolidation_context=consolidation_context,
         )
 
     @staticmethod
@@ -179,9 +399,7 @@ class QuestionService:
         options: Iterable[ExecutableOption] | None = None,
     ) -> Sequence[Question]:
         options = [] if not options else options
-        statement = (
-            select(Question).where(Question.group_id == group_id).options(*options)
-        )
+        statement = select(Question).where(Question.group_id == group_id).options(*options)
         return (await session.scalars(statement)).all()
 
     @staticmethod
@@ -191,12 +409,7 @@ class QuestionService:
         options: Iterable[ExecutableOption] | None = None,
     ) -> Sequence[Question]:
         options = [] if not options else options
-        statement = (
-            select(Question)
-            .join(Group)
-            .filter(Group.project_id == project_id)
-            .options(*options)
-        )
+        statement = select(Question).join(Group).filter(Group.project_id == project_id).options(*options)
         return (await session.scalars(statement)).all()
 
     @staticmethod
@@ -235,9 +448,7 @@ class QuestionService:
     ) -> list[UnifiedQuestionOverview]:
         unified: list[UnifiedQuestionOverview] = []
         consolidation_map: dict[UUID, Consolidation] = {
-            consolidation.id: consolidation
-            for question in questions
-            for consolidation in question.consolidations
+            consolidation.id: consolidation for question in questions for consolidation in question.consolidations
         }
         result_question_ids = {
             consolidation.result_question_id
@@ -251,10 +462,7 @@ class QuestionService:
                 continue
 
             consolidation_ids = sorted(
-                (
-                    consolidation.id
-                    for consolidation in question.consolidations
-                ),
+                (consolidation.id for consolidation in question.consolidations),
                 key=str,
             )
 
@@ -273,11 +481,7 @@ class QuestionService:
             # One consolidation result entry is emitted per unseen consolidation.
             for consolidation_id in unconsolidated_ids:
                 consolidation = consolidation_map[consolidation_id]
-                unified.append(
-                    QuestionService._to_unified_consolidation_entry(
-                        consolidation, question
-                    )
-                )
+                unified.append(QuestionService._to_unified_consolidation_entry(consolidation, question))
             seen_consolidation_ids.update(unconsolidated_ids)
 
         return unified
@@ -288,9 +492,7 @@ class QuestionService:
         group_id: UUID,
         options: Iterable[ExecutableOption] | None = None,
     ) -> Sequence[UnifiedQuestionOverview]:
-        questions = await QuestionService.get_questions_by_group(
-            session, group_id, options
-        )
+        questions = await QuestionService.get_questions_by_group(session, group_id, options)
         return QuestionService._unify_consolidated_questions(questions)
 
     @staticmethod
@@ -299,7 +501,5 @@ class QuestionService:
         project_id: UUID,
         options: Iterable[ExecutableOption] | None = None,
     ) -> Sequence[UnifiedQuestionOverview]:
-        questions = await QuestionService.get_questions_by_project(
-            session, project_id, options
-        )
+        questions = await QuestionService.get_questions_by_project(session, project_id, options)
         return QuestionService._unify_consolidated_questions(questions)

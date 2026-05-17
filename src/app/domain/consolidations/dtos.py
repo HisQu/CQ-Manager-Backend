@@ -4,7 +4,7 @@ from lib.dto import BaseModel
 from domain.questions.dtos import QuestionMetadataMixin
 from litestar.contrib.pydantic.pydantic_dto_factory import PydanticDTO
 from litestar.dto import DTOConfig
-from pydantic import model_validator
+from pydantic import Field, model_validator
 
 
 class ConsolidationUser(BaseModel):
@@ -35,11 +35,13 @@ class ConsolidationQuestion(QuestionMetadataMixin):
 
 class ConsolidationRead(BaseModel):
     id: UUID
-    result_question_id: UUID | None = None
-    result_question: ConsolidationQuestion | None = None
-    no_questions: int = 0
+    target_question: ConsolidationQuestion | None = Field(
+        default=None,
+        validation_alias="result_question",
+    )
+    no_source_questions: int = Field(default=0, validation_alias="no_questions")
     engineer: ConsolidationUser
-    questions: list[ConsolidationQuestion]
+    source_questions: list[ConsolidationQuestion] = Field(validation_alias="questions")
     project: ConsolidationProject
 
 
@@ -47,7 +49,7 @@ class ConsolidationDTO(PydanticDTO[ConsolidationRead]):
     config = DTOConfig(rename_strategy="camel")
 
 
-class ConsolidationResultQuestionCreate(QuestionMetadataMixin):
+class ConsolidationTargetQuestionCreate(QuestionMetadataMixin):
     id: UUID | None = None
     question: str | None = None
     comment: str | None = None
@@ -55,66 +57,30 @@ class ConsolidationResultQuestionCreate(QuestionMetadataMixin):
     sparql_query: str | None = None
 
     @model_validator(mode="after")
-    def validate_payload_shape(self) -> "ConsolidationResultQuestionCreate":
+    def validate_payload_shape(self) -> "ConsolidationTargetQuestionCreate":
         has_reference = self.id is not None
         has_create = self.question is not None or self.group_id is not None
         if has_reference == has_create:
-            raise ValueError(
-                "Provide either id or question/groupId for resultQuestion."
-            )
+            raise ValueError("Provide either id or question/groupId for targetQuestion.")
         if has_create and self.question is None:
-            raise ValueError("question is required for new resultQuestion.")
+            raise ValueError("question is required for new targetQuestion.")
         return self
 
 
+class ConsolidationTargetQuestionReference(BaseModel):
+    id: UUID
+
+
 class ConsolidationCreate(BaseModel):
-    result_question: ConsolidationResultQuestionCreate | None = None
-    result_question_id: UUID | None = None
-    ids: list[UUID] | None = None
-
-    @model_validator(mode="before")
-    @classmethod
-    def normalize_existing_result_question_reference(cls, data: object) -> object:
-        if not isinstance(data, dict):
-            return data
-
-        result_question = data.get("result_question", data.get("resultQuestion"))
-        if isinstance(result_question, dict):
-            question_id = result_question.get("id")
-            has_create_fields = (
-                result_question.get("question") is not None
-                or result_question.get("group_id") is not None
-                or result_question.get("groupId") is not None
-            )
-            if question_id is not None and not has_create_fields:
-                data = dict(data)
-                data["result_question_id"] = data.get(
-                    "result_question_id",
-                    data.get("resultQuestionId", question_id),
-                )
-                data.pop("result_question", None)
-                data.pop("resultQuestion", None)
-
-        return data
+    target_question: ConsolidationTargetQuestionCreate
+    source_question_ids: list[UUID] | None = None
 
     @model_validator(mode="after")
-    def validate_result_question_source(self) -> "ConsolidationCreate":
-        if (
-            self.result_question is not None
-            and self.result_question.id is not None
-            and self.result_question_id is None
-        ):
-            self.result_question_id = self.result_question.id
-
-        has_new_result = (
-            self.result_question is not None
-            and self.result_question.question is not None
-        )
-        has_existing_result = self.result_question_id is not None
-        if has_new_result == has_existing_result:
-            raise ValueError(
-                "Provide exactly one of resultQuestion or resultQuestionId."
-            )
+    def validate_target_question_source(self) -> "ConsolidationCreate":
+        has_new_target = self.target_question.question is not None
+        has_existing_target = self.target_question.id is not None
+        if has_new_target == has_existing_target:
+            raise ValueError("Provide either an id or question/groupId for targetQuestion.")
         return self
 
 
@@ -123,7 +89,7 @@ class ConsolidationCreateDTO(PydanticDTO[ConsolidationCreate]):
 
 
 class ConsolidationUpdate(BaseModel):
-    result_question_id: UUID | None = None
+    target_question: ConsolidationTargetQuestionReference | None = None
 
 
 class ConsolidationUpdateDTO(PydanticDTO[ConsolidationUpdate]):
@@ -131,7 +97,7 @@ class ConsolidationUpdateDTO(PydanticDTO[ConsolidationUpdate]):
 
 
 class MoveQuestion(BaseModel):
-    ids: list[UUID]
+    source_question_ids: list[UUID]
 
 
 class MoveQuestionDTO(PydanticDTO[MoveQuestion]):
