@@ -11,7 +11,7 @@ default:
 
 # Start the Litestar app for local development
 dev:
-    uv run litestar --app-dir {{app_dir}} --app={{app_path}} run --reload --debug
+    set -a; [ ! -f .env ] || . ./.env; set +a; uv run litestar --app-dir {{app_dir}} --app={{app_path}} run --reload --debug --port "${PORT:-8000}"
 
 # Sync uv environment including dev dependencies
 sync:
