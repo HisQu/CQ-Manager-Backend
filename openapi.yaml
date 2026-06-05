@@ -169,29 +169,24 @@ components:
         id:
           format: uuid
           type: string
-        noQuestions:
+        noSourceQuestions:
           default: 0
           type: integer
         project:
           $ref: '#/components/schemas/AddQuestionHandlerConsolidationReadConsolidationProjectResponseBody'
-        questions:
+        sourceQuestions:
           items:
             $ref: '#/components/schemas/domain.consolidations.controllers.ConsolidationController.add_question_handlerConsolidationRead_0ConsolidationQuestionResponseBody'
           type: array
-        resultQuestion:
+        targetQuestion:
           oneOf:
           - $ref: '#/components/schemas/AddQuestionHandlerConsolidationRead_0ConsolidationQuestionResponseBody'
-          - type: 'null'
-        resultQuestionId:
-          oneOf:
-          - format: uuid
-            type: string
           - type: 'null'
       required:
       - engineer
       - id
       - project
-      - questions
+      - sourceQuestions
       title: AddQuestionHandlerConsolidationReadResponseBody
       type: object
     AddQuestionHandlerConsolidationRead_0ConsolidationQuestionResponseBody:
@@ -226,6 +221,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -246,13 +242,13 @@ components:
       type: object
     AddQuestionHandlerMoveQuestionRequestBody:
       properties:
-        ids:
+        sourceQuestionIds:
           items:
             format: uuid
             type: string
           type: array
       required:
-      - ids
+      - sourceQuestionIds
       title: AddQuestionHandlerMoveQuestionRequestBody
       type: object
     AnnotationAddDTO:
@@ -302,6 +298,10 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        consolidations:
+          items:
+            $ref: '#/components/schemas/AssignQuestionTopicQuestionOverview_0QuestionConsolidationContextResponseBody'
+          type: array
         cqCatalogueIdentifier:
           oneOf:
           - type: string
@@ -339,6 +339,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -356,6 +357,28 @@ components:
       - id
       - question
       title: AssignQuestionTopicQuestionOverviewResponseBody
+      type: object
+    AssignQuestionTopicQuestionOverview_0QuestionConsolidationContextResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        role:
+          $ref: '#/components/schemas/QuestionConsolidationRole'
+        sourceQuestionIds:
+          items:
+            format: uuid
+            type: string
+          type: array
+        targetQuestionId:
+          oneOf:
+          - format: uuid
+            type: string
+          - type: 'null'
+      required:
+      - id
+      - role
+      title: AssignQuestionTopicQuestionOverview_0QuestionConsolidationContextResponseBody
       type: object
     AssignQuestionTopicQuestionOverview_0QuestionGroupResponseBody:
       properties:
@@ -429,6 +452,10 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        consolidations:
+          items:
+            $ref: '#/components/schemas/ByProjectQuestionOverview_0QuestionConsolidationContextResponseBody'
+          type: array
         cqCatalogueIdentifier:
           oneOf:
           - type: string
@@ -466,6 +493,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -483,6 +511,28 @@ components:
       - id
       - question
       title: ByProjectQuestionOverviewResponseBody
+      type: object
+    ByProjectQuestionOverview_0QuestionConsolidationContextResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        role:
+          $ref: '#/components/schemas/QuestionConsolidationRole'
+        sourceQuestionIds:
+          items:
+            format: uuid
+            type: string
+          type: array
+        targetQuestionId:
+          oneOf:
+          - format: uuid
+            type: string
+          - type: 'null'
+      required:
+      - id
+      - role
+      title: ByProjectQuestionOverview_0QuestionConsolidationContextResponseBody
       type: object
     ByProjectQuestionOverview_0QuestionGroupResponseBody:
       properties:
@@ -544,15 +594,9 @@ components:
           oneOf:
           - type: string
           - type: 'null'
-        consolidatedQuestionIds:
-          items:
-            format: uuid
-            type: string
-          type: array
-        consolidationId:
+        consolidation:
           oneOf:
-          - format: uuid
-            type: string
+          - $ref: '#/components/schemas/ByProjectUnifiedUnifiedQuestionOverview_0QuestionConsolidationContextResponseBody'
           - type: 'null'
         cqCatalogueIdentifier:
           oneOf:
@@ -591,6 +635,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -611,6 +656,28 @@ components:
       - question
       - unifiedEntryKind
       title: ByProjectUnifiedUnifiedQuestionOverviewResponseBody
+      type: object
+    ByProjectUnifiedUnifiedQuestionOverview_0QuestionConsolidationContextResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        role:
+          $ref: '#/components/schemas/QuestionConsolidationRole'
+        sourceQuestionIds:
+          items:
+            format: uuid
+            type: string
+          type: array
+        targetQuestionId:
+          oneOf:
+          - format: uuid
+            type: string
+          - type: 'null'
+      required:
+      - id
+      - role
+      title: ByProjectUnifiedUnifiedQuestionOverview_0QuestionConsolidationContextResponseBody
       type: object
     ByProjectUnifiedUnifiedQuestionOverview_0UnifiedQuestionAuthorResponseBody:
       properties:
@@ -680,6 +747,10 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        consolidations:
+          items:
+            $ref: '#/components/schemas/ChangeQuestionTopicQuestionOverview_0QuestionConsolidationContextResponseBody'
+          type: array
         cqCatalogueIdentifier:
           oneOf:
           - type: string
@@ -717,6 +788,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -734,6 +806,28 @@ components:
       - id
       - question
       title: ChangeQuestionTopicQuestionOverviewResponseBody
+      type: object
+    ChangeQuestionTopicQuestionOverview_0QuestionConsolidationContextResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        role:
+          $ref: '#/components/schemas/QuestionConsolidationRole'
+        sourceQuestionIds:
+          items:
+            format: uuid
+            type: string
+          type: array
+        targetQuestionId:
+          oneOf:
+          - format: uuid
+            type: string
+          - type: 'null'
+      required:
+      - id
+      - role
+      title: ChangeQuestionTopicQuestionOverview_0QuestionConsolidationContextResponseBody
       type: object
     ChangeQuestionTopicQuestionOverview_0QuestionGroupResponseBody:
       properties:
@@ -828,28 +922,7 @@ components:
       - name
       title: CreateCommentCommentUserResponseBody
       type: object
-    CreateConsolidationHandlerConsolidationCreateRequestBody:
-      properties:
-        ids:
-          oneOf:
-          - items:
-              format: uuid
-              type: string
-            type: array
-          - type: 'null'
-        resultQuestion:
-          oneOf:
-          - $ref: '#/components/schemas/CreateConsolidationHandlerConsolidationCreate_0ConsolidationResultQuestionCreateRequestBody'
-          - type: 'null'
-        resultQuestionId:
-          oneOf:
-          - format: uuid
-            type: string
-          - type: 'null'
-      required: []
-      title: CreateConsolidationHandlerConsolidationCreateRequestBody
-      type: object
-    CreateConsolidationHandlerConsolidationCreate_0ConsolidationResultQuestionCreateRequestBody:
+    CreateConsolidationHandlerConsolidationCreateConsolidationTargetQuestionCreateRequestBody:
       properties:
         anchor:
           oneOf:
@@ -887,6 +960,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -901,7 +975,22 @@ components:
           - 'null'
           - string
       required: []
-      title: CreateConsolidationHandlerConsolidationCreate_0ConsolidationResultQuestionCreateRequestBody
+      title: CreateConsolidationHandlerConsolidationCreateConsolidationTargetQuestionCreateRequestBody
+      type: object
+    CreateConsolidationHandlerConsolidationCreateRequestBody:
+      properties:
+        sourceQuestionIds:
+          oneOf:
+          - items:
+              format: uuid
+              type: string
+            type: array
+          - type: 'null'
+        targetQuestion:
+          $ref: '#/components/schemas/CreateConsolidationHandlerConsolidationCreateConsolidationTargetQuestionCreateRequestBody'
+      required:
+      - targetQuestion
+      title: CreateConsolidationHandlerConsolidationCreateRequestBody
       type: object
     CreateConsolidationHandlerConsolidationReadConsolidationProjectResponseBody:
       properties:
@@ -937,29 +1026,24 @@ components:
         id:
           format: uuid
           type: string
-        noQuestions:
+        noSourceQuestions:
           default: 0
           type: integer
         project:
           $ref: '#/components/schemas/CreateConsolidationHandlerConsolidationReadConsolidationProjectResponseBody'
-        questions:
+        sourceQuestions:
           items:
             $ref: '#/components/schemas/domain.consolidations.controllers.ConsolidationController.create_consolidation_handlerConsolidationRead_0ConsolidationQuestionResponseBody'
           type: array
-        resultQuestion:
+        targetQuestion:
           oneOf:
           - $ref: '#/components/schemas/CreateConsolidationHandlerConsolidationRead_0ConsolidationQuestionResponseBody'
-          - type: 'null'
-        resultQuestionId:
-          oneOf:
-          - format: uuid
-            type: string
           - type: 'null'
       required:
       - engineer
       - id
       - project
-      - questions
+      - sourceQuestions
       title: CreateConsolidationHandlerConsolidationReadResponseBody
       type: object
     CreateConsolidationHandlerConsolidationRead_0ConsolidationQuestionResponseBody:
@@ -994,6 +1078,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -1128,106 +1213,6 @@ components:
       - name
       title: CreateQuestionQuestionCommentQuestionUserResponseBody
       type: object
-    CreateQuestionQuestionConsolidationQuestionProjectResponseBody:
-      properties:
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - id
-      - name
-      title: CreateQuestionQuestionConsolidationQuestionProjectResponseBody
-      type: object
-    CreateQuestionQuestionConsolidationQuestionQuestionUserResponseBody:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - id
-      - name
-      title: CreateQuestionQuestionConsolidationQuestionQuestionUserResponseBody
-      type: object
-    CreateQuestionQuestionConsolidationQuestionUserResponseBody:
-      properties:
-        email:
-          type: string
-        id:
-          format: uuid
-          type: string
-        name:
-          type: string
-      required:
-      - email
-      - id
-      - name
-      title: CreateQuestionQuestionConsolidationQuestionUserResponseBody
-      type: object
-    CreateQuestionQuestionConsolidation_0QuestionConsolidationQuestionResponseBody:
-      properties:
-        anchor:
-          oneOf:
-          - type: string
-          - type: 'null'
-        author:
-          $ref: '#/components/schemas/CreateQuestionQuestionConsolidationQuestionQuestionUserResponseBody'
-        comment:
-          oneOf:
-          - type: string
-          - type: 'null'
-        cqCatalogueIdentifier:
-          oneOf:
-          - type: string
-          - type: 'null'
-        exampleAnswer:
-          oneOf:
-          - type: string
-          - type: 'null'
-        groupId:
-          format: uuid
-          type: string
-        id:
-          format: uuid
-          type: string
-        question:
-          type: string
-        reference:
-          oneOf:
-          - type: string
-          - type: 'null'
-        sparqlQuery:
-          oneOf:
-          - type: string
-          - type: 'null'
-        type:
-          enum:
-          - SCQ
-          - VCQ
-          - FCQ
-          - RCQ
-          - aRCQ
-          - efRCQ
-          - drRCQ
-          - rpRCQ
-          - MpCQ
-          - null
-          type:
-          - 'null'
-          - string
-      required:
-      - author
-      - groupId
-      - id
-      - question
-      title: CreateQuestionQuestionConsolidation_0QuestionConsolidationQuestionResponseBody
-      type: object
     CreateQuestionQuestionCreateRequestBody:
       properties:
         anchor:
@@ -1258,6 +1243,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -1285,6 +1271,122 @@ components:
       - passage
       - term
       title: CreateQuestionQuestionCreate_0AnnotationDTORequestBody
+      type: object
+    CreateQuestionQuestionDetailConsolidationQuestionProjectResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: CreateQuestionQuestionDetailConsolidationQuestionProjectResponseBody
+      type: object
+    CreateQuestionQuestionDetailConsolidationQuestionQuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: CreateQuestionQuestionDetailConsolidationQuestionQuestionUserResponseBody
+      type: object
+    CreateQuestionQuestionDetailConsolidationQuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: CreateQuestionQuestionDetailConsolidationQuestionUserResponseBody
+      type: object
+    CreateQuestionQuestionDetailConsolidationQuestion_0QuestionDetailConsolidationQuestionGroupResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: CreateQuestionQuestionDetailConsolidationQuestion_0QuestionDetailConsolidationQuestionGroupResponseBody
+      type: object
+    CreateQuestionQuestionDetailConsolidation_0QuestionDetailConsolidationQuestionResponseBody:
+      properties:
+        aggregatedRating:
+          default: 0
+          type: integer
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
+        author:
+          $ref: '#/components/schemas/CreateQuestionQuestionDetailConsolidationQuestionQuestionUserResponseBody'
+        comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        cqCatalogueIdentifier:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
+        group:
+          oneOf:
+          - $ref: '#/components/schemas/CreateQuestionQuestionDetailConsolidationQuestion_0QuestionDetailConsolidationQuestionGroupResponseBody'
+          - type: 'null'
+        id:
+          format: uuid
+          type: string
+        question:
+          type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        type:
+          enum:
+          - LCQ
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
+      required:
+      - author
+      - id
+      - question
+      title: CreateQuestionQuestionDetailConsolidation_0QuestionDetailConsolidationQuestionResponseBody
       type: object
     CreateQuestionQuestionDetailQuestionGroupResponseBody:
       properties:
@@ -1342,7 +1444,7 @@ components:
           type: array
         consolidations:
           items:
-            $ref: '#/components/schemas/CreateQuestionQuestionDetail_0QuestionConsolidationResponseBody'
+            $ref: '#/components/schemas/CreateQuestionQuestionDetail_0QuestionDetailConsolidationResponseBody'
           type: array
         cqCatalogueIdentifier:
           oneOf:
@@ -1385,6 +1487,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -1444,27 +1547,31 @@ components:
       - createdAt
       title: CreateQuestionQuestionDetail_0QuestionCommentResponseBody
       type: object
-    CreateQuestionQuestionDetail_0QuestionConsolidationResponseBody:
+    CreateQuestionQuestionDetail_0QuestionDetailConsolidationResponseBody:
       properties:
         engineer:
-          $ref: '#/components/schemas/CreateQuestionQuestionConsolidationQuestionUserResponseBody'
+          $ref: '#/components/schemas/CreateQuestionQuestionDetailConsolidationQuestionUserResponseBody'
         id:
           format: uuid
           type: string
-        noQuestions:
+        noSourceQuestions:
           default: 0
           type: integer
         project:
-          $ref: '#/components/schemas/CreateQuestionQuestionConsolidationQuestionProjectResponseBody'
-        questions:
+          $ref: '#/components/schemas/CreateQuestionQuestionDetailConsolidationQuestionProjectResponseBody'
+        sourceQuestions:
           items:
-            $ref: '#/components/schemas/CreateQuestionQuestionConsolidation_0QuestionConsolidationQuestionResponseBody'
+            $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionQuestionDetailConsolidation_0QuestionDetailConsolidationQuestionResponseBody'
           type: array
+        targetQuestion:
+          oneOf:
+          - $ref: '#/components/schemas/CreateQuestionQuestionDetailConsolidation_0QuestionDetailConsolidationQuestionResponseBody'
+          - type: 'null'
       required:
       - engineer
       - id
       - project
-      title: CreateQuestionQuestionDetail_0QuestionConsolidationResponseBody
+      title: CreateQuestionQuestionDetail_0QuestionDetailConsolidationResponseBody
       type: object
     CreateQuestionQuestionDetail_0QuestionRatingResponseBody:
       properties:
@@ -1681,6 +1788,160 @@ components:
       - projectId
       title: GetAllTermResponseBody
       type: object
+    GetByTermQuestionGroup_0QuestionProjectResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: GetByTermQuestionGroup_0QuestionProjectResponseBody
+      type: object
+    GetByTermQuestionOverviewResponseBody:
+      properties:
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
+        author:
+          oneOf:
+          - $ref: '#/components/schemas/GetByTermQuestionOverview_0QuestionUserResponseBody'
+          - type: 'null'
+        comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        consolidations:
+          items:
+            $ref: '#/components/schemas/GetByTermQuestionOverview_0QuestionConsolidationContextResponseBody'
+          type: array
+        cqCatalogueIdentifier:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
+        group:
+          oneOf:
+          - $ref: '#/components/schemas/GetByTermQuestionOverview_0QuestionGroupResponseBody'
+          - type: 'null'
+        id:
+          format: uuid
+          type: string
+        noConsolidations:
+          default: 0
+          type: integer
+        question:
+          type: string
+        rating:
+          default: 0
+          type: integer
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        topic:
+          oneOf:
+          - $ref: '#/components/schemas/GetByTermQuestionOverview_0QuestionTopicResponseBody'
+          - type: 'null'
+        type:
+          enum:
+          - LCQ
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
+      required:
+      - id
+      - question
+      title: GetByTermQuestionOverviewResponseBody
+      type: object
+    GetByTermQuestionOverview_0QuestionConsolidationContextResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        role:
+          $ref: '#/components/schemas/QuestionConsolidationRole'
+        sourceQuestionIds:
+          items:
+            format: uuid
+            type: string
+          type: array
+        targetQuestionId:
+          oneOf:
+          - format: uuid
+            type: string
+          - type: 'null'
+      required:
+      - id
+      - role
+      title: GetByTermQuestionOverview_0QuestionConsolidationContextResponseBody
+      type: object
+    GetByTermQuestionOverview_0QuestionGroupResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        project:
+          oneOf:
+          - $ref: '#/components/schemas/GetByTermQuestionGroup_0QuestionProjectResponseBody'
+          - type: 'null'
+      required:
+      - id
+      - name
+      title: GetByTermQuestionOverview_0QuestionGroupResponseBody
+      type: object
+    GetByTermQuestionOverview_0QuestionTopicResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        identifier:
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - identifier
+      - name
+      title: GetByTermQuestionOverview_0QuestionTopicResponseBody
+      type: object
+    GetByTermQuestionOverview_0QuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: GetByTermQuestionOverview_0QuestionUserResponseBody
+      type: object
     GetCommentCommentResponseBody:
       properties:
         author:
@@ -1785,29 +2046,24 @@ components:
         id:
           format: uuid
           type: string
-        noQuestions:
+        noSourceQuestions:
           default: 0
           type: integer
         project:
           $ref: '#/components/schemas/GetConsolidationsHandlerConsolidationReadConsolidationProjectResponseBody'
-        questions:
+        sourceQuestions:
           items:
             $ref: '#/components/schemas/domain.consolidations.controllers.ConsolidationController.get_consolidations_handlerConsolidationRead_0ConsolidationQuestionResponseBody'
           type: array
-        resultQuestion:
+        targetQuestion:
           oneOf:
           - $ref: '#/components/schemas/GetConsolidationsHandlerConsolidationRead_0ConsolidationQuestionResponseBody'
-          - type: 'null'
-        resultQuestionId:
-          oneOf:
-          - format: uuid
-            type: string
           - type: 'null'
       required:
       - engineer
       - id
       - project
-      - questions
+      - sourceQuestions
       title: GetConsolidationsHandlerConsolidationReadResponseBody
       type: object
     GetConsolidationsHandlerConsolidationRead_0ConsolidationQuestionResponseBody:
@@ -1842,6 +2098,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -2094,6 +2351,10 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        consolidations:
+          items:
+            $ref: '#/components/schemas/GetGroupQuestionsQuestionOverview_0QuestionConsolidationContextResponseBody'
+          type: array
         cqCatalogueIdentifier:
           oneOf:
           - type: string
@@ -2131,6 +2392,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -2148,6 +2410,28 @@ components:
       - id
       - question
       title: GetGroupQuestionsQuestionOverviewResponseBody
+      type: object
+    GetGroupQuestionsQuestionOverview_0QuestionConsolidationContextResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        role:
+          $ref: '#/components/schemas/QuestionConsolidationRole'
+        sourceQuestionIds:
+          items:
+            format: uuid
+            type: string
+          type: array
+        targetQuestionId:
+          oneOf:
+          - format: uuid
+            type: string
+          - type: 'null'
+      required:
+      - id
+      - role
+      title: GetGroupQuestionsQuestionOverview_0QuestionConsolidationContextResponseBody
       type: object
     GetGroupQuestionsQuestionOverview_0QuestionGroupResponseBody:
       properties:
@@ -2209,15 +2493,9 @@ components:
           oneOf:
           - type: string
           - type: 'null'
-        consolidatedQuestionIds:
-          items:
-            format: uuid
-            type: string
-          type: array
-        consolidationId:
+        consolidation:
           oneOf:
-          - format: uuid
-            type: string
+          - $ref: '#/components/schemas/GetGroupQuestionsUnifiedUnifiedQuestionOverview_0QuestionConsolidationContextResponseBody'
           - type: 'null'
         cqCatalogueIdentifier:
           oneOf:
@@ -2256,6 +2534,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -2276,6 +2555,28 @@ components:
       - question
       - unifiedEntryKind
       title: GetGroupQuestionsUnifiedUnifiedQuestionOverviewResponseBody
+      type: object
+    GetGroupQuestionsUnifiedUnifiedQuestionOverview_0QuestionConsolidationContextResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        role:
+          $ref: '#/components/schemas/QuestionConsolidationRole'
+        sourceQuestionIds:
+          items:
+            format: uuid
+            type: string
+          type: array
+        targetQuestionId:
+          oneOf:
+          - format: uuid
+            type: string
+          - type: 'null'
+      required:
+      - id
+      - role
+      title: GetGroupQuestionsUnifiedUnifiedQuestionOverview_0QuestionConsolidationContextResponseBody
       type: object
     GetGroupQuestionsUnifiedUnifiedQuestionOverview_0UnifiedQuestionAuthorResponseBody:
       properties:
@@ -2411,29 +2712,24 @@ components:
         id:
           format: uuid
           type: string
-        noQuestions:
+        noSourceQuestions:
           default: 0
           type: integer
         project:
           $ref: '#/components/schemas/GetProjectConsolidationHandlerConsolidationReadConsolidationProjectResponseBody'
-        questions:
+        sourceQuestions:
           items:
             $ref: '#/components/schemas/domain.consolidations.controllers.ConsolidationController.get_project_consolidation_handlerConsolidationRead_0ConsolidationQuestionResponseBody'
           type: array
-        resultQuestion:
+        targetQuestion:
           oneOf:
           - $ref: '#/components/schemas/GetProjectConsolidationHandlerConsolidationRead_0ConsolidationQuestionResponseBody'
-          - type: 'null'
-        resultQuestionId:
-          oneOf:
-          - format: uuid
-            type: string
           - type: 'null'
       required:
       - engineer
       - id
       - project
-      - questions
+      - sourceQuestions
       title: GetProjectConsolidationHandlerConsolidationReadResponseBody
       type: object
     GetProjectConsolidationHandlerConsolidationRead_0ConsolidationQuestionResponseBody:
@@ -2468,6 +2764,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -2520,29 +2817,24 @@ components:
         id:
           format: uuid
           type: string
-        noQuestions:
+        noSourceQuestions:
           default: 0
           type: integer
         project:
           $ref: '#/components/schemas/GetProjectConsolidationsHandlerConsolidationReadConsolidationProjectResponseBody'
-        questions:
+        sourceQuestions:
           items:
             $ref: '#/components/schemas/domain.consolidations.controllers.ConsolidationController.get_project_consolidations_handlerConsolidationRead_0ConsolidationQuestionResponseBody'
           type: array
-        resultQuestion:
+        targetQuestion:
           oneOf:
           - $ref: '#/components/schemas/GetProjectConsolidationsHandlerConsolidationRead_0ConsolidationQuestionResponseBody'
-          - type: 'null'
-        resultQuestionId:
-          oneOf:
-          - format: uuid
-            type: string
           - type: 'null'
       required:
       - engineer
       - id
       - project
-      - questions
+      - sourceQuestions
       title: GetProjectConsolidationsHandlerConsolidationReadResponseBody
       type: object
     GetProjectConsolidationsHandlerConsolidationRead_0ConsolidationQuestionResponseBody:
@@ -2577,6 +2869,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -2823,7 +3116,7 @@ components:
       - name
       title: GetQuestionQuestionCommentQuestionUserResponseBody
       type: object
-    GetQuestionQuestionConsolidationQuestionProjectResponseBody:
+    GetQuestionQuestionDetailConsolidationQuestionProjectResponseBody:
       properties:
         id:
           format: uuid
@@ -2833,9 +3126,9 @@ components:
       required:
       - id
       - name
-      title: GetQuestionQuestionConsolidationQuestionProjectResponseBody
+      title: GetQuestionQuestionDetailConsolidationQuestionProjectResponseBody
       type: object
-    GetQuestionQuestionConsolidationQuestionQuestionUserResponseBody:
+    GetQuestionQuestionDetailConsolidationQuestionQuestionUserResponseBody:
       properties:
         email:
           type: string
@@ -2848,9 +3141,9 @@ components:
       - email
       - id
       - name
-      title: GetQuestionQuestionConsolidationQuestionQuestionUserResponseBody
+      title: GetQuestionQuestionDetailConsolidationQuestionQuestionUserResponseBody
       type: object
-    GetQuestionQuestionConsolidationQuestionUserResponseBody:
+    GetQuestionQuestionDetailConsolidationQuestionUserResponseBody:
       properties:
         email:
           type: string
@@ -2863,16 +3156,31 @@ components:
       - email
       - id
       - name
-      title: GetQuestionQuestionConsolidationQuestionUserResponseBody
+      title: GetQuestionQuestionDetailConsolidationQuestionUserResponseBody
       type: object
-    GetQuestionQuestionConsolidation_0QuestionConsolidationQuestionResponseBody:
+    GetQuestionQuestionDetailConsolidationQuestion_0QuestionDetailConsolidationQuestionGroupResponseBody:
       properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: GetQuestionQuestionDetailConsolidationQuestion_0QuestionDetailConsolidationQuestionGroupResponseBody
+      type: object
+    GetQuestionQuestionDetailConsolidation_0QuestionDetailConsolidationQuestionResponseBody:
+      properties:
+        aggregatedRating:
+          default: 0
+          type: integer
         anchor:
           oneOf:
           - type: string
           - type: 'null'
         author:
-          $ref: '#/components/schemas/GetQuestionQuestionConsolidationQuestionQuestionUserResponseBody'
+          $ref: '#/components/schemas/GetQuestionQuestionDetailConsolidationQuestionQuestionUserResponseBody'
         comment:
           oneOf:
           - type: string
@@ -2885,9 +3193,10 @@ components:
           oneOf:
           - type: string
           - type: 'null'
-        groupId:
-          format: uuid
-          type: string
+        group:
+          oneOf:
+          - $ref: '#/components/schemas/GetQuestionQuestionDetailConsolidationQuestion_0QuestionDetailConsolidationQuestionGroupResponseBody'
+          - type: 'null'
         id:
           format: uuid
           type: string
@@ -2903,6 +3212,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -2918,10 +3228,9 @@ components:
           - string
       required:
       - author
-      - groupId
       - id
       - question
-      title: GetQuestionQuestionConsolidation_0QuestionConsolidationQuestionResponseBody
+      title: GetQuestionQuestionDetailConsolidation_0QuestionDetailConsolidationQuestionResponseBody
       type: object
     GetQuestionQuestionDetailQuestionGroupResponseBody:
       properties:
@@ -2979,7 +3288,7 @@ components:
           type: array
         consolidations:
           items:
-            $ref: '#/components/schemas/GetQuestionQuestionDetail_0QuestionConsolidationResponseBody'
+            $ref: '#/components/schemas/GetQuestionQuestionDetail_0QuestionDetailConsolidationResponseBody'
           type: array
         cqCatalogueIdentifier:
           oneOf:
@@ -3022,6 +3331,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -3081,27 +3391,31 @@ components:
       - createdAt
       title: GetQuestionQuestionDetail_0QuestionCommentResponseBody
       type: object
-    GetQuestionQuestionDetail_0QuestionConsolidationResponseBody:
+    GetQuestionQuestionDetail_0QuestionDetailConsolidationResponseBody:
       properties:
         engineer:
-          $ref: '#/components/schemas/GetQuestionQuestionConsolidationQuestionUserResponseBody'
+          $ref: '#/components/schemas/GetQuestionQuestionDetailConsolidationQuestionUserResponseBody'
         id:
           format: uuid
           type: string
-        noQuestions:
+        noSourceQuestions:
           default: 0
           type: integer
         project:
-          $ref: '#/components/schemas/GetQuestionQuestionConsolidationQuestionProjectResponseBody'
-        questions:
+          $ref: '#/components/schemas/GetQuestionQuestionDetailConsolidationQuestionProjectResponseBody'
+        sourceQuestions:
           items:
-            $ref: '#/components/schemas/GetQuestionQuestionConsolidation_0QuestionConsolidationQuestionResponseBody'
+            $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionQuestionDetailConsolidation_0QuestionDetailConsolidationQuestionResponseBody'
           type: array
+        targetQuestion:
+          oneOf:
+          - $ref: '#/components/schemas/GetQuestionQuestionDetailConsolidation_0QuestionDetailConsolidationQuestionResponseBody'
+          - type: 'null'
       required:
       - engineer
       - id
       - project
-      title: GetQuestionQuestionDetail_0QuestionConsolidationResponseBody
+      title: GetQuestionQuestionDetail_0QuestionDetailConsolidationResponseBody
       type: object
     GetQuestionQuestionDetail_0QuestionRatingResponseBody:
       properties:
@@ -3211,6 +3525,10 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        consolidations:
+          items:
+            $ref: '#/components/schemas/GetQuestionsQuestionOverview_0QuestionConsolidationContextResponseBody'
+          type: array
         cqCatalogueIdentifier:
           oneOf:
           - type: string
@@ -3248,6 +3566,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -3265,6 +3584,28 @@ components:
       - id
       - question
       title: GetQuestionsQuestionOverviewResponseBody
+      type: object
+    GetQuestionsQuestionOverview_0QuestionConsolidationContextResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        role:
+          $ref: '#/components/schemas/QuestionConsolidationRole'
+        sourceQuestionIds:
+          items:
+            format: uuid
+            type: string
+          type: array
+        targetQuestionId:
+          oneOf:
+          - format: uuid
+            type: string
+          - type: 'null'
+      required:
+      - id
+      - role
+      title: GetQuestionsQuestionOverview_0QuestionConsolidationContextResponseBody
       type: object
     GetQuestionsQuestionOverview_0QuestionGroupResponseBody:
       properties:
@@ -3660,6 +4001,12 @@ components:
       - ids
       title: ProjectUsersRemoveDTO
       type: object
+    QuestionConsolidationRole:
+      enum:
+      - source
+      - target
+      title: QuestionConsolidationRole
+      type: string
     RemoveAnnotationsAnnotationRemoveRequestBody:
       properties:
         passageIds:
@@ -3848,29 +4195,24 @@ components:
         id:
           format: uuid
           type: string
-        noQuestions:
+        noSourceQuestions:
           default: 0
           type: integer
         project:
           $ref: '#/components/schemas/RemoveQuestionHandlerConsolidationReadConsolidationProjectResponseBody'
-        questions:
+        sourceQuestions:
           items:
             $ref: '#/components/schemas/domain.consolidations.controllers.ConsolidationController.remove_question_handlerConsolidationRead_0ConsolidationQuestionResponseBody'
           type: array
-        resultQuestion:
+        targetQuestion:
           oneOf:
           - $ref: '#/components/schemas/RemoveQuestionHandlerConsolidationRead_0ConsolidationQuestionResponseBody'
-          - type: 'null'
-        resultQuestionId:
-          oneOf:
-          - format: uuid
-            type: string
           - type: 'null'
       required:
       - engineer
       - id
       - project
-      - questions
+      - sourceQuestions
       title: RemoveQuestionHandlerConsolidationReadResponseBody
       type: object
     RemoveQuestionHandlerConsolidationRead_0ConsolidationQuestionResponseBody:
@@ -3905,6 +4247,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -3925,13 +4268,13 @@ components:
       type: object
     RemoveQuestionHandlerMoveQuestionRequestBody:
       properties:
-        ids:
+        sourceQuestionIds:
           items:
             format: uuid
             type: string
           type: array
       required:
-      - ids
+      - sourceQuestionIds
       title: RemoveQuestionHandlerMoveQuestionRequestBody
       type: object
     RemoveQuestionTopicQuestionGroup_0QuestionProjectResponseBody:
@@ -3960,6 +4303,10 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        consolidations:
+          items:
+            $ref: '#/components/schemas/RemoveQuestionTopicQuestionOverview_0QuestionConsolidationContextResponseBody'
+          type: array
         cqCatalogueIdentifier:
           oneOf:
           - type: string
@@ -3997,6 +4344,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -4014,6 +4362,28 @@ components:
       - id
       - question
       title: RemoveQuestionTopicQuestionOverviewResponseBody
+      type: object
+    RemoveQuestionTopicQuestionOverview_0QuestionConsolidationContextResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        role:
+          $ref: '#/components/schemas/QuestionConsolidationRole'
+        sourceQuestionIds:
+          items:
+            format: uuid
+            type: string
+          type: array
+        targetQuestionId:
+          oneOf:
+          - format: uuid
+            type: string
+          - type: 'null'
+      required:
+      - id
+      - role
+      title: RemoveQuestionTopicQuestionOverview_0QuestionConsolidationContextResponseBody
       type: object
     RemoveQuestionTopicQuestionOverview_0QuestionGroupResponseBody:
       properties:
@@ -4186,29 +4556,24 @@ components:
         id:
           format: uuid
           type: string
-        noQuestions:
+        noSourceQuestions:
           default: 0
           type: integer
         project:
           $ref: '#/components/schemas/UpdateConsolidationHandlerConsolidationReadConsolidationProjectResponseBody'
-        questions:
+        sourceQuestions:
           items:
             $ref: '#/components/schemas/domain.consolidations.controllers.ConsolidationController.update_consolidation_handlerConsolidationRead_0ConsolidationQuestionResponseBody'
           type: array
-        resultQuestion:
+        targetQuestion:
           oneOf:
           - $ref: '#/components/schemas/UpdateConsolidationHandlerConsolidationRead_0ConsolidationQuestionResponseBody'
-          - type: 'null'
-        resultQuestionId:
-          oneOf:
-          - format: uuid
-            type: string
           - type: 'null'
       required:
       - engineer
       - id
       - project
-      - questions
+      - sourceQuestions
       title: UpdateConsolidationHandlerConsolidationReadResponseBody
       type: object
     UpdateConsolidationHandlerConsolidationRead_0ConsolidationQuestionResponseBody:
@@ -4243,6 +4608,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -4263,13 +4629,21 @@ components:
       type: object
     UpdateConsolidationHandlerConsolidationUpdateRequestBody:
       properties:
-        resultQuestionId:
+        targetQuestion:
           oneOf:
-          - format: uuid
-            type: string
+          - $ref: '#/components/schemas/UpdateConsolidationHandlerConsolidationUpdate_0ConsolidationTargetQuestionReferenceRequestBody'
           - type: 'null'
       required: []
       title: UpdateConsolidationHandlerConsolidationUpdateRequestBody
+      type: object
+    UpdateConsolidationHandlerConsolidationUpdate_0ConsolidationTargetQuestionReferenceRequestBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+      required:
+      - id
+      title: UpdateConsolidationHandlerConsolidationUpdate_0ConsolidationTargetQuestionReferenceRequestBody
       type: object
     UpdateGroupHandlerGroupReadResponseBody:
       properties:
@@ -4387,7 +4761,7 @@ components:
       - name
       title: UpdateQuestionQuestionCommentQuestionUserResponseBody
       type: object
-    UpdateQuestionQuestionConsolidationQuestionProjectResponseBody:
+    UpdateQuestionQuestionDetailConsolidationQuestionProjectResponseBody:
       properties:
         id:
           format: uuid
@@ -4397,9 +4771,9 @@ components:
       required:
       - id
       - name
-      title: UpdateQuestionQuestionConsolidationQuestionProjectResponseBody
+      title: UpdateQuestionQuestionDetailConsolidationQuestionProjectResponseBody
       type: object
-    UpdateQuestionQuestionConsolidationQuestionQuestionUserResponseBody:
+    UpdateQuestionQuestionDetailConsolidationQuestionQuestionUserResponseBody:
       properties:
         email:
           type: string
@@ -4412,9 +4786,9 @@ components:
       - email
       - id
       - name
-      title: UpdateQuestionQuestionConsolidationQuestionQuestionUserResponseBody
+      title: UpdateQuestionQuestionDetailConsolidationQuestionQuestionUserResponseBody
       type: object
-    UpdateQuestionQuestionConsolidationQuestionUserResponseBody:
+    UpdateQuestionQuestionDetailConsolidationQuestionUserResponseBody:
       properties:
         email:
           type: string
@@ -4427,16 +4801,31 @@ components:
       - email
       - id
       - name
-      title: UpdateQuestionQuestionConsolidationQuestionUserResponseBody
+      title: UpdateQuestionQuestionDetailConsolidationQuestionUserResponseBody
       type: object
-    UpdateQuestionQuestionConsolidation_0QuestionConsolidationQuestionResponseBody:
+    UpdateQuestionQuestionDetailConsolidationQuestion_0QuestionDetailConsolidationQuestionGroupResponseBody:
       properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: UpdateQuestionQuestionDetailConsolidationQuestion_0QuestionDetailConsolidationQuestionGroupResponseBody
+      type: object
+    UpdateQuestionQuestionDetailConsolidation_0QuestionDetailConsolidationQuestionResponseBody:
+      properties:
+        aggregatedRating:
+          default: 0
+          type: integer
         anchor:
           oneOf:
           - type: string
           - type: 'null'
         author:
-          $ref: '#/components/schemas/UpdateQuestionQuestionConsolidationQuestionQuestionUserResponseBody'
+          $ref: '#/components/schemas/UpdateQuestionQuestionDetailConsolidationQuestionQuestionUserResponseBody'
         comment:
           oneOf:
           - type: string
@@ -4449,9 +4838,10 @@ components:
           oneOf:
           - type: string
           - type: 'null'
-        groupId:
-          format: uuid
-          type: string
+        group:
+          oneOf:
+          - $ref: '#/components/schemas/UpdateQuestionQuestionDetailConsolidationQuestion_0QuestionDetailConsolidationQuestionGroupResponseBody'
+          - type: 'null'
         id:
           format: uuid
           type: string
@@ -4467,6 +4857,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -4482,10 +4873,9 @@ components:
           - string
       required:
       - author
-      - groupId
       - id
       - question
-      title: UpdateQuestionQuestionConsolidation_0QuestionConsolidationQuestionResponseBody
+      title: UpdateQuestionQuestionDetailConsolidation_0QuestionDetailConsolidationQuestionResponseBody
       type: object
     UpdateQuestionQuestionDetailQuestionGroupResponseBody:
       properties:
@@ -4543,7 +4933,7 @@ components:
           type: array
         consolidations:
           items:
-            $ref: '#/components/schemas/UpdateQuestionQuestionDetail_0QuestionConsolidationResponseBody'
+            $ref: '#/components/schemas/UpdateQuestionQuestionDetail_0QuestionDetailConsolidationResponseBody'
           type: array
         cqCatalogueIdentifier:
           oneOf:
@@ -4586,6 +4976,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -4645,27 +5036,31 @@ components:
       - createdAt
       title: UpdateQuestionQuestionDetail_0QuestionCommentResponseBody
       type: object
-    UpdateQuestionQuestionDetail_0QuestionConsolidationResponseBody:
+    UpdateQuestionQuestionDetail_0QuestionDetailConsolidationResponseBody:
       properties:
         engineer:
-          $ref: '#/components/schemas/UpdateQuestionQuestionConsolidationQuestionUserResponseBody'
+          $ref: '#/components/schemas/UpdateQuestionQuestionDetailConsolidationQuestionUserResponseBody'
         id:
           format: uuid
           type: string
-        noQuestions:
+        noSourceQuestions:
           default: 0
           type: integer
         project:
-          $ref: '#/components/schemas/UpdateQuestionQuestionConsolidationQuestionProjectResponseBody'
-        questions:
+          $ref: '#/components/schemas/UpdateQuestionQuestionDetailConsolidationQuestionProjectResponseBody'
+        sourceQuestions:
           items:
-            $ref: '#/components/schemas/UpdateQuestionQuestionConsolidation_0QuestionConsolidationQuestionResponseBody'
+            $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionQuestionDetailConsolidation_0QuestionDetailConsolidationQuestionResponseBody'
           type: array
+        targetQuestion:
+          oneOf:
+          - $ref: '#/components/schemas/UpdateQuestionQuestionDetailConsolidation_0QuestionDetailConsolidationQuestionResponseBody'
+          - type: 'null'
       required:
       - engineer
       - id
       - project
-      title: UpdateQuestionQuestionDetail_0QuestionConsolidationResponseBody
+      title: UpdateQuestionQuestionDetail_0QuestionDetailConsolidationResponseBody
       type: object
     UpdateQuestionQuestionDetail_0QuestionRatingResponseBody:
       properties:
@@ -4762,6 +5157,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -4977,6 +5373,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -5027,6 +5424,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -5077,6 +5475,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -5127,6 +5526,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -5177,6 +5577,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -5227,6 +5628,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -5277,6 +5679,7 @@ components:
           - type: 'null'
         type:
           enum:
+          - LCQ
           - SCQ
           - VCQ
           - FCQ
@@ -5310,6 +5713,95 @@ components:
       - name
       title: domain.projects.controllers.ProjectController.get_project_handlerProjectDetail_0ProjectUserResponseBody
       type: object
+    domain.questions.controller.QuestionController.create_questionQuestionDetailConsolidationQuestionQuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: domain.questions.controller.QuestionController.create_questionQuestionDetailConsolidationQuestionQuestionUserResponseBody
+      type: object
+    ? domain.questions.controller.QuestionController.create_questionQuestionDetailConsolidationQuestion_0QuestionDetailConsolidationQuestionGroupResponseBody
+    : properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: domain.questions.controller.QuestionController.create_questionQuestionDetailConsolidationQuestion_0QuestionDetailConsolidationQuestionGroupResponseBody
+      type: object
+    ? domain.questions.controller.QuestionController.create_questionQuestionDetailConsolidation_0QuestionDetailConsolidationQuestionResponseBody
+    : properties:
+        aggregatedRating:
+          default: 0
+          type: integer
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
+        author:
+          $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionQuestionDetailConsolidationQuestionQuestionUserResponseBody'
+        comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        cqCatalogueIdentifier:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
+        group:
+          oneOf:
+          - $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionQuestionDetailConsolidationQuestion_0QuestionDetailConsolidationQuestionGroupResponseBody'
+          - type: 'null'
+        id:
+          format: uuid
+          type: string
+        question:
+          type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        type:
+          enum:
+          - LCQ
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
+      required:
+      - author
+      - id
+      - question
+      title: domain.questions.controller.QuestionController.create_questionQuestionDetailConsolidation_0QuestionDetailConsolidationQuestionResponseBody
+      type: object
     domain.questions.controller.QuestionController.create_questionQuestionDetailQuestionUserResponseBody:
       properties:
         email:
@@ -5325,6 +5817,95 @@ components:
       - name
       title: domain.questions.controller.QuestionController.create_questionQuestionDetailQuestionUserResponseBody
       type: object
+    domain.questions.controller.QuestionController.get_questionQuestionDetailConsolidationQuestionQuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: domain.questions.controller.QuestionController.get_questionQuestionDetailConsolidationQuestionQuestionUserResponseBody
+      type: object
+    ? domain.questions.controller.QuestionController.get_questionQuestionDetailConsolidationQuestion_0QuestionDetailConsolidationQuestionGroupResponseBody
+    : properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: domain.questions.controller.QuestionController.get_questionQuestionDetailConsolidationQuestion_0QuestionDetailConsolidationQuestionGroupResponseBody
+      type: object
+    ? domain.questions.controller.QuestionController.get_questionQuestionDetailConsolidation_0QuestionDetailConsolidationQuestionResponseBody
+    : properties:
+        aggregatedRating:
+          default: 0
+          type: integer
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
+        author:
+          $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionQuestionDetailConsolidationQuestionQuestionUserResponseBody'
+        comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        cqCatalogueIdentifier:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
+        group:
+          oneOf:
+          - $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionQuestionDetailConsolidationQuestion_0QuestionDetailConsolidationQuestionGroupResponseBody'
+          - type: 'null'
+        id:
+          format: uuid
+          type: string
+        question:
+          type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        type:
+          enum:
+          - LCQ
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
+      required:
+      - author
+      - id
+      - question
+      title: domain.questions.controller.QuestionController.get_questionQuestionDetailConsolidation_0QuestionDetailConsolidationQuestionResponseBody
+      type: object
     domain.questions.controller.QuestionController.get_questionQuestionDetailQuestionUserResponseBody:
       properties:
         email:
@@ -5339,6 +5920,95 @@ components:
       - id
       - name
       title: domain.questions.controller.QuestionController.get_questionQuestionDetailQuestionUserResponseBody
+      type: object
+    domain.questions.controller.QuestionController.update_questionQuestionDetailConsolidationQuestionQuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: domain.questions.controller.QuestionController.update_questionQuestionDetailConsolidationQuestionQuestionUserResponseBody
+      type: object
+    ? domain.questions.controller.QuestionController.update_questionQuestionDetailConsolidationQuestion_0QuestionDetailConsolidationQuestionGroupResponseBody
+    : properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: domain.questions.controller.QuestionController.update_questionQuestionDetailConsolidationQuestion_0QuestionDetailConsolidationQuestionGroupResponseBody
+      type: object
+    ? domain.questions.controller.QuestionController.update_questionQuestionDetailConsolidation_0QuestionDetailConsolidationQuestionResponseBody
+    : properties:
+        aggregatedRating:
+          default: 0
+          type: integer
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
+        author:
+          $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionQuestionDetailConsolidationQuestionQuestionUserResponseBody'
+        comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        cqCatalogueIdentifier:
+          oneOf:
+          - type: string
+          - type: 'null'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
+        group:
+          oneOf:
+          - $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionQuestionDetailConsolidationQuestion_0QuestionDetailConsolidationQuestionGroupResponseBody'
+          - type: 'null'
+        id:
+          format: uuid
+          type: string
+        question:
+          type: string
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        type:
+          enum:
+          - LCQ
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
+      required:
+      - author
+      - id
+      - question
+      title: domain.questions.controller.QuestionController.update_questionQuestionDetailConsolidation_0QuestionDetailConsolidationQuestionResponseBody
       type: object
     domain.questions.controller.QuestionController.update_questionQuestionDetailQuestionUserResponseBody:
       properties:
@@ -6945,6 +7615,174 @@ paths:
       summary: GetQuestions
       tags:
       - Questions
+  /questions/by_group/{group_id}:
+    get:
+      deprecated: false
+      description: Gets all `Question`s belonging to a given `Group`.
+      operationId: QuestionsByGroupGroupIdGetGroupQuestions
+      parameters:
+      - deprecated: false
+        in: path
+        name: group_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/GetGroupQuestionsQuestionOverviewResponseBody'
+                type: array
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: GetGroupQuestions
+      tags:
+      - Questions
+    post:
+      deprecated: false
+      description: 'Creates a new `Question`
+
+
+        :param group_id:
+
+        :param request: Request[User, Any, Any]
+
+        :param session: The session object to use for database operations.
+
+        :param data: The question data to be created.
+
+        :return: The created question data.'
+      operationId: QuestionsByGroupGroupIdCreateQuestion
+      parameters:
+      - deprecated: false
+        in: path
+        name: group_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateQuestionQuestionCreateRequestBody'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateQuestionQuestionDetailResponseBody'
+          description: Document created, URL follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: CreateQuestion
+      tags:
+      - Questions
+  /questions/by_group/{group_id}/unified:
+    get:
+      deprecated: false
+      description: Gets all `Question`s of a `Group` with consolidated sets collapsed
+        to one representative each.
+      operationId: QuestionsByGroupGroupIdUnifiedGetGroupQuestionsUnified
+      parameters:
+      - deprecated: false
+        in: path
+        name: group_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/GetGroupQuestionsUnifiedUnifiedQuestionOverviewResponseBody'
+                type: array
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: Gets unified Questions belonging to a Group
+      tags:
+      - Questions
   /questions/by_project/{project_id}:
     get:
       deprecated: false
@@ -7103,175 +7941,7 @@ paths:
       summary: Gets unified Questions that are part of a Project
       tags:
       - Questions
-  /questions/{group_id}:
-    get:
-      deprecated: false
-      description: Gets all `Question`s belonging to a given `Group`.
-      operationId: QuestionsGroupIdGetGroupQuestions
-      parameters:
-      - deprecated: false
-        in: path
-        name: group_id
-        required: true
-        schema:
-          format: uuid
-          type: string
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                items:
-                  $ref: '#/components/schemas/GetGroupQuestionsQuestionOverviewResponseBody'
-                type: array
-          description: Request fulfilled, document follows
-          headers: {}
-        '400':
-          content:
-            application/json:
-              schema:
-                description: Validation Exception
-                examples:
-                - detail: Bad Request
-                  extra: {}
-                  status_code: 400
-                properties:
-                  detail:
-                    type: string
-                  extra:
-                    additionalProperties: {}
-                    type:
-                    - 'null'
-                    - object
-                    - array
-                  status_code:
-                    type: integer
-                required:
-                - detail
-                - status_code
-                type: object
-          description: Bad request syntax or unsupported method
-      summary: GetGroupQuestions
-      tags:
-      - Questions
-    post:
-      deprecated: false
-      description: 'Creates a new `Question`
-
-
-        :param group_id:
-
-        :param request: Request[User, Any, Any]
-
-        :param session: The session object to use for database operations.
-
-        :param data: The question data to be created.
-
-        :return: The created question data.'
-      operationId: QuestionsGroupIdCreateQuestion
-      parameters:
-      - deprecated: false
-        in: path
-        name: group_id
-        required: true
-        schema:
-          format: uuid
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateQuestionQuestionCreateRequestBody'
-        required: true
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CreateQuestionQuestionDetailResponseBody'
-          description: Document created, URL follows
-          headers: {}
-        '400':
-          content:
-            application/json:
-              schema:
-                description: Validation Exception
-                examples:
-                - detail: Bad Request
-                  extra: {}
-                  status_code: 400
-                properties:
-                  detail:
-                    type: string
-                  extra:
-                    additionalProperties: {}
-                    type:
-                    - 'null'
-                    - object
-                    - array
-                  status_code:
-                    type: integer
-                required:
-                - detail
-                - status_code
-                type: object
-          description: Bad request syntax or unsupported method
-      summary: CreateQuestion
-      tags:
-      - Questions
-  /questions/{group_id}/unified:
-    get:
-      deprecated: false
-      description: Gets all `Question`s of a `Group` with consolidated sets collapsed
-        to one representative each.
-      operationId: QuestionsGroupIdUnifiedGetGroupQuestionsUnified
-      parameters:
-      - deprecated: false
-        in: path
-        name: group_id
-        required: true
-        schema:
-          format: uuid
-          type: string
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                items:
-                  $ref: '#/components/schemas/GetGroupQuestionsUnifiedUnifiedQuestionOverviewResponseBody'
-                type: array
-          description: Request fulfilled, document follows
-          headers: {}
-        '400':
-          content:
-            application/json:
-              schema:
-                description: Validation Exception
-                examples:
-                - detail: Bad Request
-                  extra: {}
-                  status_code: 400
-                properties:
-                  detail:
-                    type: string
-                  extra:
-                    additionalProperties: {}
-                    type:
-                    - 'null'
-                    - object
-                    - array
-                  status_code:
-                    type: integer
-                required:
-                - detail
-                - status_code
-                type: object
-          description: Bad request syntax or unsupported method
-      summary: Gets unified Questions belonging to a Group
-      tags:
-      - Questions
-  /questions/{group_id}/{question_id}:
+  /questions/{question_id}:
     delete:
       deprecated: false
       description: 'Deletes a question from the database.
@@ -7285,18 +7955,11 @@ paths:
 
 
         :raises HTTPException: If the question with the specified ID is not found.'
-      operationId: QuestionsGroupIdQuestionIdDeleteQuestion
+      operationId: QuestionsQuestionIdDeleteQuestion
       parameters:
       - deprecated: false
         in: path
         name: question_id
-        required: true
-        schema:
-          format: uuid
-          type: string
-      - deprecated: false
-        in: path
-        name: group_id
         required: true
         schema:
           format: uuid
@@ -7338,8 +8001,6 @@ paths:
       description: 'Retrieves a question by its ID.
 
 
-        :param group_id:
-
         :param session: An `AsyncSession` object representing the database session.
 
         :param question_id: A `UUID` object representing the ID of the question to
@@ -7348,18 +8009,11 @@ paths:
         :return: A `QuestionDTO` object containing the retrieved question.
 
         :raises HTTPException: If the question with the specified ID is not found.'
-      operationId: QuestionsGroupIdQuestionIdGetQuestion
+      operationId: QuestionsQuestionIdGetQuestion
       parameters:
       - deprecated: false
         in: path
         name: question_id
-        required: true
-        schema:
-          format: uuid
-          type: string
-      - deprecated: false
-        in: path
-        name: group_id
         required: true
         schema:
           format: uuid
@@ -7402,18 +8056,11 @@ paths:
       - Questions
     put:
       deprecated: false
-      operationId: QuestionsGroupIdQuestionIdUpdateQuestion
+      operationId: QuestionsQuestionIdUpdateQuestion
       parameters:
       - deprecated: false
         in: path
         name: question_id
-        required: true
-        schema:
-          format: uuid
-          type: string
-      - deprecated: false
-        in: path
-        name: group_id
         required: true
         schema:
           format: uuid
@@ -7945,7 +8592,8 @@ paths:
           content:
             application/json:
               schema:
-                items: {}
+                items:
+                  $ref: '#/components/schemas/GetByTermQuestionOverviewResponseBody'
                 type: array
           description: Request fulfilled, document follows
           headers: {}

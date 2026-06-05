@@ -7,6 +7,7 @@ from domain.consolidations.models import Consolidation
 from domain.groups.middleware import UserGroupPermissionsMiddleware
 from domain.groups.models import Group
 from domain.projects.middleware import UserProjectPermissionsMiddleware
+from domain.questions.middleware import UserQuestionGroupPermissionsMiddleware
 from domain.questions.services import QuestionService
 from domain.ratings.models import Rating
 from domain.versions.models import Version
@@ -45,7 +46,11 @@ JsonEncoded = Annotated[T, Body(media_type=RequestEncodingType.JSON)]
 class QuestionController(Controller):
     path = "/questions/"
     tags = ["Questions"]
-    middleware = [UserGroupPermissionsMiddleware, UserProjectPermissionsMiddleware]
+    middleware = [
+        UserGroupPermissionsMiddleware,
+        UserQuestionGroupPermissionsMiddleware,
+        UserProjectPermissionsMiddleware,
+    ]
 
     default_options = [
         selectinload(Question.author),
@@ -117,7 +122,7 @@ class QuestionController(Controller):
     ]
 
     @post(
-        "/{group_id:uuid}",
+        "/by_group/{group_id:uuid}",
         dto=QuestionCreateDTO,
         return_dto=QuestionDetailDTO,
         status_code=HTTP_201_CREATED,
@@ -188,14 +193,14 @@ class QuestionController(Controller):
         questions = (await session.scalars(select(Question).options(*self.default_options))).all()
         return QuestionService.to_question_overviews(questions)
 
-    @get("/{group_id:uuid}", return_dto=QuestionOverviewDTO, status_code=HTTP_200_OK)
+    @get("/by_group/{group_id:uuid}", return_dto=QuestionOverviewDTO, status_code=HTTP_200_OK)
     async def get_group_questions(self, session: AsyncSession, group_id: UUID) -> Sequence[QuestionOverview]:
         """Gets all `Question`s belonging to a given `Group`."""
         questions = await QuestionService.get_questions_by_group(session, group_id, self.default_options)
         return QuestionService.to_question_overviews(questions)
 
     @get(
-        "/{group_id:uuid}/unified",
+        "/by_group/{group_id:uuid}/unified",
         summary="Gets unified Questions belonging to a Group",
         return_dto=UnifiedQuestionOverviewDTO,
         status_code=HTTP_200_OK,
@@ -209,15 +214,14 @@ class QuestionController(Controller):
         return await QuestionService.get_unified_questions_by_group(session, group_id, self.unified_options)
 
     @get(
-        "/{group_id:uuid}/{question_id:uuid}",
+        "/{question_id:uuid}",
         return_dto=QuestionDetailDTO,
         status_code=HTTP_200_OK,
     )
-    async def get_question(self, session: AsyncSession, question_id: UUID, group_id: UUID) -> QuestionDetail:
+    async def get_question(self, session: AsyncSession, question_id: UUID) -> QuestionDetail:
         """
         Retrieves a question by its ID.
 
-        :param group_id:
         :param session: An `AsyncSession` object representing the database session.
         :param question_id: A `UUID` object representing the ID of the question to retrieve.
         :return: A `QuestionDTO` object containing the retrieved question.
@@ -226,7 +230,7 @@ class QuestionController(Controller):
 
         question = await session.scalar(
             select(Question)
-            .where(Question.id == question_id, Question.group_id == group_id)
+            .where(Question.id == question_id)
             .options(*self.detail_options)
         )
 
@@ -236,7 +240,7 @@ class QuestionController(Controller):
         return QuestionService.to_question_detail(question)
 
     @put(
-        "/{group_id:uuid}/{question_id:uuid}",
+        "/{question_id:uuid}",
         dto=QuestionUpdateDTO,
         return_dto=QuestionDetailDTO,
         status_code=HTTP_200_OK,
@@ -292,8 +296,8 @@ class QuestionController(Controller):
         except IntegrityError:
             raise HTTPException(status_code=400, detail="Integrity violated.")
 
-    @delete("/{group_id:uuid}/{question_id:uuid}", status_code=HTTP_204_NO_CONTENT)
-    async def delete_question(self, session: AsyncSession, question_id: UUID, group_id: UUID) -> None:
+    @delete("/{question_id:uuid}", status_code=HTTP_204_NO_CONTENT)
+    async def delete_question(self, session: AsyncSession, question_id: UUID) -> None:
         """
         Deletes a question from the database.
 
@@ -304,9 +308,7 @@ class QuestionController(Controller):
         :raises HTTPException: If the question with the specified ID is not found.
         """
 
-        question = await session.scalar(
-            select(Question).where(Question.id == question_id, Question.group_id == group_id)
-        )
+        question = await session.scalar(select(Question).where(Question.id == question_id))
 
         if not question:
             raise HTTPException(status_code=404, detail="Question not found")

@@ -144,7 +144,7 @@ def create_question(
     if sparql_query is not None:
         payload["sparqlQuery"] = sparql_query
 
-    response = client.post(f"/questions/{group_id}", json=payload, headers=headers)
+    response = client.post(f"/questions/by_group/{group_id}", json=payload, headers=headers)
     assert response.status_code == HTTP_201_CREATED, response.text
     return response.json()
 

@@ -30,7 +30,7 @@ def test_create_and_update_question_sparql(
 
             update_query = "ASK { ?s a ?type }"
             update_response = client.put(
-                f"/questions/{group['id']}/{question['id']}",
+                f"/questions/{question['id']}",
                 json={
                     "question": "Which resources are available now?",
                     "sparqlQuery": update_query,
@@ -70,7 +70,7 @@ def test_question_comment_can_be_created_and_updated(
             assert question["comments"] == []
 
             detail_response = client.get(
-                f"/questions/{group['id']}/{question['id']}",
+                f"/questions/{question['id']}",
                 headers=admin_header,
             )
             assert detail_response.status_code == HTTP_200_OK
@@ -78,7 +78,7 @@ def test_question_comment_can_be_created_and_updated(
             assert detail_response.json()["comments"] == []
 
             update_response = client.put(
-                f"/questions/{group['id']}/{question['id']}",
+                f"/questions/{question['id']}",
                 json={"comment": updated_comment},
                 headers=admin_header,
             )
@@ -87,7 +87,7 @@ def test_question_comment_can_be_created_and_updated(
             assert update_response.json()["comment"] == updated_comment
 
             clear_response = client.put(
-                f"/questions/{group['id']}/{question['id']}",
+                f"/questions/{question['id']}",
                 json={"comment": None},
                 headers=admin_header,
             )
@@ -121,7 +121,7 @@ def test_question_metadata_can_be_created_and_updated(
             assert question["type"] == "SCQ"
 
             update_response = client.put(
-                f"/questions/{group['id']}/{question['id']}",
+                f"/questions/{question['id']}",
                 json={
                     "reference": None,
                     "anchor": "S. 140 Abs. 1 - Offizial und Generalvikar.",
@@ -151,10 +151,12 @@ def test_get_question_detail_loads_editor(
 
         try:
             response = client.get(
-                f"/questions/{group['id']}/{question['id']}",
+                f"/questions/{question['id']}",
                 headers=admin_header,
             )
             assert response.status_code == HTTP_200_OK
+            assert response.headers["Permissions-Group-Member"] == "True"
+            assert response.headers["Permissions-Project-Manager"] == "True"
             assert response.json()["editor"]["id"] is not None
         finally:
             client.delete(f"/projects/{project['id']}", headers=admin_header)

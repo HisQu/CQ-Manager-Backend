@@ -78,7 +78,7 @@ def test_delete_project_with_user_created_cq(
             assert delete_response.status_code == HTTP_204_NO_CONTENT
 
             question_detail = client.get(
-                f"/questions/{group['id']}/{question['id']}",
+                f"/questions/{question['id']}",
                 headers=user_header,
             )
             assert question_detail.status_code == 404, question_detail.text

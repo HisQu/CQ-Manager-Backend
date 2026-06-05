@@ -47,7 +47,7 @@ def test_get_group_questions_unified(
 
         try:
             unified = client.get(
-                f"/questions/{group['id']}/unified",
+                f"/questions/by_group/{group['id']}/unified",
                 headers=admin_header,
             )
             assert unified.status_code == HTTP_200_OK
@@ -123,7 +123,7 @@ def test_plain_question_responses_include_consolidation_context(
 
         try:
             list_response = client.get(
-                f"/questions/{group['id']}",
+                f"/questions/by_group/{group['id']}",
                 headers=admin_header,
             )
             assert list_response.status_code == HTTP_200_OK, list_response.text
@@ -145,7 +145,7 @@ def test_plain_question_responses_include_consolidation_context(
             assert set(target_context["sourceQuestionIds"]) == source_ids
 
             detail_response = client.get(
-                f"/questions/{group['id']}/{questions[1]['id']}",
+                f"/questions/{questions[1]['id']}",
                 headers=admin_header,
             )
             assert detail_response.status_code == HTTP_200_OK, detail_response.text

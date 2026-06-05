@@ -122,6 +122,40 @@ def test_update_annotation_with_engineer(
             client.delete(f"/projects/{project['id']}", headers=admin_header)
 
 
+def test_get_questions_by_term_returns_question_overviews(
+    test_client: TestClient[Litestar],
+    admin_header: Headers,
+) -> None:
+    with test_client as client:
+        project, _, question, engineer_header, _ = _create_terms_context(client, admin_header)
+        unique = uuid4().hex
+        term = f"term-list-{unique}"
+        passage = f"passage-list-{unique}"
+
+        try:
+            _, term_id = _add_annotation(
+                client,
+                engineer_header,
+                project["id"],
+                question["id"],
+                term,
+                passage,
+            )
+
+            response = client.get(
+                f"/terms/{project['id']}/{term_id}",
+                headers=engineer_header,
+            )
+
+            assert response.status_code == HTTP_200_OK, response.text
+            questions = response.json()
+            assert [item["id"] for item in questions] == [question["id"]]
+            assert questions[0]["question"] == question["question"]
+            assert "consolidations" in questions[0]
+        finally:
+            client.delete(f"/projects/{project['id']}", headers=admin_header)
+
+
 def test_update_term_requires_engineer(
     test_client: TestClient[Litestar],
     admin_header: Headers,

@@ -114,7 +114,7 @@ def test_create_consolidation_infers_target_question_group(
             assert [question["id"] for question in consolidation["sourceQuestions"]] == [source_id]
 
             target_question = client.get(
-                f"/questions/{group['id']}/{consolidation['targetQuestion']['id']}",
+                f"/questions/{consolidation['targetQuestion']['id']}",
                 headers=admin_header,
             )
             assert target_question.status_code == HTTP_200_OK, target_question.text
@@ -151,7 +151,7 @@ def test_create_consolidation_target_question_with_metadata(
             assert target_question["type"] == "VCQ"
 
             detail_response = client.get(
-                f"/questions/{group['id']}/{target_question['id']}",
+                f"/questions/{target_question['id']}",
                 headers=admin_header,
             )
             assert detail_response.status_code == HTTP_200_OK, detail_response.text

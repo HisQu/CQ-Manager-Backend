@@ -2,8 +2,9 @@ from typing import Sequence
 from uuid import UUID
 
 from domain.projects.guards import ontology_engineer_guard
-from domain.questions.dtos import QuestionOverviewDTO
+from domain.questions.dtos import QuestionOverview, QuestionOverviewDTO
 from domain.questions.models import Question
+from domain.questions.services import QuestionService
 from litestar import Controller, delete, get, put
 from litestar.exceptions import NotFoundException
 from litestar.status_codes import HTTP_204_NO_CONTENT
@@ -131,8 +132,9 @@ class TermController(Controller):
     )
     async def get_by_term(
         self, session: AsyncSession, project_id: UUID, term_id: UUID
-    ) -> Sequence[Question]:
+    ) -> Sequence[QuestionOverview]:
         """Gets all `Question`s within a given `Project` that share the given `Term`."""
-        return await AnnotationService.list_questions_by_term(
+        questions = await AnnotationService.list_questions_by_term(
             session, term_id, project_id, QuestionController.default_options
         )
+        return QuestionService.to_question_overviews(questions)

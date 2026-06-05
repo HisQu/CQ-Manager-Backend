@@ -153,7 +153,7 @@ def test_question_topic_assignment_change_and_remove(
             assert changed["cqCatalogueIdentifier"] == "B.1"
 
             detail_response = client.get(
-                f"/questions/{group['id']}/{question['id']}",
+                f"/questions/{question['id']}",
                 headers=admin_header,
             )
             assert detail_response.status_code == HTTP_200_OK, detail_response.text
@@ -176,7 +176,7 @@ def test_question_topic_assignment_change_and_remove(
             }
 
             list_response = client.get(
-                f"/questions/{group['id']}",
+                f"/questions/by_group/{group['id']}",
                 headers=admin_header,
             )
             assert list_response.status_code == HTTP_200_OK, list_response.text
@@ -314,7 +314,7 @@ def test_question_detail_loads_catalogue_identifier_for_consolidated_questions(
             )
 
             detail_response = client.get(
-                f"/questions/{group['id']}/{second_question['id']}",
+                f"/questions/{second_question['id']}",
                 headers=admin_header,
             )
             assert detail_response.status_code == HTTP_200_OK, detail_response.text
