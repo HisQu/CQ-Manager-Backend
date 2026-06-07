@@ -39,6 +39,7 @@ class TopicController(Controller):
         selectinload(Question.author),
         selectinload(Question.editor),
         selectinload(Question.ratings),
+        selectinload(Question.comments),
         selectinload(Question.consolidations).options(selectinload(Consolidation.questions)),
         selectinload(Question.target_consolidations).options(selectinload(Consolidation.questions)),
         selectinload(Question.group),

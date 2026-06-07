@@ -159,3 +159,39 @@ def test_plain_question_responses_include_consolidation_context(
             assert "engineer" in detail_consolidation
         finally:
             client.delete(f"/projects/{project['id']}", headers=admin_header)
+
+
+def test_question_listings_include_discussion_comment_count(
+    test_client: TestClient[Litestar],
+    admin_header,
+) -> None:
+    with test_client as client:
+        project, group = create_project_group(client, admin_header)
+        question = create_question(client, admin_header, group["id"])
+
+        try:
+            for comment in ("First discussion comment.", "Second discussion comment."):
+                response = client.post(
+                    "/comments/",
+                    json={"questionId": question["id"], "comment": comment},
+                    headers=admin_header,
+                )
+                assert response.status_code < 300, response.text
+
+            list_response = client.get(
+                f"/questions/by_group/{group['id']}",
+                headers=admin_header,
+            )
+            assert list_response.status_code == HTTP_200_OK, list_response.text
+            listed_question = next(item for item in list_response.json() if item["id"] == question["id"])
+            assert listed_question["noComments"] == 2
+
+            unified_response = client.get(
+                f"/questions/by_group/{group['id']}/unified",
+                headers=admin_header,
+            )
+            assert unified_response.status_code == HTTP_200_OK, unified_response.text
+            unified_question = next(item for item in unified_response.json() if item["id"] == question["id"])
+            assert unified_question["noComments"] == 2
+        finally:
+            client.delete(f"/projects/{project['id']}", headers=admin_header)
