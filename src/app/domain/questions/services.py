@@ -67,6 +67,7 @@ class QuestionService:
             sparql_query=question.sparql_query,
             rating=question.aggregated_rating,
             no_consolidations=question.no_consolidations,
+            no_comments=question.no_comments,
             group=QuestionGroup(id=question.group.id, name=question.group.name) if question.group else None,
             topic=(
                 QuestionTopic(
@@ -324,6 +325,7 @@ class QuestionService:
             sparql_query=question.sparql_query,
             rating=question.aggregated_rating,
             no_consolidations=question.no_consolidations,
+            no_comments=question.no_comments,
             group=UnifiedQuestionGroup(id=question.group.id, name=question.group.name),
             topic=(
                 UnifiedQuestionTopic(
@@ -366,6 +368,7 @@ class QuestionService:
                 sparql_query=None,
                 rating=0,
                 no_consolidations=0,
+                no_comments=fallback_question.no_comments,
                 group=UnifiedQuestionGroup(id=fallback_question.group.id, name=fallback_question.group.name),
                 topic=(
                     UnifiedQuestionTopic(

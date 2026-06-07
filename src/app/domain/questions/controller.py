@@ -55,6 +55,7 @@ class QuestionController(Controller):
     default_options = [
         selectinload(Question.author),
         selectinload(Question.ratings),
+        selectinload(Question.comments),
         selectinload(Question.consolidations).options(selectinload(Consolidation.questions)),
         selectinload(Question.target_consolidations).options(selectinload(Consolidation.questions)),
         selectinload(Question.topic),
@@ -63,6 +64,7 @@ class QuestionController(Controller):
     unified_options = [
         selectinload(Question.author),
         selectinload(Question.ratings),
+        selectinload(Question.comments),
         selectinload(Question.topic),
         selectinload(Question.consolidations).options(
             selectinload(Consolidation.engineer),
@@ -70,6 +72,7 @@ class QuestionController(Controller):
             selectinload(Consolidation.result_question).options(
                 selectinload(Question.author),
                 selectinload(Question.ratings),
+                selectinload(Question.comments),
                 selectinload(Question.consolidations),
                 selectinload(Question.topic),
                 selectinload(Question.group),

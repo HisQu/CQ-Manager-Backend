@@ -71,6 +71,10 @@ class Question(UUIDAuditBase):
         return len(self.consolidations)
 
     @hybrid_property
+    def no_comments(self) -> int:
+        return len(self.comments)
+
+    @hybrid_property
     def aggregated_rating(self) -> int:
         return sum(map(lambda r: r.rating, self.ratings)) // len(self.ratings) if len(self.ratings) > 0 else 0
 

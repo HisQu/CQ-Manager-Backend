@@ -72,6 +72,7 @@ class QuestionOverview(QuestionMetadataMixin):
     sparql_query: str | None = None
     rating: int = 0
     no_consolidations: int = 0
+    no_comments: int = 0
     group: QuestionGroup | None = None
     topic: QuestionTopic | None = None
     author: QuestionUser | None = None
@@ -223,6 +224,7 @@ class UnifiedQuestionOverview(QuestionMetadataMixin):
     sparql_query: str | None = None
     rating: int = 0
     no_consolidations: int = 0
+    no_comments: int = 0
     group: UnifiedQuestionGroup | None = None
     topic: UnifiedQuestionTopic | None = None
     author: UnifiedQuestionAuthor | None = None
