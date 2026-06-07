@@ -317,6 +317,9 @@ components:
         id:
           format: uuid
           type: string
+        noComments:
+          default: 0
+          type: integer
         noConsolidations:
           default: 0
           type: integer
@@ -471,6 +474,9 @@ components:
         id:
           format: uuid
           type: string
+        noComments:
+          default: 0
+          type: integer
         noConsolidations:
           default: 0
           type: integer
@@ -613,6 +619,9 @@ components:
         id:
           format: uuid
           type: string
+        noComments:
+          default: 0
+          type: integer
         noConsolidations:
           default: 0
           type: integer
@@ -766,6 +775,9 @@ components:
         id:
           format: uuid
           type: string
+        noComments:
+          default: 0
+          type: integer
         noConsolidations:
           default: 0
           type: integer
@@ -1833,6 +1845,9 @@ components:
         id:
           format: uuid
           type: string
+        noComments:
+          default: 0
+          type: integer
         noConsolidations:
           default: 0
           type: integer
@@ -2370,6 +2385,9 @@ components:
         id:
           format: uuid
           type: string
+        noComments:
+          default: 0
+          type: integer
         noConsolidations:
           default: 0
           type: integer
@@ -2512,6 +2530,9 @@ components:
         id:
           format: uuid
           type: string
+        noComments:
+          default: 0
+          type: integer
         noConsolidations:
           default: 0
           type: integer
@@ -3544,6 +3565,9 @@ components:
         id:
           format: uuid
           type: string
+        noComments:
+          default: 0
+          type: integer
         noConsolidations:
           default: 0
           type: integer
@@ -4322,6 +4346,9 @@ components:
         id:
           format: uuid
           type: string
+        noComments:
+          default: 0
+          type: integer
         noConsolidations:
           default: 0
           type: integer
