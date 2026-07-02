@@ -154,7 +154,13 @@ class QuestionController(Controller):
             passages: Sequence[Passage] = []
             if data.annotations:
                 for annotation in data.annotations:
-                    term = await AnnotationService.get_or_create_term(session, group.project_id, annotation.term)
+                    term = await AnnotationService.get_or_create_term(
+                        session,
+                        group.project_id,
+                        annotation.term,
+                        annotation.definition,
+                        annotation.concept_iri,
+                    )
                     passage = await AnnotationService.get_or_create_passage(session, term.id, annotation.passage)
                     passages += [passage]
 

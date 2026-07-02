@@ -4,13 +4,14 @@ from lib.dto import BaseModel, NonEmptyString
 from litestar.contrib.pydantic import PydanticDTO
 from litestar.contrib.sqlalchemy.dto import SQLAlchemyDTO, SQLAlchemyDTOConfig
 from litestar.dto import DTOConfig
+from pydantic import Field
 
 from .models import Passage, Term
 
 
 class TermDTO(SQLAlchemyDTO[Term]):
     config = SQLAlchemyDTOConfig(
-        include={"id", "project_id", "content"},
+        include={"id", "project_id", "content", "definition", "concept_iri"},
         rename_strategy="camel",
     )
 
@@ -23,8 +24,12 @@ class PassageDTO(SQLAlchemyDTO[Passage]):
 
 
 class AnnotationDTO(BaseModel):
+    model_config = {"from_attributes": True, "populate_by_name": True}
+
     passage: NonEmptyString
     term: NonEmptyString
+    definition: NonEmptyString | None = None
+    concept_iri: NonEmptyString | None = Field(default=None, alias="conceptIri")
 
 
 class AnnotationAddDTO(BaseModel):
@@ -41,7 +46,9 @@ class AnnotationRemoveDTO(PydanticDTO[AnnotationRemove]):
 
 
 class TermUpdate(BaseModel):
-    content: NonEmptyString
+    content: NonEmptyString | None = None
+    definition: NonEmptyString | None = None
+    concept_iri: NonEmptyString | None = None
 
 
 class TermUpdateDTO(PydanticDTO[TermUpdate]):

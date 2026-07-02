@@ -209,11 +209,69 @@ def test_update_term_with_engineer(
 
             response = client.put(
                 f"/terms/{project['id']}/{term_id}",
-                json={"content": updated_term},
+                json={
+                    "content": updated_term,
+                    "definition": "A term definition.",
+                    "conceptIri": "https://example.org/ontology/UpdatedTerm",
+                },
                 headers=engineer_header,
             )
             assert response.status_code == HTTP_200_OK
-            assert response.json()["content"] == updated_term
+            term_json = response.json()
+            assert term_json["content"] == updated_term
+            assert term_json["definition"] == "A term definition."
+            assert term_json["conceptIri"] == "https://example.org/ontology/UpdatedTerm"
+        finally:
+            client.delete(f"/projects/{project['id']}", headers=admin_header)
+
+
+def test_add_annotation_can_create_term_with_definition_and_concept_iri(
+    test_client: TestClient[Litestar],
+    admin_header: Headers,
+) -> None:
+    with test_client as client:
+        project, _, question, engineer_header, _ = _create_terms_context(client, admin_header)
+        unique = uuid4().hex
+        term = f"term-metadata-{unique}"
+        passage = f"passage-metadata-{unique}"
+        definition = "A domain-specific term definition."
+        concept_iri = f"https://example.org/ontology/{unique}"
+
+        try:
+            response = client.put(
+                f"/terms/add/{question['id']}",
+                json={
+                    "annotations": [
+                        {
+                            "term": term,
+                            "passage": passage,
+                            "definition": definition,
+                            "conceptIri": concept_iri,
+                        }
+                    ]
+                },
+                headers=engineer_header,
+            )
+            assert response.status_code == HTTP_200_OK
+
+            term_response = client.get(f"/terms/project/{project['id']}", headers=engineer_header)
+            assert term_response.status_code == HTTP_200_OK
+            terms = term_response.json()
+            selected_term = next(filter(lambda item: item["content"] == term, terms), None)
+            assert selected_term is not None
+            assert selected_term["definition"] == definition
+            assert selected_term["conceptIri"] == concept_iri
+
+            question_response = client.get(f"/questions/{question['id']}", headers=engineer_header)
+            assert question_response.status_code == HTTP_200_OK
+            annotations = question_response.json()["annotations"]
+            selected_annotation = next(
+                filter(lambda item: item["content"] == passage, annotations),
+                None,
+            )
+            assert selected_annotation is not None
+            assert selected_annotation["term"]["definition"] == definition
+            assert selected_annotation["term"]["conceptIri"] == concept_iri
         finally:
             client.delete(f"/projects/{project['id']}", headers=admin_header)
 

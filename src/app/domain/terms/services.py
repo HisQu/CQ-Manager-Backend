@@ -68,14 +68,23 @@ class AnnotationService:
 
     @staticmethod
     async def get_or_create_term(
-        session: AsyncSession, project_id: UUID, term: str
+        session: AsyncSession,
+        project_id: UUID,
+        term: str,
+        definition: str | None = None,
+        concept_iri: str | None = None,
     ) -> Term:
         if model := await session.scalar(
             select(Term).where(Term.content == term, Term.project_id == project_id)
         ):
             return model
 
-        model = Term(content=term, project_id=project_id)
+        model = Term(
+            content=term,
+            definition=definition,
+            concept_iri=concept_iri,
+            project_id=project_id,
+        )
         session.add(model)
         await session.commit()
         await session.refresh(model)
@@ -112,18 +121,23 @@ class AnnotationService:
         if not (term := await session.scalar(statement)):
             raise NotFoundException()
 
-        duplicate_statement = select(Term).where(
-            Term.project_id == project_id,
-            Term.content == data.content,
-            Term.id != term.id,
-        )
-        if await session.scalar(duplicate_statement):
-            raise HTTPException(
-                status_code=HTTP_400_BAD_REQUEST,
-                detail=f"A term with the content '{data.content}' already exists in this project.",
+        if data.content is not None:
+            duplicate_statement = select(Term).where(
+                Term.project_id == project_id,
+                Term.content == data.content,
+                Term.id != term.id,
             )
+            if await session.scalar(duplicate_statement):
+                raise HTTPException(
+                    status_code=HTTP_400_BAD_REQUEST,
+                    detail=f"A term with the content '{data.content}' already exists in this project.",
+                )
+            term.content = data.content
 
-        term.content = data.content
+        if data.definition is not None:
+            term.definition = data.definition
+        if data.concept_iri is not None:
+            term.concept_iri = data.concept_iri
         await session.commit()
         await session.refresh(term)
         return term
@@ -246,7 +260,11 @@ class AnnotationService:
         if question := await session.scalar(statement):
             for annotation in data.annotations:
                 term = await AnnotationService.get_or_create_term(
-                    session, question.group.project_id, annotation.term
+                    session,
+                    question.group.project_id,
+                    annotation.term,
+                    annotation.definition,
+                    annotation.concept_iri,
                 )
                 passage = await AnnotationService.get_or_create_passage(
                     session, term.id, annotation.passage

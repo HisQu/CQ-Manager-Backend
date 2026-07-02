@@ -103,6 +103,8 @@ class QuestionVersion(BaseModel):
 class QuestionAnnotationTerm(BaseModel):
     id: UUID
     content: str
+    definition: str | None = None
+    concept_iri: str | None = None
 
 
 class QuestionAnnotation(BaseModel):

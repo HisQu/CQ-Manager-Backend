@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 from litestar.contrib.sqlalchemy.base import UUIDAuditBase
-from sqlalchemy import Column, ForeignKey, Table
+from sqlalchemy import Column, ForeignKey, Table, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.schema import ForeignKey, UniqueConstraint
 
@@ -17,6 +17,8 @@ class Term(UUIDAuditBase):
     __table_args__ = (UniqueConstraint("content", "project_id"),)
 
     content: Mapped[str] = mapped_column()
+    definition: Mapped[str | None] = mapped_column(Text, default=None)
+    concept_iri: Mapped[str | None] = mapped_column(Text, default=None)
     project_id: Mapped[UUID] = mapped_column(ForeignKey("project.id"))
 
     project: Mapped[Project] = relationship(back_populates="terms")

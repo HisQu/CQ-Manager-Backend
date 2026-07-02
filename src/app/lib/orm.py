@@ -110,6 +110,17 @@ class AsyncSqlPlugin:
                 connection.execute(text(f"ALTER TABLE question ADD COLUMN {column_name} {column_type}"))
 
     @staticmethod
+    def _ensure_term_metadata_columns(connection: Connection) -> None:
+        columns = {column["name"] for column in inspect(connection).get_columns("term")}
+        column_definitions = {
+            "definition": "TEXT",
+            "concept_iri": "TEXT",
+        }
+        for column_name, column_type in column_definitions.items():
+            if column_name not in columns:
+                connection.execute(text(f"ALTER TABLE term ADD COLUMN {column_name} {column_type}"))
+
+    @staticmethod
     def _ensure_consolidation_result_question_id_column(connection: Connection) -> None:
         columns = {
             column["name"]
@@ -278,6 +289,7 @@ class AsyncSqlPlugin:
             await conn.run_sync(self._ensure_question_sparql_query_column)
             await conn.run_sync(self._ensure_question_comment_column)
             await conn.run_sync(self._ensure_question_metadata_columns)
+            await conn.run_sync(self._ensure_term_metadata_columns)
             await conn.run_sync(self._ensure_consolidation_result_question_id_column)
             await conn.run_sync(self._ensure_group_comment_column)
             await conn.run_sync(self._ensure_question_topic_id_column)

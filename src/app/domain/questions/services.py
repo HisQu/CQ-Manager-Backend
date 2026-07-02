@@ -300,6 +300,8 @@ class QuestionService:
                     term=QuestionAnnotationTerm(
                         id=annotation.term.id,
                         content=annotation.term.content,
+                        definition=annotation.term.definition,
+                        concept_iri=annotation.term.concept_iri,
                     ),
                 )
                 for annotation in question.annotations
