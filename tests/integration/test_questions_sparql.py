@@ -1,3 +1,6 @@
+import asyncio
+from uuid import UUID
+
 from litestar import Litestar
 from litestar.status_codes import HTTP_200_OK
 from litestar.testing import TestClient
@@ -8,6 +11,18 @@ from ._fixtures import (
     create_question,
     test_client,
 )  # pyright: ignore
+
+from app import sql_plugin
+from domain.questions.models import Question
+from lib.orm import session
+
+
+async def _set_question_type(question_id: str, type: str) -> None:
+    async with session() as db:
+        question = await db.get(Question, UUID(question_id))
+        assert question is not None
+        question.type = type
+        await db.commit()
 
 
 def test_create_and_update_question_sparql(
@@ -97,6 +112,34 @@ def test_question_comment_can_be_created_and_updated(
             client.delete(f"/projects/{project['id']}", headers=admin_header)
 
 
+def test_legacy_lcq_question_type_is_renamed_on_startup(
+    test_client: TestClient[Litestar],
+    admin_header,
+) -> None:
+    with test_client as client:
+        project, group = create_project_group(client, admin_header)
+
+        try:
+            question = create_question(
+                client,
+                admin_header,
+                group["id"],
+                type="RQ",
+            )
+            asyncio.run(_set_question_type(question["id"], "LCQ"))
+
+            asyncio.run(sql_plugin.on_startup())
+
+            response = client.get(
+                f"/questions/{question['id']}",
+                headers=admin_header,
+            )
+            assert response.status_code == HTTP_200_OK, response.text
+            assert response.json()["type"] == "RQ"
+        finally:
+            client.delete(f"/projects/{project['id']}", headers=admin_header)
+
+
 def test_question_metadata_can_be_created_and_updated(
     test_client: TestClient[Litestar],
     admin_header,
@@ -113,12 +156,12 @@ def test_question_metadata_can_be_created_and_updated(
                 reference="S. 138.",
                 anchor="S. 138 Abs. 4 - Kanzlei und Rota Romana.",
                 example_answer="Päpstliche Kanzlei, Rota Romana.",
-                type="SCQ",
+                type="RQ",
             )
             assert question["reference"] == "S. 138."
             assert question["anchor"] == "S. 138 Abs. 4 - Kanzlei und Rota Romana."
             assert question["exampleAnswer"] == "Päpstliche Kanzlei, Rota Romana."
-            assert question["type"] == "SCQ"
+            assert question["type"] == "RQ"
 
             update_response = client.put(
                 f"/questions/{question['id']}",

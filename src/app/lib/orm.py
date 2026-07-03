@@ -110,6 +110,12 @@ class AsyncSqlPlugin:
                 connection.execute(text(f"ALTER TABLE question ADD COLUMN {column_name} {column_type}"))
 
     @staticmethod
+    def _rename_lcq_question_type(connection: Connection) -> None:
+        columns = {column["name"] for column in inspect(connection).get_columns("question")}
+        if "type" in columns:
+            connection.execute(text("UPDATE question SET type = 'RQ' WHERE type = 'LCQ'"))
+
+    @staticmethod
     def _ensure_term_metadata_columns(connection: Connection) -> None:
         columns = {column["name"] for column in inspect(connection).get_columns("term")}
         column_definitions = {
@@ -289,6 +295,7 @@ class AsyncSqlPlugin:
             await conn.run_sync(self._ensure_question_sparql_query_column)
             await conn.run_sync(self._ensure_question_comment_column)
             await conn.run_sync(self._ensure_question_metadata_columns)
+            await conn.run_sync(self._rename_lcq_question_type)
             await conn.run_sync(self._ensure_term_metadata_columns)
             await conn.run_sync(self._ensure_consolidation_result_question_id_column)
             await conn.run_sync(self._ensure_group_comment_column)

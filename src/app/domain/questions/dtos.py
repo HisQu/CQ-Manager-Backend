@@ -10,7 +10,7 @@ from pydantic import Field, field_validator
 
 from domain.terms.dtos import AnnotationDTO
 
-CQType: TypeAlias = Literal["LCQ", "SCQ", "VCQ", "FCQ", "RCQ", "aRCQ", "efRCQ", "drRCQ", "rpRCQ", "MpCQ"]
+CQType: TypeAlias = Literal["RQ", "SCQ", "VCQ", "FCQ", "RCQ", "aRCQ", "efRCQ", "drRCQ", "rpRCQ", "MpCQ"]
 CQ_TYPES = frozenset(get_args(CQType))
 
 
