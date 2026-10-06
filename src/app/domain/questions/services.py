@@ -68,6 +68,9 @@ class QuestionService:
             rating=question.aggregated_rating,
             no_consolidations=question.no_consolidations,
             no_comments=question.no_comments,
+            created_at=question.created_at,
+            updated_at=question.updated_at,
+            last_comment_at=question.last_comment_at,
             group=QuestionGroup(id=question.group.id, name=question.group.name) if question.group else None,
             topic=(
                 QuestionTopic(
@@ -328,6 +331,9 @@ class QuestionService:
             rating=question.aggregated_rating,
             no_consolidations=question.no_consolidations,
             no_comments=question.no_comments,
+            created_at=question.created_at,
+            updated_at=question.updated_at,
+            last_comment_at=question.last_comment_at,
             group=UnifiedQuestionGroup(id=question.group.id, name=question.group.name),
             topic=(
                 UnifiedQuestionTopic(
@@ -371,6 +377,9 @@ class QuestionService:
                 rating=0,
                 no_consolidations=0,
                 no_comments=fallback_question.no_comments,
+                created_at=consolidation.created_at,
+                updated_at=consolidation.updated_at,
+                last_comment_at=fallback_question.last_comment_at,
                 group=UnifiedQuestionGroup(id=fallback_question.group.id, name=fallback_question.group.name),
                 topic=(
                     UnifiedQuestionTopic(

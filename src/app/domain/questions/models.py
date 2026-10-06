@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID
 
@@ -73,6 +74,10 @@ class Question(UUIDAuditBase):
     @hybrid_property
     def no_comments(self) -> int:
         return len(self.comments)
+
+    @hybrid_property
+    def last_comment_at(self) -> datetime | None:
+        return max((c.created_at for c in self.comments), default=None)
 
     @hybrid_property
     def aggregated_rating(self) -> int:
