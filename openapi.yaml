@@ -221,7 +221,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -263,6 +263,14 @@ components:
       type: object
     AnnotationDTO:
       properties:
+        conceptIri:
+          oneOf:
+          - type: string
+          - type: 'null'
+        definition:
+          oneOf:
+          - type: string
+          - type: 'null'
         passage:
           type: string
         term:
@@ -342,7 +350,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -499,7 +507,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -644,7 +652,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -800,7 +808,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -972,7 +980,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -1090,7 +1098,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -1200,8 +1208,16 @@ components:
       type: object
     CreateQuestionQuestionAnnotationQuestionAnnotationTermResponseBody:
       properties:
+        conceptIri:
+          oneOf:
+          - type: string
+          - type: 'null'
         content:
           type: string
+        definition:
+          oneOf:
+          - type: string
+          - type: 'null'
         id:
           format: uuid
           type: string
@@ -1255,7 +1271,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -1275,6 +1291,14 @@ components:
       type: object
     CreateQuestionQuestionCreate_0AnnotationDTORequestBody:
       properties:
+        conceptIri:
+          oneOf:
+          - type: string
+          - type: 'null'
+        definition:
+          oneOf:
+          - type: string
+          - type: 'null'
         passage:
           type: string
         term:
@@ -1380,7 +1404,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -1499,7 +1523,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -1757,8 +1781,16 @@ components:
       type: object
     GetAllProjectTermResponseBody:
       properties:
+        conceptIri:
+          oneOf:
+          - type: string
+          - type: 'null'
         content:
           type: string
+        definition:
+          oneOf:
+          - type: string
+          - type: 'null'
         id:
           format: uuid
           type: string
@@ -1787,8 +1819,16 @@ components:
       type: object
     GetAllTermResponseBody:
       properties:
+        conceptIri:
+          oneOf:
+          - type: string
+          - type: 'null'
         content:
           type: string
+        definition:
+          oneOf:
+          - type: string
+          - type: 'null'
         id:
           format: uuid
           type: string
@@ -1870,7 +1910,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -2113,7 +2153,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -2410,7 +2450,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -2555,7 +2595,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -2785,7 +2825,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -2890,7 +2930,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -3112,8 +3152,16 @@ components:
       type: object
     GetQuestionQuestionAnnotationQuestionAnnotationTermResponseBody:
       properties:
+        conceptIri:
+          oneOf:
+          - type: string
+          - type: 'null'
         content:
           type: string
+        definition:
+          oneOf:
+          - type: string
+          - type: 'null'
         id:
           format: uuid
           type: string
@@ -3233,7 +3281,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -3352,7 +3400,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -3590,7 +3638,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -4271,7 +4319,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -4371,7 +4419,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -4635,7 +4683,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -4763,8 +4811,16 @@ components:
       type: object
     UpdateQuestionQuestionAnnotationQuestionAnnotationTermResponseBody:
       properties:
+        conceptIri:
+          oneOf:
+          - type: string
+          - type: 'null'
         content:
           type: string
+        definition:
+          oneOf:
+          - type: string
+          - type: 'null'
         id:
           format: uuid
           type: string
@@ -4884,7 +4940,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -5003,7 +5059,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -5184,7 +5240,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -5218,8 +5274,16 @@ components:
       type: object
     UpdateTermTermResponseBody:
       properties:
+        conceptIri:
+          oneOf:
+          - type: string
+          - type: 'null'
         content:
           type: string
+        definition:
+          oneOf:
+          - type: string
+          - type: 'null'
         id:
           format: uuid
           type: string
@@ -5233,10 +5297,19 @@ components:
       type: object
     UpdateTermTermUpdateRequestBody:
       properties:
+        conceptIri:
+          oneOf:
+          - type: string
+          - type: 'null'
         content:
-          type: string
-      required:
-      - content
+          oneOf:
+          - type: string
+          - type: 'null'
+        definition:
+          oneOf:
+          - type: string
+          - type: 'null'
+      required: []
       title: UpdateTermTermUpdateRequestBody
       type: object
     UpdateTopicTopicResponseBody:
@@ -5400,7 +5473,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -5451,7 +5524,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -5502,7 +5575,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -5553,7 +5626,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -5604,7 +5677,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -5655,7 +5728,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -5706,7 +5779,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -5809,7 +5882,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -5913,7 +5986,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
@@ -6017,7 +6090,7 @@ components:
           - type: 'null'
         type:
           enum:
-          - LCQ
+          - RQ
           - SCQ
           - VCQ
           - FCQ
