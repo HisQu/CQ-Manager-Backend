@@ -73,6 +73,9 @@ class QuestionOverview(QuestionMetadataMixin):
     rating: int = 0
     no_consolidations: int = 0
     no_comments: int = 0
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    last_comment_at: datetime | None = None
     group: QuestionGroup | None = None
     topic: QuestionTopic | None = None
     author: QuestionUser | None = None
@@ -227,6 +230,9 @@ class UnifiedQuestionOverview(QuestionMetadataMixin):
     rating: int = 0
     no_consolidations: int = 0
     no_comments: int = 0
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    last_comment_at: datetime | None = None
     group: UnifiedQuestionGroup | None = None
     topic: UnifiedQuestionTopic | None = None
     author: UnifiedQuestionAuthor | None = None

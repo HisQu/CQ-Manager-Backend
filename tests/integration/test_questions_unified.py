@@ -195,3 +195,40 @@ def test_question_listings_include_discussion_comment_count(
             assert unified_question["noComments"] == 2
         finally:
             client.delete(f"/projects/{project['id']}", headers=admin_header)
+
+
+def test_question_listings_include_timestamps(
+    test_client: TestClient[Litestar],
+    admin_header,
+) -> None:
+    with test_client as client:
+        project, group = create_project_group(client, admin_header)
+        question = create_question(client, admin_header, group["id"])
+        commented = create_question(client, admin_header, group["id"])
+
+        try:
+            for comment in ("First discussion comment.", "Second discussion comment."):
+                response = client.post(
+                    "/comments/",
+                    json={"questionId": commented["id"], "comment": comment},
+                    headers=admin_header,
+                )
+                assert response.status_code < 300, response.text
+
+            detail_response = client.get(f"/questions/{commented['id']}", headers=admin_header)
+            assert detail_response.status_code == HTTP_200_OK, detail_response.text
+            latest_comment_at = max(c["createdAt"] for c in detail_response.json()["comments"])
+
+            for path in (f"/questions/by_group/{group['id']}", f"/questions/by_group/{group['id']}/unified"):
+                response = client.get(path, headers=admin_header)
+                assert response.status_code == HTTP_200_OK, response.text
+                entries = {item["id"]: item for item in response.json()}
+
+                uncommented_entry = entries[question["id"]]
+                assert uncommented_entry["createdAt"] is not None
+                assert uncommented_entry["updatedAt"] >= uncommented_entry["createdAt"]
+                assert uncommented_entry["lastCommentAt"] is None
+
+                assert entries[commented["id"]]["lastCommentAt"] == latest_comment_at
+        finally:
+            client.delete(f"/projects/{project['id']}", headers=admin_header)
