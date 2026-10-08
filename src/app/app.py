@@ -11,6 +11,7 @@ from domain.accounts.controllers import UserController
 from domain.comments.controller import CommentController
 from domain.consolidations.controllers import ConsolidationController
 from domain.groups.controllers import GroupController
+from domain.history.services import HistoryService
 from domain.projects.controllers import ProjectController
 from domain.questions.controller import QuestionController
 from domain.ratings.controller import RatingController
@@ -47,6 +48,11 @@ encryption = EncryptionService()
 mock_data = MockDataService()
 
 
+async def import_question_history() -> None:
+    async with session_maker() as session:
+        await HistoryService.import_existing_questions(session)
+
+
 async def assign_uncatalogued_questions() -> None:
     async with session_maker() as session:
         await TopicService.assign_all_uncatalogued(session)
@@ -70,7 +76,7 @@ app = Litestar(
     openapi_config=openapi_config,
     plugins=[sql_plugin.plugin],
     on_app_init=[sql_plugin.on_app_init, authenticator.on_app_init],
-    on_startup=[sql_plugin.on_startup, mock_data.on_startup, assign_uncatalogued_questions],
+    on_startup=[sql_plugin.on_startup, mock_data.on_startup, import_question_history, assign_uncatalogued_questions],
     dependencies={
         "authenticator": authenticator.dependency,
         "encryption": encryption.dependency,

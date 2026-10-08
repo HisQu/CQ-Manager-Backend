@@ -110,6 +110,23 @@ class AsyncSqlPlugin:
                 connection.execute(text(f"ALTER TABLE question ADD COLUMN {column_name} {column_type}"))
 
     @staticmethod
+    def _ensure_question_deleted_at_column(connection: Connection) -> None:
+        columns = {column["name"] for column in inspect(connection).get_columns("question")}
+        if "deleted_at" not in columns:
+            connection.execute(text("ALTER TABLE question ADD COLUMN deleted_at DATETIME"))
+
+    @staticmethod
+    def _ensure_version_snapshot_columns(connection: Connection) -> None:
+        columns = {column["name"] for column in inspect(connection).get_columns("version")}
+        column_definitions = {
+            "sparql_query": "VARCHAR",
+            "example_answer": "TEXT",
+        }
+        for column_name, column_type in column_definitions.items():
+            if column_name not in columns:
+                connection.execute(text(f"ALTER TABLE version ADD COLUMN {column_name} {column_type}"))
+
+    @staticmethod
     def _rename_lcq_question_type(connection: Connection) -> None:
         columns = {column["name"] for column in inspect(connection).get_columns("question")}
         if "type" in columns:
@@ -321,6 +338,8 @@ class AsyncSqlPlugin:
             await conn.run_sync(self._ensure_question_sparql_query_column)
             await conn.run_sync(self._ensure_question_comment_column)
             await conn.run_sync(self._ensure_question_metadata_columns)
+            await conn.run_sync(self._ensure_question_deleted_at_column)
+            await conn.run_sync(self._ensure_version_snapshot_columns)
             await conn.run_sync(self._rename_lcq_question_type)
             await conn.run_sync(self._ensure_term_metadata_columns)
             await conn.run_sync(self._ensure_consolidation_result_question_id_column)

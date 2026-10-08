@@ -2,13 +2,14 @@ import re
 from typing import Iterable, Sequence
 from uuid import UUID
 
+from domain.accounts.models import User
 from domain.comments.services import CommentReader
 from domain.consolidations.models import Consolidation
 from domain.groups.models import Group
 from domain.topics.models import Topic
 from litestar.exceptions import HTTPException
 from litestar.status_codes import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
-from sqlalchemy import select
+from sqlalchemy import Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.base import ExecutableOption
 
@@ -37,7 +38,7 @@ from .dtos import (
     UnifiedQuestionOverview,
     UnifiedQuestionTopic,
 )
-from .models import Question
+from .models import INCLUDE_DELETED, Question
 
 CQ_CATALOGUE_IDENTIFIER_PATTERN = re.compile(r"^([A-Z]+|#)\.(\d+)$")
 
@@ -56,6 +57,11 @@ def normalize_cq_catalogue_identifier(identifier: str) -> tuple[str, int]:
 
 
 class QuestionService:
+    @staticmethod
+    def visible_to(statement: Select, user: User) -> Select:
+        """System admins can still fetch soft deleted `Question`s, everybody else cannot."""
+        return statement.execution_options(**{INCLUDE_DELETED: user.is_system_admin})
+
     @staticmethod
     def to_question_overview(question: Question, reader: CommentReader | None = None) -> QuestionOverview:
         return QuestionOverview(
@@ -96,6 +102,7 @@ class QuestionService:
                 else None
             ),
             consolidations=QuestionService._to_consolidation_contexts(question),
+            deleted_at=question.deleted_at,
         )
 
     @staticmethod
@@ -313,6 +320,8 @@ class QuestionService:
             versions=[
                 QuestionVersion(
                     question_string=version.question_string,
+                    sparql_query=version.sparql_query,
+                    example_answer=version.example_answer,
                     version_number=version.version_number,
                     editor=QuestionUser(
                         id=version.editor.id,
@@ -335,6 +344,7 @@ class QuestionService:
                 )
                 for annotation in question.annotations
             ],
+            deleted_at=question.deleted_at,
         )
 
     @staticmethod
@@ -456,6 +466,22 @@ class QuestionService:
     ) -> Sequence[Question]:
         options = [] if not options else options
         statement = select(Question).join(Group).filter(Group.project_id == project_id).options(*options)
+        return (await session.scalars(statement)).all()
+
+    @staticmethod
+    async def get_deleted_questions_by_project(
+        session: AsyncSession,
+        project_id: UUID,
+        options: Iterable[ExecutableOption] | None = None,
+    ) -> Sequence[Question]:
+        statement = (
+            select(Question)
+            .join(Group)
+            .where(Group.project_id == project_id, Question.deleted_at.is_not(None))
+            .order_by(Question.deleted_at.desc())
+            .options(*(options or []))
+            .execution_options(**{INCLUDE_DELETED: True})
+        )
         return (await session.scalars(statement)).all()
 
     @staticmethod

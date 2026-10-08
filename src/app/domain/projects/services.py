@@ -9,6 +9,7 @@ from domain.accounts.services import UserService
 from domain.comments.models import Comment
 from domain.consolidations.models import ConsolidatedQuestions, Consolidation
 from domain.groups.models import Group, GroupMembers
+from domain.history.models import QuestionEvent
 from domain.questions.models import Question
 from domain.ratings.models import Rating
 from domain.tags.models import QuestionTags, Tag
@@ -261,6 +262,7 @@ class ProjectService:
             delete(Comment).where(Comment.question_id.in_(question_ids)),
             delete(Rating).where(Rating.question_id.in_(question_ids)),
             delete(Version).where(Version.question_id.in_(question_ids)),
+            delete(QuestionEvent).where(QuestionEvent.question_id.in_(question_ids)),
             delete(Consolidation).where(Consolidation.project_id == id),
             delete(Question).where(Question.group_id.in_(group_ids)),
             delete(GroupMembers).where(GroupMembers.c.group_id.in_(group_ids)),
