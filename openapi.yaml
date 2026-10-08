@@ -330,6 +330,10 @@ components:
         id:
           format: uuid
           type: string
+        lastComment:
+          oneOf:
+          - $ref: '#/components/schemas/AssignQuestionTopicQuestionOverview_0QuestionLastCommentResponseBody'
+          - type: 'null'
         lastCommentAt:
           oneOf:
           - format: date-time
@@ -339,6 +343,9 @@ components:
           default: 0
           type: integer
         noConsolidations:
+          default: 0
+          type: integer
+        noUnreadComments:
           default: 0
           type: integer
         question:
@@ -425,6 +432,22 @@ components:
       - id
       - name
       title: AssignQuestionTopicQuestionOverview_0QuestionGroupResponseBody
+      type: object
+    AssignQuestionTopicQuestionOverview_0QuestionLastCommentResponseBody:
+      properties:
+        author:
+          oneOf:
+          - type: string
+          - type: 'null'
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+      required:
+      - comment
+      - createdAt
+      title: AssignQuestionTopicQuestionOverview_0QuestionLastCommentResponseBody
       type: object
     AssignQuestionTopicQuestionOverview_0QuestionTagResponseBody:
       properties:
@@ -518,6 +541,10 @@ components:
         id:
           format: uuid
           type: string
+        lastComment:
+          oneOf:
+          - $ref: '#/components/schemas/ByProjectQuestionOverview_0QuestionLastCommentResponseBody'
+          - type: 'null'
         lastCommentAt:
           oneOf:
           - format: date-time
@@ -527,6 +554,9 @@ components:
           default: 0
           type: integer
         noConsolidations:
+          default: 0
+          type: integer
+        noUnreadComments:
           default: 0
           type: integer
         question:
@@ -614,6 +644,22 @@ components:
       - name
       title: ByProjectQuestionOverview_0QuestionGroupResponseBody
       type: object
+    ByProjectQuestionOverview_0QuestionLastCommentResponseBody:
+      properties:
+        author:
+          oneOf:
+          - type: string
+          - type: 'null'
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+      required:
+      - comment
+      - createdAt
+      title: ByProjectQuestionOverview_0QuestionLastCommentResponseBody
+      type: object
     ByProjectQuestionOverview_0QuestionTagResponseBody:
       properties:
         id:
@@ -694,6 +740,10 @@ components:
         id:
           format: uuid
           type: string
+        lastComment:
+          oneOf:
+          - $ref: '#/components/schemas/ByProjectUnifiedUnifiedQuestionOverview_0QuestionLastCommentResponseBody'
+          - type: 'null'
         lastCommentAt:
           oneOf:
           - format: date-time
@@ -703,6 +753,9 @@ components:
           default: 0
           type: integer
         noConsolidations:
+          default: 0
+          type: integer
+        noUnreadComments:
           default: 0
           type: integer
         question:
@@ -776,6 +829,22 @@ components:
       - id
       - role
       title: ByProjectUnifiedUnifiedQuestionOverview_0QuestionConsolidationContextResponseBody
+      type: object
+    ByProjectUnifiedUnifiedQuestionOverview_0QuestionLastCommentResponseBody:
+      properties:
+        author:
+          oneOf:
+          - type: string
+          - type: 'null'
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+      required:
+      - comment
+      - createdAt
+      title: ByProjectUnifiedUnifiedQuestionOverview_0QuestionLastCommentResponseBody
       type: object
     ByProjectUnifiedUnifiedQuestionOverview_0QuestionTagResponseBody:
       properties:
@@ -881,6 +950,10 @@ components:
         id:
           format: uuid
           type: string
+        lastComment:
+          oneOf:
+          - $ref: '#/components/schemas/ChangeQuestionTopicQuestionOverview_0QuestionLastCommentResponseBody'
+          - type: 'null'
         lastCommentAt:
           oneOf:
           - format: date-time
@@ -890,6 +963,9 @@ components:
           default: 0
           type: integer
         noConsolidations:
+          default: 0
+          type: integer
+        noUnreadComments:
           default: 0
           type: integer
         question:
@@ -976,6 +1052,22 @@ components:
       - id
       - name
       title: ChangeQuestionTopicQuestionOverview_0QuestionGroupResponseBody
+      type: object
+    ChangeQuestionTopicQuestionOverview_0QuestionLastCommentResponseBody:
+      properties:
+        author:
+          oneOf:
+          - type: string
+          - type: 'null'
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+      required:
+      - comment
+      - createdAt
+      title: ChangeQuestionTopicQuestionOverview_0QuestionLastCommentResponseBody
       type: object
     ChangeQuestionTopicQuestionOverview_0QuestionTagResponseBody:
       properties:
@@ -2062,6 +2154,10 @@ components:
         id:
           format: uuid
           type: string
+        lastComment:
+          oneOf:
+          - $ref: '#/components/schemas/GetByTermQuestionOverview_0QuestionLastCommentResponseBody'
+          - type: 'null'
         lastCommentAt:
           oneOf:
           - format: date-time
@@ -2071,6 +2167,9 @@ components:
           default: 0
           type: integer
         noConsolidations:
+          default: 0
+          type: integer
+        noUnreadComments:
           default: 0
           type: integer
         question:
@@ -2157,6 +2256,22 @@ components:
       - id
       - name
       title: GetByTermQuestionOverview_0QuestionGroupResponseBody
+      type: object
+    GetByTermQuestionOverview_0QuestionLastCommentResponseBody:
+      properties:
+        author:
+          oneOf:
+          - type: string
+          - type: 'null'
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+      required:
+      - comment
+      - createdAt
+      title: GetByTermQuestionOverview_0QuestionLastCommentResponseBody
       type: object
     GetByTermQuestionOverview_0QuestionTagResponseBody:
       properties:
@@ -2633,6 +2748,10 @@ components:
         id:
           format: uuid
           type: string
+        lastComment:
+          oneOf:
+          - $ref: '#/components/schemas/GetGroupQuestionsQuestionOverview_0QuestionLastCommentResponseBody'
+          - type: 'null'
         lastCommentAt:
           oneOf:
           - format: date-time
@@ -2642,6 +2761,9 @@ components:
           default: 0
           type: integer
         noConsolidations:
+          default: 0
+          type: integer
+        noUnreadComments:
           default: 0
           type: integer
         question:
@@ -2729,6 +2851,22 @@ components:
       - name
       title: GetGroupQuestionsQuestionOverview_0QuestionGroupResponseBody
       type: object
+    GetGroupQuestionsQuestionOverview_0QuestionLastCommentResponseBody:
+      properties:
+        author:
+          oneOf:
+          - type: string
+          - type: 'null'
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+      required:
+      - comment
+      - createdAt
+      title: GetGroupQuestionsQuestionOverview_0QuestionLastCommentResponseBody
+      type: object
     GetGroupQuestionsQuestionOverview_0QuestionTagResponseBody:
       properties:
         id:
@@ -2809,6 +2947,10 @@ components:
         id:
           format: uuid
           type: string
+        lastComment:
+          oneOf:
+          - $ref: '#/components/schemas/GetGroupQuestionsUnifiedUnifiedQuestionOverview_0QuestionLastCommentResponseBody'
+          - type: 'null'
         lastCommentAt:
           oneOf:
           - format: date-time
@@ -2818,6 +2960,9 @@ components:
           default: 0
           type: integer
         noConsolidations:
+          default: 0
+          type: integer
+        noUnreadComments:
           default: 0
           type: integer
         question:
@@ -2891,6 +3036,22 @@ components:
       - id
       - role
       title: GetGroupQuestionsUnifiedUnifiedQuestionOverview_0QuestionConsolidationContextResponseBody
+      type: object
+    GetGroupQuestionsUnifiedUnifiedQuestionOverview_0QuestionLastCommentResponseBody:
+      properties:
+        author:
+          oneOf:
+          - type: string
+          - type: 'null'
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+      required:
+      - comment
+      - createdAt
+      title: GetGroupQuestionsUnifiedUnifiedQuestionOverview_0QuestionLastCommentResponseBody
       type: object
     GetGroupQuestionsUnifiedUnifiedQuestionOverview_0QuestionTagResponseBody:
       properties:
@@ -3899,6 +4060,10 @@ components:
         id:
           format: uuid
           type: string
+        lastComment:
+          oneOf:
+          - $ref: '#/components/schemas/GetQuestionsQuestionOverview_0QuestionLastCommentResponseBody'
+          - type: 'null'
         lastCommentAt:
           oneOf:
           - format: date-time
@@ -3908,6 +4073,9 @@ components:
           default: 0
           type: integer
         noConsolidations:
+          default: 0
+          type: integer
+        noUnreadComments:
           default: 0
           type: integer
         question:
@@ -3994,6 +4162,22 @@ components:
       - id
       - name
       title: GetQuestionsQuestionOverview_0QuestionGroupResponseBody
+      type: object
+    GetQuestionsQuestionOverview_0QuestionLastCommentResponseBody:
+      properties:
+        author:
+          oneOf:
+          - type: string
+          - type: 'null'
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+      required:
+      - comment
+      - createdAt
+      title: GetQuestionsQuestionOverview_0QuestionLastCommentResponseBody
       type: object
     GetQuestionsQuestionOverview_0QuestionTagResponseBody:
       properties:
@@ -4730,6 +4914,10 @@ components:
         id:
           format: uuid
           type: string
+        lastComment:
+          oneOf:
+          - $ref: '#/components/schemas/RemoveQuestionTopicQuestionOverview_0QuestionLastCommentResponseBody'
+          - type: 'null'
         lastCommentAt:
           oneOf:
           - format: date-time
@@ -4739,6 +4927,9 @@ components:
           default: 0
           type: integer
         noConsolidations:
+          default: 0
+          type: integer
+        noUnreadComments:
           default: 0
           type: integer
         question:
@@ -4825,6 +5016,22 @@ components:
       - id
       - name
       title: RemoveQuestionTopicQuestionOverview_0QuestionGroupResponseBody
+      type: object
+    RemoveQuestionTopicQuestionOverview_0QuestionLastCommentResponseBody:
+      properties:
+        author:
+          oneOf:
+          - type: string
+          - type: 'null'
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+      required:
+      - comment
+      - createdAt
+      title: RemoveQuestionTopicQuestionOverview_0QuestionLastCommentResponseBody
       type: object
     RemoveQuestionTopicQuestionOverview_0QuestionTagResponseBody:
       properties:
@@ -4961,6 +5168,10 @@ components:
         id:
           format: uuid
           type: string
+        lastComment:
+          oneOf:
+          - $ref: '#/components/schemas/SetQuestionTagsQuestionOverview_0QuestionLastCommentResponseBody'
+          - type: 'null'
         lastCommentAt:
           oneOf:
           - format: date-time
@@ -4970,6 +5181,9 @@ components:
           default: 0
           type: integer
         noConsolidations:
+          default: 0
+          type: integer
+        noUnreadComments:
           default: 0
           type: integer
         question:
@@ -5056,6 +5270,22 @@ components:
       - id
       - name
       title: SetQuestionTagsQuestionOverview_0QuestionGroupResponseBody
+      type: object
+    SetQuestionTagsQuestionOverview_0QuestionLastCommentResponseBody:
+      properties:
+        author:
+          oneOf:
+          - type: string
+          - type: 'null'
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+      required:
+      - comment
+      - createdAt
+      title: SetQuestionTagsQuestionOverview_0QuestionLastCommentResponseBody
       type: object
     SetQuestionTagsQuestionOverview_0QuestionTagResponseBody:
       properties:
@@ -6850,6 +7080,52 @@ paths:
                 type: object
           description: Bad request syntax or unsupported method
       summary: GetComment
+      tags:
+      - Comments
+  /comments/{question_id}/read:
+    post:
+      deprecated: false
+      description: Marks all current comments of a `Question` as read by the requesting
+        `User`.
+      operationId: CommentsQuestionIdReadMarkCommentsRead
+      parameters:
+      - deprecated: false
+        in: path
+        name: question_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '204':
+          description: Request fulfilled, nothing follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: MarkCommentsRead
       tags:
       - Comments
   /consolidations:

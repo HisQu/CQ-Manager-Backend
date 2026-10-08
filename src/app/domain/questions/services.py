@@ -2,6 +2,7 @@ import re
 from typing import Iterable, Sequence
 from uuid import UUID
 
+from domain.comments.services import CommentReader
 from domain.consolidations.models import Consolidation
 from domain.groups.models import Group
 from domain.topics.models import Topic
@@ -25,6 +26,7 @@ from .dtos import (
     QuestionOverview,
     QuestionProject,
     QuestionRating,
+    QuestionLastComment,
     QuestionTag,
     QuestionTopic,
     QuestionUser,
@@ -55,7 +57,7 @@ def normalize_cq_catalogue_identifier(identifier: str) -> tuple[str, int]:
 
 class QuestionService:
     @staticmethod
-    def to_question_overview(question: Question) -> QuestionOverview:
+    def to_question_overview(question: Question, reader: CommentReader | None = None) -> QuestionOverview:
         return QuestionOverview(
             id=question.id,
             question=question.question,
@@ -72,6 +74,7 @@ class QuestionService:
             created_at=question.created_at,
             updated_at=question.updated_at,
             last_comment_at=question.last_comment_at,
+            **QuestionService._to_comment_state(question, reader),
             group=QuestionGroup(id=question.group.id, name=question.group.name) if question.group else None,
             topic=(
                 QuestionTopic(
@@ -96,12 +99,28 @@ class QuestionService:
         )
 
     @staticmethod
+    def _to_comment_state(question: Question, reader: CommentReader | None) -> dict:
+        """The unread comments of the `reader`; the last comment is only included while it is unread."""
+        unread = reader.unread_comments(question) if reader else []
+        comment = max(question.comments, key=lambda c: c.created_at, default=None)
+        last_comment = None
+        if comment is not None and comment in unread:
+            last_comment = QuestionLastComment(
+                comment=comment.comment,
+                author=comment.author.name if comment.author else None,
+                created_at=comment.created_at,
+            )
+        return {"last_comment": last_comment, "no_unread_comments": len(unread)}
+
+    @staticmethod
     def _to_tags(question: Question) -> list[QuestionTag]:
         return [QuestionTag(id=tag.id, name=tag.name) for tag in question.tags]
 
     @staticmethod
-    def to_question_overviews(questions: Sequence[Question]) -> list[QuestionOverview]:
-        return [QuestionService.to_question_overview(question) for question in questions]
+    def to_question_overviews(
+        questions: Sequence[Question], reader: CommentReader | None = None
+    ) -> list[QuestionOverview]:
+        return [QuestionService.to_question_overview(question, reader) for question in questions]
 
     @staticmethod
     def _to_consolidation_context(
@@ -324,6 +343,7 @@ class QuestionService:
         entry_kind: UnifiedQuestionEntryKind = UnifiedQuestionEntryKind.QUESTION,
         consolidation_id: UUID | None = None,
         consolidation_context: QuestionConsolidationContext | None = None,
+        reader: CommentReader | None = None,
     ) -> UnifiedQuestionOverview:
         return UnifiedQuestionOverview(
             id=question.id,
@@ -341,6 +361,7 @@ class QuestionService:
             created_at=question.created_at,
             updated_at=question.updated_at,
             last_comment_at=question.last_comment_at,
+            **QuestionService._to_comment_state(question, reader),
             group=UnifiedQuestionGroup(id=question.group.id, name=question.group.name),
             topic=(
                 UnifiedQuestionTopic(
@@ -363,7 +384,7 @@ class QuestionService:
 
     @staticmethod
     def _to_unified_consolidation_entry(
-        consolidation: Consolidation, fallback_question: Question
+        consolidation: Consolidation, fallback_question: Question, reader: CommentReader | None = None
     ) -> UnifiedQuestionOverview:
         consolidation_context = QuestionService._to_consolidation_context(
             consolidation,
@@ -388,6 +409,7 @@ class QuestionService:
                 created_at=consolidation.created_at,
                 updated_at=consolidation.updated_at,
                 last_comment_at=fallback_question.last_comment_at,
+                **QuestionService._to_comment_state(fallback_question, reader),
                 group=UnifiedQuestionGroup(id=fallback_question.group.id, name=fallback_question.group.name),
                 topic=(
                     UnifiedQuestionTopic(
@@ -413,6 +435,7 @@ class QuestionService:
             entry_kind=UnifiedQuestionEntryKind.CONSOLIDATION_RESULT,
             consolidation_id=consolidation.id,
             consolidation_context=consolidation_context,
+            reader=reader,
         )
 
     @staticmethod
@@ -468,6 +491,7 @@ class QuestionService:
     @staticmethod
     def _unify_consolidated_questions(
         questions: Sequence[Question],
+        reader: CommentReader | None = None,
     ) -> list[UnifiedQuestionOverview]:
         unified: list[UnifiedQuestionOverview] = []
         consolidation_map: dict[UUID, Consolidation] = {
@@ -490,7 +514,7 @@ class QuestionService:
             )
 
             if not consolidation_ids:
-                unified.append(QuestionService._to_unified_question_entry(question))
+                unified.append(QuestionService._to_unified_question_entry(question, reader=reader))
                 continue
 
             unconsolidated_ids = [
@@ -504,7 +528,7 @@ class QuestionService:
             # One consolidation result entry is emitted per unseen consolidation.
             for consolidation_id in unconsolidated_ids:
                 consolidation = consolidation_map[consolidation_id]
-                unified.append(QuestionService._to_unified_consolidation_entry(consolidation, question))
+                unified.append(QuestionService._to_unified_consolidation_entry(consolidation, question, reader))
             seen_consolidation_ids.update(unconsolidated_ids)
 
         return unified
@@ -514,15 +538,17 @@ class QuestionService:
         session: AsyncSession,
         group_id: UUID,
         options: Iterable[ExecutableOption] | None = None,
+        reader: CommentReader | None = None,
     ) -> Sequence[UnifiedQuestionOverview]:
         questions = await QuestionService.get_questions_by_group(session, group_id, options)
-        return QuestionService._unify_consolidated_questions(questions)
+        return QuestionService._unify_consolidated_questions(questions, reader)
 
     @staticmethod
     async def get_unified_questions_by_project(
         session: AsyncSession,
         project_id: UUID,
         options: Iterable[ExecutableOption] | None = None,
+        reader: CommentReader | None = None,
     ) -> Sequence[UnifiedQuestionOverview]:
         questions = await QuestionService.get_questions_by_project(session, project_id, options)
-        return QuestionService._unify_consolidated_questions(questions)
+        return QuestionService._unify_consolidated_questions(questions, reader)

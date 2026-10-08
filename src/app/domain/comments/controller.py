@@ -3,13 +3,15 @@ from uuid import UUID
 
 from litestar import Controller, Request, get, post
 from litestar.enums import RequestEncodingType
+from litestar.exceptions import NotFoundException
 from litestar.params import Body
-from litestar.status_codes import HTTP_200_OK
+from litestar.status_codes import HTTP_200_OK, HTTP_204_NO_CONTENT
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from ..accounts.models import User
+from ..questions.models import Question
 from .dtos import CommentCreate, CommentCreateDTO, CommentDTO
 from .models import Comment
 from .services import CommentsService
@@ -39,3 +41,10 @@ class CommentController(Controller):
         self, session: AsyncSession, data: JsonEncoded[CommentCreate], request: Request[User, Any, Any]
     ) -> Comment:
         return await CommentsService.create_comment(session=session, author_id=request.user.id, data=data)
+
+    @post("/{question_id:uuid}/read", status_code=HTTP_204_NO_CONTENT)
+    async def mark_comments_read(self, session: AsyncSession, question_id: UUID, request: Request[User, Any, Any]) -> None:
+        """Marks all current comments of a `Question` as read by the requesting `User`."""
+        if not await session.get(Question, question_id):
+            raise NotFoundException(detail="Question not found.")
+        await CommentsService.mark_read(session=session, user_id=request.user.id, question_id=question_id)
