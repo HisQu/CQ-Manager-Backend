@@ -14,9 +14,12 @@ from domain.groups.controllers import GroupController
 from domain.projects.controllers import ProjectController
 from domain.questions.controller import QuestionController
 from domain.ratings.controller import RatingController
+from domain.tags.controllers import TagController
 from domain.terms.controllers import TermController
 from domain.topics.controllers import TopicController
+from domain.topics.services import TopicService
 from lib.mails import MailService
+from lib.orm import session as session_maker
 from lib.services import MockDataService
 from litestar import Litestar
 from litestar.config.cors import CORSConfig
@@ -42,6 +45,12 @@ authenticator = AuthenticationMiddleware(authentication_secret, "Authorization",
 encryption = EncryptionService()
 
 mock_data = MockDataService()
+
+
+async def assign_uncatalogued_questions() -> None:
+    async with session_maker() as session:
+        await TopicService.assign_all_uncatalogued(session)
+
 mail_service = MailService.from_env()
 
 app = Litestar(
@@ -55,12 +64,13 @@ app = Litestar(
         CommentController,
         TermController,
         TopicController,
+        TagController,
     ],
     cors_config=cors_config,
     openapi_config=openapi_config,
     plugins=[sql_plugin.plugin],
     on_app_init=[sql_plugin.on_app_init, authenticator.on_app_init],
-    on_startup=[sql_plugin.on_startup, mock_data.on_startup],
+    on_startup=[sql_plugin.on_startup, mock_data.on_startup, assign_uncatalogued_questions],
     dependencies={
         "authenticator": authenticator.dependency,
         "encryption": encryption.dependency,

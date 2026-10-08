@@ -25,6 +25,7 @@ from .dtos import (
     QuestionOverview,
     QuestionProject,
     QuestionRating,
+    QuestionTag,
     QuestionTopic,
     QuestionUser,
     QuestionVersion,
@@ -36,7 +37,7 @@ from .dtos import (
 )
 from .models import Question
 
-CQ_CATALOGUE_IDENTIFIER_PATTERN = re.compile(r"^([A-Z]+)\.(\d+)$")
+CQ_CATALOGUE_IDENTIFIER_PATTERN = re.compile(r"^([A-Z]+|#)\.(\d+)$")
 
 
 def normalize_cq_catalogue_identifier(identifier: str) -> tuple[str, int]:
@@ -45,7 +46,7 @@ def normalize_cq_catalogue_identifier(identifier: str) -> tuple[str, int]:
     if not match:
         raise HTTPException(
             status_code=HTTP_400_BAD_REQUEST,
-            detail="CQ catalogue identifier must use the format '<topic>.<index>', e.g. 'A.1'.",
+            detail="CQ catalogue identifier must use the format '<topic>.<index>', e.g. 'A.1' or '#.1'.",
         )
 
     topic_identifier, catalogue_index = match.groups()
@@ -81,6 +82,7 @@ class QuestionService:
                 if question.topic
                 else None
             ),
+            tags=QuestionService._to_tags(question),
             author=(
                 QuestionUser(
                     id=question.author.id,
@@ -92,6 +94,10 @@ class QuestionService:
             ),
             consolidations=QuestionService._to_consolidation_contexts(question),
         )
+
+    @staticmethod
+    def _to_tags(question: Question) -> list[QuestionTag]:
+        return [QuestionTag(id=tag.id, name=tag.name) for tag in question.tags]
 
     @staticmethod
     def to_question_overviews(questions: Sequence[Question]) -> list[QuestionOverview]:
@@ -270,6 +276,7 @@ class QuestionService:
                 if question.topic
                 else None
             ),
+            tags=QuestionService._to_tags(question),
             comments=[
                 QuestionComment(
                     comment=comment.comment,
@@ -344,6 +351,7 @@ class QuestionService:
                 if question.topic
                 else None
             ),
+            tags=QuestionService._to_tags(question),
             author=UnifiedQuestionAuthor(
                 id=question.author.id,
                 email=question.author.email,
@@ -390,6 +398,7 @@ class QuestionService:
                     if fallback_question.topic
                     else None
                 ),
+                tags=QuestionService._to_tags(fallback_question),
                 author=UnifiedQuestionAuthor(
                     id=consolidation.engineer.id,
                     email=consolidation.engineer.email,

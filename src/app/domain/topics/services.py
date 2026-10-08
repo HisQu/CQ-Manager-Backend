@@ -3,6 +3,7 @@ from typing import Iterable, Sequence
 from uuid import UUID
 
 from domain.groups.models import Group
+from domain.projects.models import Project
 from domain.questions.models import Question, QuestionCatalogueReservation
 from litestar.exceptions import HTTPException
 from litestar.status_codes import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
@@ -14,6 +15,10 @@ from sqlalchemy.sql.base import ExecutableOption
 from .models import Topic
 
 TOPIC_IDENTIFIER_PATTERN = re.compile(r"^[A-Z]+$")
+
+# Every project has one catch-all catalogue for CQs that are not (yet) part of a real catalogue.
+UNCATALOGUED_IDENTIFIER = "#"
+UNCATALOGUED_NAME = "Uncatalogued"
 
 
 def normalize_topic_identifier(identifier: str | None) -> str | None:
@@ -61,8 +66,15 @@ def next_catalogue_index(indices: Iterable[int | None]) -> int:
     return max(used_indices, default=0) + 1
 
 
-def topic_identifier_sort_key(topic: Topic) -> int:
-    return topic_identifier_to_number(topic.identifier)
+def is_uncatalogued(topic: Topic | None) -> bool:
+    return topic is not None and topic.identifier == UNCATALOGUED_IDENTIFIER
+
+
+def topic_identifier_sort_key(topic: Topic) -> tuple[bool, int]:
+    """Orders catalogues by identifier with the uncatalogued catch-all last."""
+    if is_uncatalogued(topic):
+        return True, 0
+    return False, topic_identifier_to_number(topic.identifier)
 
 
 class TopicService:
@@ -114,8 +126,66 @@ class TopicService:
         return topic
 
     @staticmethod
+    async def get_uncatalogued_topic(session: AsyncSession, project_id: UUID) -> Topic:
+        """Gets the uncatalogued catch-all of a `Project`, creating it if it does not exist yet."""
+        topic = await session.scalar(
+            select(Topic).where(Topic.project_id == project_id, Topic.identifier == UNCATALOGUED_IDENTIFIER)
+        )
+        if topic is None:
+            topic = Topic(name=UNCATALOGUED_NAME, identifier=UNCATALOGUED_IDENTIFIER, project_id=project_id)
+            session.add(topic)
+            await session.flush()
+        return topic
+
+    @staticmethod
+    async def assign_uncatalogued(session: AsyncSession, project_id: UUID, question: Question) -> None:
+        """Puts a `Question` without a catalogue into the uncatalogued catch-all. Needs a flushed question."""
+        topic = await TopicService.get_uncatalogued_topic(session, project_id)
+        question.topic_id = topic.id
+        question.catalogue_index = await TopicService.reserve_catalogue_identifier(session, topic.id, question.id)
+
+    @staticmethod
+    async def assign_all_uncatalogued(session: AsyncSession) -> None:
+        """Moves every `Question` without a catalogue into its project's uncatalogued catch-all.
+
+        Runs on start up so that projects and CQs created before the catch-all existed get one, too.
+        """
+        project_ids = (await session.scalars(select(Project.id))).all()
+        for project_id in project_ids:
+            topic = await TopicService.get_uncatalogued_topic(session, project_id)
+            questions = (
+                await session.scalars(
+                    select(Question)
+                    .join(Group)
+                    .where(Group.project_id == project_id, Question.topic_id.is_(None))
+                    .order_by(Question.created_at)
+                )
+            ).all()
+            if not questions:
+                continue
+
+            catalogue_index = await TopicService.get_next_catalogue_index(session, topic.id)
+            for question in questions:
+                question.topic_id = topic.id
+                question.catalogue_index = catalogue_index
+                session.add(
+                    QuestionCatalogueReservation(
+                        topic_id=topic.id,
+                        catalogue_index=catalogue_index,
+                        question_id=question.id,
+                    )
+                )
+                catalogue_index += 1
+        await session.commit()
+
+    @staticmethod
     async def update_topic(session: AsyncSession, project_id: UUID, topic_id: UUID, name: str) -> Topic:
         topic = await TopicService.get_topic(session, project_id, topic_id)
+        if is_uncatalogued(topic):
+            raise HTTPException(
+                status_code=HTTP_400_BAD_REQUEST,
+                detail=f"The {UNCATALOGUED_NAME} catalogue cannot be renamed.",
+            )
         topic.name = name
         await session.commit()
         await session.refresh(topic)
@@ -199,16 +269,18 @@ class TopicService:
             [selectinload(Question.topic)],
         )
 
-        if question.topic_id is not None:
+        if question.topic_id is not None and not is_uncatalogued(question.topic):
             raise HTTPException(
                 status_code=HTTP_400_BAD_REQUEST,
                 detail="Question already has a topic. Use the change endpoint instead.",
             )
 
-        question.topic_id = topic_id
-        question.catalogue_index = await TopicService.reserve_catalogue_identifier(
-            session, topic_id, question.id
-        )
+        if question.topic_id != topic_id:
+            await TopicService.unassign_catalogue_identifier(session, question)
+            question.topic_id = topic_id
+            question.catalogue_index = await TopicService.reserve_catalogue_identifier(
+                session, topic_id, question.id
+            )
         await session.commit()
         await session.refresh(question)
         return await TopicService.get_project_question(session, project_id, question.id, options)
@@ -240,10 +312,15 @@ class TopicService:
         question_id: UUID,
         options: Iterable[ExecutableOption] | None = None,
     ) -> Question:
-        question = await TopicService.get_project_question(session, project_id, question_id)
-        await TopicService.unassign_catalogue_identifier(session, question)
-        question.topic_id = None
-        question.catalogue_index = None
+        question = await TopicService.get_project_question(
+            session,
+            project_id,
+            question_id,
+            [selectinload(Question.topic)],
+        )
+        if not is_uncatalogued(question.topic):
+            await TopicService.unassign_catalogue_identifier(session, question)
+            await TopicService.assign_uncatalogued(session, project_id, question)
         await session.commit()
         await session.refresh(question)
         return await TopicService.get_project_question(session, project_id, question.id, options)

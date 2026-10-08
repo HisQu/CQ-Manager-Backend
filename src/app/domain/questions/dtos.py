@@ -52,6 +52,11 @@ class QuestionTopic(BaseModel):
     name: str
 
 
+class QuestionTag(BaseModel):
+    id: UUID
+    name: str
+
+
 class QuestionConsolidationRole(str, Enum):
     SOURCE = "source"
     TARGET = "target"
@@ -78,6 +83,7 @@ class QuestionOverview(QuestionMetadataMixin):
     last_comment_at: datetime | None = None
     group: QuestionGroup | None = None
     topic: QuestionTopic | None = None
+    tags: list[QuestionTag] = Field(default_factory=list)
     author: QuestionUser | None = None
     consolidations: list[QuestionConsolidationContext] = Field(default_factory=list)
 
@@ -155,6 +161,7 @@ class QuestionDetail(QuestionMetadataMixin):
     editor: QuestionUser
     group: QuestionGroup
     topic: QuestionTopic | None = None
+    tags: list[QuestionTag] = Field(default_factory=list)
     comments: list[QuestionComment] = Field(default_factory=list)
     no_consolidations: int = 0
     consolidations: list[QuestionDetailConsolidation] = Field(default_factory=list)
@@ -171,6 +178,7 @@ class QuestionCreate(QuestionMetadataMixin):
     comment: str | None = None
     sparql_query: str | None = None
     annotations: list[AnnotationDTO] = []
+    tag_ids: list[UUID] = []
 
 
 class QuestionCreateDTO(PydanticDTO[QuestionCreate]):
@@ -235,6 +243,7 @@ class UnifiedQuestionOverview(QuestionMetadataMixin):
     last_comment_at: datetime | None = None
     group: UnifiedQuestionGroup | None = None
     topic: UnifiedQuestionTopic | None = None
+    tags: list[QuestionTag] = Field(default_factory=list)
     author: UnifiedQuestionAuthor | None = None
     unified_entry_kind: UnifiedQuestionEntryKind
     consolidation: QuestionConsolidationContext | None = None

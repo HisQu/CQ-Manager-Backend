@@ -4,6 +4,7 @@ from uuid import UUID
 
 from domain.groups.models import Group
 from domain.questions.models import Question
+from domain.topics.services import TopicService
 from litestar.exceptions import HTTPException
 from litestar.status_codes import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 from sqlalchemy import select
@@ -77,6 +78,7 @@ class ConsolidationService:
         )
         session.add(result_question)
         await session.flush()
+        await TopicService.assign_uncatalogued(session, project_id, result_question)
         return result_question
 
     @staticmethod

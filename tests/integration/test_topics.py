@@ -54,7 +54,7 @@ def test_topic_identifier_generation_fills_first_gap(
 
             topics_response = client.get(f"/topics/{project['id']}", headers=engineer_header)
             assert topics_response.status_code == HTTP_200_OK, topics_response.text
-            assert [topic["identifier"] for topic in topics_response.json()] == ["A", "B", "C", "D", "F"]
+            assert [topic["identifier"] for topic in topics_response.json()] == ["A", "B", "C", "D", "F", "#"]
         finally:
             client.delete(f"/projects/{project['id']}", headers=admin_header)
 
@@ -193,8 +193,9 @@ def test_question_topic_assignment_change_and_remove(
             assert remove_response.status_code == HTTP_200_OK, remove_response.text
             removed = remove_response.json()
             assert "topicId" not in removed
-            assert removed["topic"] is None
-            assert removed["cqCatalogueIdentifier"] is None
+            assert removed["topic"]["identifier"] == "#"
+            assert removed["topic"]["name"] == "Uncatalogued"
+            assert removed["cqCatalogueIdentifier"] == "#.2"
         finally:
             client.delete(f"/projects/{project['id']}", headers=admin_header)
 
@@ -267,7 +268,7 @@ def test_removed_cq_catalogue_identifier_is_not_reused(
                 headers=engineer_header,
             )
             assert remove_response.status_code == HTTP_200_OK, remove_response.text
-            assert remove_response.json()["cqCatalogueIdentifier"] is None
+            assert remove_response.json()["cqCatalogueIdentifier"] == "#.3"
 
             unassigned_resolve = client.get(
                 f"/questions/by_project/{project['id']}/catalogue/A.1",
@@ -330,3 +331,67 @@ def test_question_detail_loads_catalogue_identifier_for_consolidated_questions(
             }
         finally:
             client.delete(f"/projects/{project['id']}", headers=login(client))
+
+
+def test_new_questions_are_uncatalogued(
+    test_client: TestClient[Litestar],
+    admin_header: Headers,
+) -> None:
+    with test_client as client:
+        admin_header = login(client)
+        project = create_project(client, admin_header, engineers=[ENGINEER_EMAIL])
+        group = create_group(client, admin_header, project["id"])
+        engineer_header = login(client, ENGINEER_EMAIL)
+
+        try:
+            topics_response = client.get(f"/topics/{project['id']}", headers=engineer_header)
+            assert topics_response.status_code == HTTP_200_OK, topics_response.text
+            [uncatalogued] = topics_response.json()
+            assert uncatalogued["identifier"] == "#"
+            assert uncatalogued["name"] == "Uncatalogued"
+
+            first_question = create_question(client, admin_header, group["id"])
+            second_question = create_question(client, admin_header, group["id"])
+            assert first_question["topic"]["identifier"] == "#"
+            assert first_question["cqCatalogueIdentifier"] == "#.1"
+            assert second_question["cqCatalogueIdentifier"] == "#.2"
+
+            resolve_response = client.get(
+                f"/questions/by_project/{project['id']}/catalogue/%23.2",
+                headers=admin_header,
+            )
+            assert resolve_response.status_code == HTTP_200_OK, resolve_response.text
+            assert resolve_response.json()["id"] == second_question["id"]
+
+            rename_response = client.put(
+                f"/topics/{project['id']}/{uncatalogued['id']}",
+                json={"name": "Renamed"},
+                headers=engineer_header,
+            )
+            assert rename_response.status_code == HTTP_400_BAD_REQUEST, rename_response.text
+
+            topic = create_topic(client, engineer_header, project["id"], identifier="A")
+            assign_response = client.post(
+                f"/topics/{project['id']}/{topic['id']}/questions/{first_question['id']}",
+                headers=engineer_header,
+            )
+            assert assign_response.status_code == HTTP_200_OK, assign_response.text
+            assert assign_response.json()["cqCatalogueIdentifier"] == "A.1"
+
+            freed_resolve = client.get(
+                f"/questions/by_project/{project['id']}/catalogue/%23.1",
+                headers=admin_header,
+            )
+            assert freed_resolve.status_code == 404, freed_resolve.text
+
+            third_question = create_question(client, admin_header, group["id"])
+            assert third_question["cqCatalogueIdentifier"] == "#.3"
+
+            remove_response = client.delete(
+                f"/topics/{project['id']}/questions/{second_question['id']}",
+                headers=engineer_header,
+            )
+            assert remove_response.status_code == HTTP_200_OK, remove_response.text
+            assert remove_response.json()["cqCatalogueIdentifier"] == "#.2"
+        finally:
+            client.delete(f"/projects/{project['id']}", headers=admin_header)
