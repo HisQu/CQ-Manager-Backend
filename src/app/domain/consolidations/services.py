@@ -3,6 +3,8 @@ from typing import Iterable, Sequence
 from uuid import UUID
 
 from domain.groups.models import Group
+from domain.history.models import QuestionEventType
+from domain.history.services import HistoryService
 from domain.questions.models import Question
 from domain.topics.services import TopicService
 from litestar.exceptions import HTTPException
@@ -78,7 +80,8 @@ class ConsolidationService:
         )
         session.add(result_question)
         await session.flush()
-        await TopicService.assign_uncatalogued(session, project_id, result_question)
+        HistoryService.record(session, result_question, QuestionEventType.CREATED, user_id)
+        await TopicService.assign_uncatalogued(session, project_id, result_question, user_id)
         return result_question
 
     @staticmethod

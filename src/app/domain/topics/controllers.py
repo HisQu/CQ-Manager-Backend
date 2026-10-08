@@ -126,6 +126,7 @@ class TopicController(Controller):
             project_id,
             topic_id,
             question_id,
+            request.user.id,
             self.question_options,
         )
         reader = await CommentsService.get_reader(session, request.user.id)
@@ -151,6 +152,7 @@ class TopicController(Controller):
             project_id,
             topic_id,
             question_id,
+            request.user.id,
             self.question_options,
         )
         reader = await CommentsService.get_reader(session, request.user.id)
@@ -174,6 +176,7 @@ class TopicController(Controller):
             session,
             project_id,
             question_id,
+            request.user.id,
             self.question_options,
         )
         reader = await CommentsService.get_reader(session, request.user.id)

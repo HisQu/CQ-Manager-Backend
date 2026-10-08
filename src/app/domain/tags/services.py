@@ -1,11 +1,13 @@
 from typing import Iterable, Sequence
 from uuid import UUID
 
-from domain.questions.models import Question
+from domain.history.models import QuestionEventType
+from domain.history.services import HistoryService
+from domain.questions.models import INCLUDE_DELETED, Question
 from domain.topics.services import TopicService
 from litestar.exceptions import HTTPException
 from litestar.status_codes import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
-from sqlalchemy import Select, func, select
+from sqlalchemy import Select, and_, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.base import ExecutableOption
@@ -29,9 +31,11 @@ class TagService:
     @staticmethod
     def _with_question_counts(statement: Select[tuple[Tag]]) -> Select[tuple[Tag, int]]:
         return (
-            statement.add_columns(func.count(QuestionTags.c.question_id))
+            statement.add_columns(func.count(Question.id))
             .outerjoin(QuestionTags, QuestionTags.c.tag_id == Tag.id)
+            .outerjoin(Question, and_(Question.id == QuestionTags.c.question_id, Question.deleted_at.is_(None)))
             .group_by(Tag.id)
+            .execution_options(**{INCLUDE_DELETED: True})
         )
 
     @staticmethod
@@ -90,8 +94,18 @@ class TagService:
         return tag
 
     @staticmethod
-    async def delete_tag(session: AsyncSession, project_id: UUID, tag_id: UUID) -> None:
+    async def delete_tag(session: AsyncSession, project_id: UUID, tag_id: UUID, actor_id: UUID) -> None:
+        """Deletes a `Tag`, recording its removal in the history of every `Question` that had it."""
         tag = await TagService.get_tag(session, project_id, tag_id)
+        questions = await session.scalars(
+            select(Question)
+            .join(QuestionTags, QuestionTags.c.question_id == Question.id)
+            .where(QuestionTags.c.tag_id == tag_id)
+            .execution_options(**{INCLUDE_DELETED: True})
+        )
+        for question in questions:
+            HistoryService.record_tag_changes(session, question, [tag], [], actor_id)
+        await session.execute(delete(QuestionTags).where(QuestionTags.c.tag_id == tag_id))
         await session.delete(tag)
         await session.commit()
 
@@ -115,12 +129,15 @@ class TagService:
         project_id: UUID,
         question_id: UUID,
         tag_ids: Iterable[UUID],
+        actor_id: UUID,
         options: Iterable[ExecutableOption] | None = None,
     ) -> Question:
-        """Replaces the `Tag`s of a `Question` with the given ones."""
+        """Replaces the `Tag`s of a `Question` with the given ones and records the changes in its history."""
         question = await TopicService.get_project_question(
             session, project_id, question_id, [selectinload(Question.tags)]
         )
-        question.tags = await TagService.resolve_tags(session, project_id, tag_ids)
+        tags = await TagService.resolve_tags(session, project_id, tag_ids)
+        HistoryService.record_tag_changes(session, question, question.tags, tags, actor_id)
+        question.tags = tags
         await session.commit()
         return await TopicService.get_project_question(session, project_id, question_id, options)

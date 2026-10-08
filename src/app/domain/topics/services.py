@@ -3,6 +3,7 @@ from typing import Iterable, Sequence
 from uuid import UUID
 
 from domain.groups.models import Group
+from domain.history.services import HistoryService
 from domain.projects.models import Project
 from domain.questions.models import Question, QuestionCatalogueReservation
 from litestar.exceptions import HTTPException
@@ -138,11 +139,23 @@ class TopicService:
         return topic
 
     @staticmethod
-    async def assign_uncatalogued(session: AsyncSession, project_id: UUID, question: Question) -> None:
-        """Puts a `Question` without a catalogue into the uncatalogued catch-all. Needs a flushed question."""
+    async def assign_uncatalogued(
+        session: AsyncSession,
+        project_id: UUID,
+        question: Question,
+        actor_id: UUID | None,
+    ) -> None:
+        """Puts a `Question` into the uncatalogued catch-all. Needs a flushed question."""
         topic = await TopicService.get_uncatalogued_topic(session, project_id)
+        await TopicService._place_question(session, question, topic, actor_id)
+
+    @staticmethod
+    async def _place_question(session: AsyncSession, question: Question, topic: Topic, actor_id: UUID | None) -> None:
+        """Gives a `Question` the next free identifier of a catalogue and records it in the question's history."""
+        await TopicService.unassign_catalogue_identifier(session, question)
         question.topic_id = topic.id
         question.catalogue_index = await TopicService.reserve_catalogue_identifier(session, topic.id, question.id)
+        HistoryService.record_catalogue_assignment(session, question, topic, actor_id)
 
     @staticmethod
     async def assign_all_uncatalogued(session: AsyncSession) -> None:
@@ -175,6 +188,7 @@ class TopicService:
                         question_id=question.id,
                     )
                 )
+                HistoryService.record_catalogue_assignment(session, question, topic, None)
                 catalogue_index += 1
         await session.commit()
 
@@ -259,9 +273,10 @@ class TopicService:
         project_id: UUID,
         topic_id: UUID,
         question_id: UUID,
+        actor_id: UUID,
         options: Iterable[ExecutableOption] | None = None,
     ) -> Question:
-        await TopicService.get_topic(session, project_id, topic_id)
+        topic = await TopicService.get_topic(session, project_id, topic_id)
         question = await TopicService.get_project_question(
             session,
             project_id,
@@ -276,11 +291,7 @@ class TopicService:
             )
 
         if question.topic_id != topic_id:
-            await TopicService.unassign_catalogue_identifier(session, question)
-            question.topic_id = topic_id
-            question.catalogue_index = await TopicService.reserve_catalogue_identifier(
-                session, topic_id, question.id
-            )
+            await TopicService._place_question(session, question, topic, actor_id)
         await session.commit()
         await session.refresh(question)
         return await TopicService.get_project_question(session, project_id, question.id, options)
@@ -291,16 +302,13 @@ class TopicService:
         project_id: UUID,
         topic_id: UUID,
         question_id: UUID,
+        actor_id: UUID,
         options: Iterable[ExecutableOption] | None = None,
     ) -> Question:
-        await TopicService.get_topic(session, project_id, topic_id)
+        topic = await TopicService.get_topic(session, project_id, topic_id)
         question = await TopicService.get_project_question(session, project_id, question_id)
         if question.topic_id != topic_id or question.catalogue_index is None:
-            await TopicService.unassign_catalogue_identifier(session, question)
-            question.catalogue_index = await TopicService.reserve_catalogue_identifier(
-                session, topic_id, question.id
-            )
-        question.topic_id = topic_id
+            await TopicService._place_question(session, question, topic, actor_id)
         await session.commit()
         await session.refresh(question)
         return await TopicService.get_project_question(session, project_id, question.id, options)
@@ -310,6 +318,7 @@ class TopicService:
         session: AsyncSession,
         project_id: UUID,
         question_id: UUID,
+        actor_id: UUID,
         options: Iterable[ExecutableOption] | None = None,
     ) -> Question:
         question = await TopicService.get_project_question(
@@ -319,8 +328,7 @@ class TopicService:
             [selectinload(Question.topic)],
         )
         if not is_uncatalogued(question.topic):
-            await TopicService.unassign_catalogue_identifier(session, question)
-            await TopicService.assign_uncatalogued(session, project_id, question)
+            await TopicService.assign_uncatalogued(session, project_id, question, actor_id)
         await session.commit()
         await session.refresh(question)
         return await TopicService.get_project_question(session, project_id, question.id, options)

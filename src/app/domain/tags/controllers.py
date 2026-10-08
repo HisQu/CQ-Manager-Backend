@@ -85,9 +85,15 @@ class TagController(Controller):
         status_code=HTTP_204_NO_CONTENT,
         guards=[project_curator_guard],
     )
-    async def delete_tag(self, session: AsyncSession, project_id: UUID, tag_id: UUID) -> None:
+    async def delete_tag(
+        self,
+        session: AsyncSession,
+        project_id: UUID,
+        tag_id: UUID,
+        request: Request[User, Any, Any],
+    ) -> None:
         """Deletes a `Tag` and removes it from all `Question`s."""
-        await TagService.delete_tag(session, project_id, tag_id)
+        await TagService.delete_tag(session, project_id, tag_id, request.user.id)
 
     @put(
         "/{project_id:uuid}/questions/{question_id:uuid}",
@@ -110,6 +116,7 @@ class TagController(Controller):
             project_id,
             question_id,
             data.tag_ids,
+            request.user.id,
             self.question_options,
         )
         reader = await CommentsService.get_reader(session, request.user.id)

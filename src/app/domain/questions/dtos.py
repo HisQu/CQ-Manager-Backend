@@ -94,6 +94,7 @@ class QuestionOverview(QuestionMetadataMixin):
     tags: list[QuestionTag] = Field(default_factory=list)
     author: QuestionUser | None = None
     consolidations: list[QuestionConsolidationContext] = Field(default_factory=list)
+    deleted_at: datetime | None = None
 
 
 class QuestionOverviewDTO(PydanticDTO[QuestionOverview]):
@@ -113,6 +114,8 @@ class QuestionComment(BaseModel):
 
 class QuestionVersion(BaseModel):
     question_string: str
+    sparql_query: str | None = None
+    example_answer: str | None = None
     version_number: int
     editor: QuestionUser
 
@@ -175,6 +178,7 @@ class QuestionDetail(QuestionMetadataMixin):
     consolidations: list[QuestionDetailConsolidation] = Field(default_factory=list)
     versions: list[QuestionVersion] = Field(default_factory=list)
     annotations: list[QuestionAnnotation] = Field(default_factory=list)
+    deleted_at: datetime | None = None
 
 
 class QuestionDetailDTO(PydanticDTO[QuestionDetail]):

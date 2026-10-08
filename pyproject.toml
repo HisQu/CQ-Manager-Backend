@@ -1,6 +1,6 @@
 [project]
 name = "CQ_Manager"
-version = "0.5.0"
+version = "0.6.0"
 authors = [
     { name = "Chiara Tunc", email = "chiara.tunc@uni-jena.de" },
     { name = "Dominik Buschold", email = "dominik.buschold@uni-jena.de" },

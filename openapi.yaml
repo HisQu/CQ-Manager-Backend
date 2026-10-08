@@ -319,6 +319,11 @@ components:
           - format: date-time
             type: string
           - type: 'null'
+        deletedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
         exampleAnswer:
           oneOf:
           - type: string
@@ -526,6 +531,11 @@ components:
           - type: string
           - type: 'null'
         createdAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        deletedAt:
           oneOf:
           - format: date-time
             type: string
@@ -935,6 +945,11 @@ components:
           - type: string
           - type: 'null'
         createdAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        deletedAt:
           oneOf:
           - format: date-time
             type: string
@@ -1707,6 +1722,11 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        deletedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
         editor:
           $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionQuestionDetailQuestionUserResponseBody'
         exampleAnswer:
@@ -1876,8 +1896,16 @@ components:
       properties:
         editor:
           $ref: '#/components/schemas/CreateQuestionQuestionVersionQuestionUserResponseBody'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
         questionString:
           type: string
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
         versionNumber:
           type: integer
       required:
@@ -1984,6 +2012,222 @@ components:
       - name
       - projectId
       title: CreateTopicTopicResponseBody
+      type: object
+    DeletedByProjectQuestionGroup_0QuestionProjectResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: DeletedByProjectQuestionGroup_0QuestionProjectResponseBody
+      type: object
+    DeletedByProjectQuestionOverviewResponseBody:
+      properties:
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
+        author:
+          oneOf:
+          - $ref: '#/components/schemas/DeletedByProjectQuestionOverview_0QuestionUserResponseBody'
+          - type: 'null'
+        comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        consolidations:
+          items:
+            $ref: '#/components/schemas/DeletedByProjectQuestionOverview_0QuestionConsolidationContextResponseBody'
+          type: array
+        cqCatalogueIdentifier:
+          oneOf:
+          - type: string
+          - type: 'null'
+        createdAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        deletedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
+        group:
+          oneOf:
+          - $ref: '#/components/schemas/DeletedByProjectQuestionOverview_0QuestionGroupResponseBody'
+          - type: 'null'
+        id:
+          format: uuid
+          type: string
+        lastComment:
+          oneOf:
+          - $ref: '#/components/schemas/DeletedByProjectQuestionOverview_0QuestionLastCommentResponseBody'
+          - type: 'null'
+        lastCommentAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        noComments:
+          default: 0
+          type: integer
+        noConsolidations:
+          default: 0
+          type: integer
+        noUnreadComments:
+          default: 0
+          type: integer
+        question:
+          type: string
+        rating:
+          default: 0
+          type: integer
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        tags:
+          items:
+            $ref: '#/components/schemas/DeletedByProjectQuestionOverview_0QuestionTagResponseBody'
+          type: array
+        topic:
+          oneOf:
+          - $ref: '#/components/schemas/DeletedByProjectQuestionOverview_0QuestionTopicResponseBody'
+          - type: 'null'
+        type:
+          enum:
+          - RQ
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
+        updatedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+      required:
+      - id
+      - question
+      title: DeletedByProjectQuestionOverviewResponseBody
+      type: object
+    DeletedByProjectQuestionOverview_0QuestionConsolidationContextResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        role:
+          $ref: '#/components/schemas/QuestionConsolidationRole'
+        sourceQuestionIds:
+          items:
+            format: uuid
+            type: string
+          type: array
+        targetQuestionId:
+          oneOf:
+          - format: uuid
+            type: string
+          - type: 'null'
+      required:
+      - id
+      - role
+      title: DeletedByProjectQuestionOverview_0QuestionConsolidationContextResponseBody
+      type: object
+    DeletedByProjectQuestionOverview_0QuestionGroupResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        project:
+          oneOf:
+          - $ref: '#/components/schemas/DeletedByProjectQuestionGroup_0QuestionProjectResponseBody'
+          - type: 'null'
+      required:
+      - id
+      - name
+      title: DeletedByProjectQuestionOverview_0QuestionGroupResponseBody
+      type: object
+    DeletedByProjectQuestionOverview_0QuestionLastCommentResponseBody:
+      properties:
+        author:
+          oneOf:
+          - type: string
+          - type: 'null'
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+      required:
+      - comment
+      - createdAt
+      title: DeletedByProjectQuestionOverview_0QuestionLastCommentResponseBody
+      type: object
+    DeletedByProjectQuestionOverview_0QuestionTagResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: DeletedByProjectQuestionOverview_0QuestionTagResponseBody
+      type: object
+    DeletedByProjectQuestionOverview_0QuestionTopicResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        identifier:
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - identifier
+      - name
+      title: DeletedByProjectQuestionOverview_0QuestionTopicResponseBody
+      type: object
+    DeletedByProjectQuestionOverview_0QuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: DeletedByProjectQuestionOverview_0QuestionUserResponseBody
       type: object
     ExtendMembersHandlerGroupReadResponseBody:
       properties:
@@ -2139,6 +2383,11 @@ components:
           - type: string
           - type: 'null'
         createdAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        deletedAt:
           oneOf:
           - format: date-time
             type: string
@@ -2733,6 +2982,11 @@ components:
           - type: string
           - type: 'null'
         createdAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        deletedAt:
           oneOf:
           - format: date-time
             type: string
@@ -3576,6 +3830,62 @@ components:
       - name
       title: GetProjectsHandlerProjectReadResponseBody
       type: object
+    GetQuestionHistoryQuestionEventReadResponseBody:
+      properties:
+        actor:
+          oneOf:
+          - $ref: '#/components/schemas/GetQuestionHistoryQuestionEventRead_0QuestionUserResponseBody'
+          - type: 'null'
+        catalogueIdentifier:
+          oneOf:
+          - type: string
+          - type: 'null'
+        createdAt:
+          format: date-time
+          type: string
+        eventType:
+          $ref: '#/components/schemas/QuestionEventType'
+        id:
+          format: uuid
+          type: string
+        tagId:
+          oneOf:
+          - format: uuid
+            type: string
+          - type: 'null'
+        tagName:
+          oneOf:
+          - type: string
+          - type: 'null'
+        topicId:
+          oneOf:
+          - format: uuid
+            type: string
+          - type: 'null'
+        versionNumber:
+          type: integer
+      required:
+      - createdAt
+      - eventType
+      - id
+      - versionNumber
+      title: GetQuestionHistoryQuestionEventReadResponseBody
+      type: object
+    GetQuestionHistoryQuestionEventRead_0QuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: GetQuestionHistoryQuestionEventRead_0QuestionUserResponseBody
+      type: object
     GetQuestionQuestionAnnotationQuestionAnnotationTermResponseBody:
       properties:
         conceptIri:
@@ -3789,6 +4099,11 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        deletedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
         editor:
           $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionQuestionDetailQuestionUserResponseBody'
         exampleAnswer:
@@ -3958,8 +4273,16 @@ components:
       properties:
         editor:
           $ref: '#/components/schemas/GetQuestionQuestionVersionQuestionUserResponseBody'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
         questionString:
           type: string
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
         versionNumber:
           type: integer
       required:
@@ -4045,6 +4368,11 @@ components:
           - type: string
           - type: 'null'
         createdAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        deletedAt:
           oneOf:
           - format: date-time
             type: string
@@ -4594,6 +4922,16 @@ components:
       - target
       title: QuestionConsolidationRole
       type: string
+    QuestionEventType:
+      enum:
+      - created
+      - revised
+      - tag_added
+      - tag_removed
+      - catalogue_assigned
+      - deleted
+      title: QuestionEventType
+      type: string
     RemoveAnnotationsAnnotationRemoveRequestBody:
       properties:
         passageIds:
@@ -4903,6 +5241,11 @@ components:
           - format: date-time
             type: string
           - type: 'null'
+        deletedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
         exampleAnswer:
           oneOf:
           - type: string
@@ -5153,6 +5496,11 @@ components:
           - type: string
           - type: 'null'
         createdAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        deletedAt:
           oneOf:
           - format: date-time
             type: string
@@ -5839,6 +6187,11 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        deletedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
         editor:
           $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionQuestionDetailQuestionUserResponseBody'
         exampleAnswer:
@@ -6008,8 +6361,16 @@ components:
       properties:
         editor:
           $ref: '#/components/schemas/UpdateQuestionQuestionVersionQuestionUserResponseBody'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
         questionString:
           type: string
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
         versionNumber:
           type: integer
       required:
@@ -8868,6 +9229,58 @@ paths:
         id
       tags:
       - Questions
+  /questions/by_project/{project_id}/deleted:
+    get:
+      deprecated: false
+      description: Gets all soft deleted `Question`s of a `Project`, most recently
+        deleted first. System admins only.
+      operationId: QuestionsByProjectProjectIdDeletedDeletedByProject
+      parameters:
+      - deprecated: false
+        in: path
+        name: project_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/DeletedByProjectQuestionOverviewResponseBody'
+                type: array
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: Gets all deleted Questions of a Project
+      tags:
+      - Questions
   /questions/by_project/{project_id}/unified:
     get:
       deprecated: false
@@ -8923,7 +9336,8 @@ paths:
   /questions/{question_id}:
     delete:
       deprecated: false
-      description: 'Deletes a question from the database.
+      description: 'Marks a question as deleted. It keeps its catalogue identifier
+        and history and stays visible to system admins.
 
 
         :param session: The async session used to interact with the database.
@@ -8977,7 +9391,8 @@ paths:
       - Questions
     get:
       deprecated: false
-      description: 'Retrieves a question by its ID.
+      description: 'Retrieves a question by its ID. System admins can retrieve deleted
+        questions, too.
 
 
         :param session: An `AsyncSession` object representing the database session.
@@ -9084,6 +9499,58 @@ paths:
                 type: object
           description: Bad request syntax or unsupported method
       summary: UpdateQuestion
+      tags:
+      - Questions
+  /questions/{question_id}/history:
+    get:
+      deprecated: false
+      description: Gets every recorded change of a `Question` (creation, revisions,
+        tags, catalogue, deletion), oldest first.
+      operationId: QuestionsQuestionIdHistoryGetQuestionHistory
+      parameters:
+      - deprecated: false
+        in: path
+        name: question_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/GetQuestionHistoryQuestionEventReadResponseBody'
+                type: array
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: Gets the provenance log of a Question
       tags:
       - Questions
   /ratings:

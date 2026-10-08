@@ -4,10 +4,11 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID
 
+from advanced_alchemy.types import DateTimeUTC
 from litestar.contrib.sqlalchemy.base import UUIDAuditBase
-from sqlalchemy import ForeignKey, Text, UniqueConstraint
+from sqlalchemy import ForeignKey, Text, UniqueConstraint, event
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, ORMExecuteState, Session, mapped_column, relationship, with_loader_criteria
 
 if TYPE_CHECKING:
     from domain.accounts.models import User
@@ -19,6 +20,13 @@ if TYPE_CHECKING:
     from domain.topics.models import Topic
     from domain.versions.models import Version
     from domain.terms.models import Passage
+
+# Execution option that makes a `select` also return soft deleted `Question`s.
+INCLUDE_DELETED = "include_deleted"
+
+
+def format_cq_catalogue_identifier(topic_identifier: str, catalogue_index: int | None) -> str:
+    return f"{topic_identifier}.{catalogue_index}"
 
 
 class QuestionCatalogueReservation(UUIDAuditBase):
@@ -49,6 +57,8 @@ class Question(UUIDAuditBase):
     editor_id: Mapped[UUID] = mapped_column(ForeignKey("user.id"))
     group_id: Mapped[UUID] = mapped_column(ForeignKey("group.id", ondelete="CASCADE"))
     topic_id: Mapped[UUID | None] = mapped_column(ForeignKey("topic.id"), default=None)
+    # Deleted questions are kept for provenance and hidden from every query, see `_hide_deleted_questions`.
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTimeUTC(timezone=True), default=None)
 
     author: Mapped[User] = relationship(foreign_keys=[author_id], back_populates="questions")
     editor: Mapped[User] = relationship(foreign_keys=[editor_id], back_populates="edited_questions")
@@ -89,4 +99,18 @@ class Question(UUIDAuditBase):
     def cq_catalogue_identifier(self) -> str | None:
         if self.topic is None or self.catalogue_index is None:
             return None
-        return f"{self.topic.identifier}.{self.catalogue_index}"
+        return format_cq_catalogue_identifier(self.topic.identifier, self.catalogue_index)
+
+
+@event.listens_for(Session, "do_orm_execute")
+def _hide_deleted_questions(state: ORMExecuteState) -> None:
+    """Filters soft deleted `Question`s out of every ORM `select`, including relationship loads."""
+    if (
+        state.is_select
+        and not state.is_column_load
+        and not state.is_relationship_load
+        and not state.execution_options.get(INCLUDE_DELETED, False)
+    ):
+        state.statement = state.statement.options(
+            with_loader_criteria(Question, Question.deleted_at.is_(None), include_aliases=True)
+        )
