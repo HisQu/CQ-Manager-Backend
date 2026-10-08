@@ -57,6 +57,12 @@ class QuestionTag(BaseModel):
     name: str
 
 
+class QuestionLastComment(BaseModel):
+    comment: str
+    author: str | None = None
+    created_at: datetime
+
+
 class QuestionConsolidationRole(str, Enum):
     SOURCE = "source"
     TARGET = "target"
@@ -81,6 +87,8 @@ class QuestionOverview(QuestionMetadataMixin):
     created_at: datetime | None = None
     updated_at: datetime | None = None
     last_comment_at: datetime | None = None
+    last_comment: QuestionLastComment | None = None
+    no_unread_comments: int = 0
     group: QuestionGroup | None = None
     topic: QuestionTopic | None = None
     tags: list[QuestionTag] = Field(default_factory=list)
@@ -241,6 +249,8 @@ class UnifiedQuestionOverview(QuestionMetadataMixin):
     created_at: datetime | None = None
     updated_at: datetime | None = None
     last_comment_at: datetime | None = None
+    last_comment: QuestionLastComment | None = None
+    no_unread_comments: int = 0
     group: UnifiedQuestionGroup | None = None
     topic: UnifiedQuestionTopic | None = None
     tags: list[QuestionTag] = Field(default_factory=list)

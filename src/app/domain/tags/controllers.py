@@ -1,13 +1,16 @@
-from typing import Annotated, Sequence, TypeVar
+from typing import Annotated, Any, Sequence, TypeVar
 from uuid import UUID
 
+from domain.accounts.models import User
+from domain.comments.models import Comment
+from domain.comments.services import CommentsService
 from domain.consolidations.models import Consolidation
 from domain.projects.guards import project_curator_guard, project_participant_guard
 from domain.projects.middleware import UserProjectPermissionsMiddleware
 from domain.questions.dtos import QuestionOverview, QuestionOverviewDTO
 from domain.questions.models import Question
 from domain.questions.services import QuestionService
-from litestar import Controller, delete, get, post, put
+from litestar import Controller, Request, delete, get, post, put
 from litestar.enums import RequestEncodingType
 from litestar.params import Body
 from litestar.status_codes import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
@@ -34,7 +37,7 @@ class TagController(Controller):
     question_options = [
         selectinload(Question.author),
         selectinload(Question.ratings),
-        selectinload(Question.comments),
+        selectinload(Question.comments).options(selectinload(Comment.author)),
         selectinload(Question.consolidations).options(selectinload(Consolidation.questions)),
         selectinload(Question.target_consolidations).options(selectinload(Consolidation.questions)),
         selectinload(Question.group),
@@ -99,6 +102,7 @@ class TagController(Controller):
         project_id: UUID,
         question_id: UUID,
         data: JsonEncoded[QuestionTagsUpdate],
+        request: Request[User, Any, Any],
     ) -> QuestionOverview:
         """Replaces the `Tag`s of a `Question`. An empty list removes all tags."""
         question = await TagService.set_question_tags(
@@ -108,4 +112,5 @@ class TagController(Controller):
             data.tag_ids,
             self.question_options,
         )
-        return QuestionService.to_question_overview(question)
+        reader = await CommentsService.get_reader(session, request.user.id)
+        return QuestionService.to_question_overview(question, reader)

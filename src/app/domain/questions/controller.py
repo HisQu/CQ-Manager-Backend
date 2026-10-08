@@ -3,6 +3,7 @@ from uuid import UUID
 
 from domain.accounts.models import User
 from domain.comments.models import Comment
+from domain.comments.services import CommentsService
 from domain.consolidations.models import Consolidation
 from domain.groups.middleware import UserGroupPermissionsMiddleware
 from domain.groups.models import Group
@@ -57,7 +58,7 @@ class QuestionController(Controller):
     default_options = [
         selectinload(Question.author),
         selectinload(Question.ratings),
-        selectinload(Question.comments),
+        selectinload(Question.comments).options(selectinload(Comment.author)),
         selectinload(Question.consolidations).options(selectinload(Consolidation.questions)),
         selectinload(Question.target_consolidations).options(selectinload(Consolidation.questions)),
         selectinload(Question.topic),
@@ -67,7 +68,7 @@ class QuestionController(Controller):
     unified_options = [
         selectinload(Question.author),
         selectinload(Question.ratings),
-        selectinload(Question.comments),
+        selectinload(Question.comments).options(selectinload(Comment.author)),
         selectinload(Question.topic),
         selectinload(Question.tags),
         selectinload(Question.consolidations).options(
@@ -76,7 +77,7 @@ class QuestionController(Controller):
             selectinload(Consolidation.result_question).options(
                 selectinload(Question.author),
                 selectinload(Question.ratings),
-                selectinload(Question.comments),
+                selectinload(Question.comments).options(selectinload(Comment.author)),
                 selectinload(Question.consolidations),
                 selectinload(Question.topic),
                 selectinload(Question.tags),
@@ -205,19 +206,25 @@ class QuestionController(Controller):
             raise HTTPException(status_code=400, detail="Integrity violated.")
 
     @get("/", return_dto=QuestionOverviewDTO, status_code=HTTP_200_OK)
-    async def get_questions(self, session: AsyncSession) -> Sequence[QuestionOverview]:
+    async def get_questions(
+        self, session: AsyncSession, request: Request[User, Any, Any]
+    ) -> Sequence[QuestionOverview]:
         """
         :param session: AsyncSession object used to execute the database query and retrieve questions.
         :return: A list of QuestionDTO objects representing the retrieved questions.
         """
         questions = (await session.scalars(select(Question).options(*self.default_options))).all()
-        return QuestionService.to_question_overviews(questions)
+        reader = await CommentsService.get_reader(session, request.user.id)
+        return QuestionService.to_question_overviews(questions, reader)
 
     @get("/by_group/{group_id:uuid}", return_dto=QuestionOverviewDTO, status_code=HTTP_200_OK)
-    async def get_group_questions(self, session: AsyncSession, group_id: UUID) -> Sequence[QuestionOverview]:
+    async def get_group_questions(
+        self, session: AsyncSession, group_id: UUID, request: Request[User, Any, Any]
+    ) -> Sequence[QuestionOverview]:
         """Gets all `Question`s belonging to a given `Group`."""
         questions = await QuestionService.get_questions_by_group(session, group_id, self.default_options)
-        return QuestionService.to_question_overviews(questions)
+        reader = await CommentsService.get_reader(session, request.user.id)
+        return QuestionService.to_question_overviews(questions, reader)
 
     @get(
         "/by_group/{group_id:uuid}/unified",
@@ -229,9 +236,11 @@ class QuestionController(Controller):
         self,
         session: AsyncSession,
         group_id: UUID,
+        request: Request[User, Any, Any],
     ) -> Sequence[UnifiedQuestionOverview]:
         """Gets all `Question`s of a `Group` with consolidated sets collapsed to one representative each."""
-        return await QuestionService.get_unified_questions_by_group(session, group_id, self.unified_options)
+        reader = await CommentsService.get_reader(session, request.user.id)
+        return await QuestionService.get_unified_questions_by_group(session, group_id, self.unified_options, reader)
 
     @get(
         "/{question_id:uuid}",
@@ -352,19 +361,25 @@ class QuestionController(Controller):
         summary="Gets all Questions that are part of a Project",
         return_dto=QuestionOverviewDTO,
     )
-    async def by_project(self, session: AsyncSession, project_id: UUID) -> Sequence[QuestionOverview]:
+    async def by_project(
+        self, session: AsyncSession, project_id: UUID, request: Request[User, Any, Any]
+    ) -> Sequence[QuestionOverview]:
         """Gets all `Question`s that are part of a `Project`."""
         questions = await QuestionService.get_questions_by_project(session, project_id, self.detail_options)
-        return QuestionService.to_question_overviews(questions)
+        reader = await CommentsService.get_reader(session, request.user.id)
+        return QuestionService.to_question_overviews(questions, reader)
 
     @get(
         "/by_project/{project_id:uuid}/unified",
         summary="Gets unified Questions that are part of a Project",
         return_dto=UnifiedQuestionOverviewDTO,
     )
-    async def by_project_unified(self, session: AsyncSession, project_id: UUID) -> Sequence[UnifiedQuestionOverview]:
+    async def by_project_unified(
+        self, session: AsyncSession, project_id: UUID, request: Request[User, Any, Any]
+    ) -> Sequence[UnifiedQuestionOverview]:
         """Gets all `Question`s of a `Project` with consolidated sets collapsed to one representative each."""
-        return await QuestionService.get_unified_questions_by_project(session, project_id, self.unified_options)
+        reader = await CommentsService.get_reader(session, request.user.id)
+        return await QuestionService.get_unified_questions_by_project(session, project_id, self.unified_options, reader)
 
     @get(
         "/by_project/{project_id:uuid}/catalogue/{catalogue_identifier:str}",
