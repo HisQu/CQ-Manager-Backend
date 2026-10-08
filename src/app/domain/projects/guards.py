@@ -9,9 +9,11 @@ from litestar.exceptions.http_exceptions import ImproperlyConfiguredException
 from litestar.handlers.base import BaseRouteHandler
 
 from .exceptions import (
+    ProjectCuratorRequiredException,
     ProjectEngineerRequiredException,
     ProjectManagerRequiredException,
     ProjectMembershipRequiredException,
+    ProjectParticipationRequiredException,
 )
 from .services import ProjectService
 
@@ -64,4 +66,44 @@ async def project_member_guard(connection: ASGIConnection[Any, User, Any, Any], 
                 return
 
         raise ProjectMembershipRequiredException()
+    raise ImproperlyConfiguredException()
+
+
+async def project_curator_guard(connection: ASGIConnection[Any, User, Any, Any], _: BaseRouteHandler) -> None:
+    """Limit route access to project managers and ontology engineers.
+
+    Requires a `project_id: UUID` path parameter to be set.
+    """
+    if connection.user.is_system_admin:
+        return
+
+    if project_id := get_path_param(UUID, "project_id", connection):
+        async with session() as session_:
+            if await ProjectService.is_manager(session_, project_id, connection.user.id):
+                return
+            if await ProjectService.is_engineer(session_, project_id, connection.user.id):
+                return
+
+        raise ProjectCuratorRequiredException()
+    raise ImproperlyConfiguredException()
+
+
+async def project_participant_guard(connection: ASGIConnection[Any, User, Any, Any], _: BaseRouteHandler) -> None:
+    """Limit route access to project managers, ontology engineers and project members.
+
+    Requires a `project_id: UUID` path parameter to be set.
+    """
+    if connection.user.is_system_admin:
+        return
+
+    if project_id := get_path_param(UUID, "project_id", connection):
+        async with session() as session_:
+            if await ProjectService.is_manager(session_, project_id, connection.user.id):
+                return
+            if await ProjectService.is_engineer(session_, project_id, connection.user.id):
+                return
+            if await ProjectService.is_member(session_, project_id, connection.user.id):
+                return
+
+        raise ProjectParticipationRequiredException()
     raise ImproperlyConfiguredException()

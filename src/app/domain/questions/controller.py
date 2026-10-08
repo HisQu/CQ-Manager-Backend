@@ -10,6 +10,8 @@ from domain.projects.middleware import UserProjectPermissionsMiddleware
 from domain.questions.middleware import UserQuestionGroupPermissionsMiddleware
 from domain.questions.services import QuestionService
 from domain.ratings.models import Rating
+from domain.tags.services import TagService
+from domain.topics.services import TopicService
 from domain.versions.models import Version
 from litestar import Controller, Request, delete, get, post, put
 from litestar.enums import RequestEncodingType
@@ -59,6 +61,7 @@ class QuestionController(Controller):
         selectinload(Question.consolidations).options(selectinload(Consolidation.questions)),
         selectinload(Question.target_consolidations).options(selectinload(Consolidation.questions)),
         selectinload(Question.topic),
+        selectinload(Question.tags),
         selectinload(Question.group).options(selectinload(Group.project)),
     ]
     unified_options = [
@@ -66,6 +69,7 @@ class QuestionController(Controller):
         selectinload(Question.ratings),
         selectinload(Question.comments),
         selectinload(Question.topic),
+        selectinload(Question.tags),
         selectinload(Question.consolidations).options(
             selectinload(Consolidation.engineer),
             selectinload(Consolidation.questions),
@@ -75,6 +79,7 @@ class QuestionController(Controller):
                 selectinload(Question.comments),
                 selectinload(Question.consolidations),
                 selectinload(Question.topic),
+                selectinload(Question.tags),
                 selectinload(Question.group),
             ),
         ),
@@ -86,6 +91,7 @@ class QuestionController(Controller):
         selectinload(Question.editor),
         selectinload(Question.ratings).options(selectinload(Rating.author)),
         selectinload(Question.topic),
+        selectinload(Question.tags),
         selectinload(Question.consolidations).options(
             selectinload(Consolidation.questions).options(
                 selectinload(Question.author),
@@ -164,6 +170,8 @@ class QuestionController(Controller):
                     passage = await AnnotationService.get_or_create_passage(session, term.id, annotation.passage)
                     passages += [passage]
 
+            tags = await TagService.resolve_tags(session, group.project_id, data.tag_ids)
+
             question = Question(
                 question=data.question,
                 comment=data.comment,
@@ -177,9 +185,12 @@ class QuestionController(Controller):
                 group_id=group_id,
                 version_number=1,
                 annotations=passages,
+                tags=tags,
             )
 
             session.add(question)
+            await session.flush()
+            await TopicService.assign_uncatalogued(session, group.project_id, question)
             await session.commit()
             await session.refresh(question)
 

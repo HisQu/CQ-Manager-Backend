@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from domain.consolidations.models import Consolidation
     from domain.groups.models import Group
     from domain.ratings.models import Rating
+    from domain.tags.models import Tag
     from domain.topics.models import Topic
     from domain.versions.models import Version
     from domain.terms.models import Passage
@@ -66,6 +67,7 @@ class Question(UUIDAuditBase):
     )
     versions: Mapped[list[Version]] = relationship(back_populates="question", cascade="all, delete-orphan")
     annotations: Mapped[list[Passage]] = relationship(secondary="annotated_passages", back_populates="questions")
+    tags: Mapped[list[Tag]] = relationship(secondary="question_tags", back_populates="questions", order_by="Tag.name")
 
     @hybrid_property
     def no_consolidations(self) -> int:

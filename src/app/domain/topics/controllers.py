@@ -44,6 +44,7 @@ class TopicController(Controller):
         selectinload(Question.target_consolidations).options(selectinload(Consolidation.questions)),
         selectinload(Question.group),
         selectinload(Question.topic),
+        selectinload(Question.tags),
     ]
 
     @post(
@@ -160,7 +161,7 @@ class TopicController(Controller):
         project_id: UUID,
         question_id: UUID,
     ) -> QuestionOverview:
-        """Removes a `Question` topic assignment."""
+        """Moves a `Question` back into the uncatalogued catch-all of its `Project`."""
         question = await TopicService.remove_question_topic(
             session,
             project_id,
