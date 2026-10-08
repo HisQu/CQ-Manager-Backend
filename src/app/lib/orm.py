@@ -213,29 +213,6 @@ class AsyncSqlPlugin:
         )
 
     @staticmethod
-    def _has_comment_read_markers(connection: Connection) -> bool:
-        return "comment_read_marker" in inspect(connection).get_table_names()
-
-    @staticmethod
-    def _mark_existing_comments_read(connection: Connection) -> None:
-        """Comments written before read tracking existed count as read, so nobody starts with everything unread."""
-        connection.execute(
-            text(
-                """
-                INSERT INTO comment_read_marker (
-                    id, user_id, question_id, read_at,
-                    sa_orm_sentinel, created_at, updated_at
-                )
-                SELECT
-                    randomblob(16), "user".id, question.id, CURRENT_TIMESTAMP,
-                    NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
-                FROM "user" CROSS JOIN question
-                WHERE EXISTS (SELECT 1 FROM comment WHERE comment.question_id = question.id)
-                """
-            )
-        )
-
-    @staticmethod
     def _remove_group_identifier_column(connection: Connection) -> None:
         columns = {column["name"] for column in inspect(connection).get_columns("group")}
         if "identifier" not in columns:
@@ -331,10 +308,7 @@ class AsyncSqlPlugin:
         """Initializes the database."""
         async with self.config.get_engine().begin() as conn:
             # await conn.run_sync(UUIDBase.metadata.drop_all)
-            had_comment_read_markers = await conn.run_sync(self._has_comment_read_markers)
             await conn.run_sync(UUIDBase.metadata.create_all)
-            if not had_comment_read_markers:
-                await conn.run_sync(self._mark_existing_comments_read)
             await conn.run_sync(self._ensure_question_sparql_query_column)
             await conn.run_sync(self._ensure_question_comment_column)
             await conn.run_sync(self._ensure_question_metadata_columns)
