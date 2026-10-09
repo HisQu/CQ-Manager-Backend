@@ -156,9 +156,19 @@ class AnnotationService:
             select(Term).where(Term.project_id == project_id, Term.content == data.term)
         )
         if not target_term:
-            target_term = Term(content=data.term, project_id=project_id)
+            target_term = Term(
+                content=data.term,
+                definition=data.definition,
+                concept_iri=data.concept_iri,
+                project_id=project_id,
+            )
             session.add(target_term)
             await session.flush()
+        else:
+            if "definition" in data.model_fields_set:
+                target_term.definition = data.definition
+            if "concept_iri" in data.model_fields_set:
+                target_term.concept_iri = data.concept_iri
 
         passage.content = data.passage
         passage.start = data.start
@@ -220,6 +230,10 @@ class AnnotationService:
                     annotation.definition,
                     annotation.concept_iri,
                 )
+                if "definition" in annotation.model_fields_set:
+                    term.definition = annotation.definition
+                if "concept_iri" in annotation.model_fields_set:
+                    term.concept_iri = annotation.concept_iri
                 existing = await session.scalar(
                     select(Passage).where(
                         Passage.question_id == question_id,

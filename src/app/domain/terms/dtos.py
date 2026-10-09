@@ -61,6 +61,8 @@ class AnnotationUpdate(BaseModel):
     passage: NonEmptyString
     start: int = Field(ge=0, strict=True)
     end: int = Field(gt=0, strict=True)
+    definition: str | None = None
+    concept_iri: str | None = Field(default=None, alias="conceptIri")
 
 
 class AnnotationUpdateDTO(PydanticDTO[AnnotationUpdate]):

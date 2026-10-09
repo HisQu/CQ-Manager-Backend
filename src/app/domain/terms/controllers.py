@@ -1,9 +1,9 @@
-from typing import Sequence
+from collections.abc import Sequence
 from uuid import UUID
 
 from domain.projects.guards import ontology_engineer_guard
+from domain.questions.controller import QuestionController
 from domain.questions.dtos import QuestionOverview, QuestionOverviewDTO
-from domain.questions.models import Question
 from domain.questions.services import QuestionService
 from litestar import Controller, delete, get, put
 from litestar.exceptions import NotFoundException
@@ -23,8 +23,6 @@ from .dtos import (
 )
 from .models import Passage, Term
 from .services import AnnotationService
-
-from domain.questions.controller import QuestionController
 
 
 class TermController(Controller):
@@ -84,7 +82,6 @@ class TermController(Controller):
         summary="Edit an Annotation",
         dto=AnnotationUpdateDTO,
         return_dto=PassageDTO,
-        guards=[ontology_engineer_guard],
     )
     async def update_annotation(
         self,
