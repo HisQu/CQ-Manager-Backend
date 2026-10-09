@@ -1,9 +1,8 @@
-from typing import Iterable, Sequence
+from collections.abc import Iterable, Sequence
 from uuid import UUID
 
 from domain.questions.models import Question
-from litestar.exceptions import HTTPException
-from litestar.exceptions import NotFoundException
+from litestar.exceptions import HTTPException, NotFoundException
 from litestar.status_codes import HTTP_400_BAD_REQUEST
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio.session import AsyncSession
@@ -86,8 +85,10 @@ class AnnotationService:
             project_id=project_id,
         )
         session.add(model)
-        await session.commit()
-        await session.refresh(model)
+        # Keep term creation in the caller's transaction. Committing here expires
+        # already-loaded ORM objects (including the Question being annotated),
+        # and accessing their attributes later can trigger async lazy loading.
+        await session.flush()
         return model
 
     @staticmethod
@@ -201,6 +202,8 @@ class AnnotationService:
             )
         )
         if question := await session.scalar(statement):
+            question_id = question.id
+            project_id = question.group.project_id
             for annotation in data.annotations:
                 AnnotationService.validate_span(
                     question.question,
@@ -212,14 +215,14 @@ class AnnotationService:
             for annotation in data.annotations:
                 term = await AnnotationService.get_or_create_term(
                     session,
-                    question.group.project_id,
+                    project_id,
                     annotation.term,
                     annotation.definition,
                     annotation.concept_iri,
                 )
                 existing = await session.scalar(
                     select(Passage).where(
-                        Passage.question_id == question.id,
+                        Passage.question_id == question_id,
                         Passage.term_id == term.id,
                         Passage.start == annotation.start,
                         Passage.end == annotation.end,
@@ -236,7 +239,15 @@ class AnnotationService:
                     )
                 )
             await session.commit()
-            question = await session.scalar(statement)
+            question = await session.scalar(
+                select(Question)
+                .where(Question.id == question_id)
+                .options(
+                    selectinload(Question.annotations).options(selectinload(Passage.term)),
+                    selectinload(Question.group),
+                    *options,
+                )
+            )
             assert question
             return question.annotations
         raise NotFoundException()
