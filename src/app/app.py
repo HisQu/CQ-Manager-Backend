@@ -19,6 +19,7 @@ from domain.tags.controllers import TagController
 from domain.terms.controllers import TermController
 from domain.topics.controllers import TopicController
 from domain.topics.services import TopicService
+from lib.etag import ETagMiddleware
 from lib.mails import MailService
 from lib.orm import session as session_maker
 from lib.services import MockDataService
@@ -34,6 +35,7 @@ cors_config = CORSConfig(
         "Permissions-Project-Manager",
         "Permissions-Project-Engineer",
         "Permissions-Project-Member",
+        "ETag",
     ],
 )
 openapi_config = OpenAPIConfig("CQ Manager", "0.1.0", use_handler_docstrings=True)
@@ -73,6 +75,7 @@ app = Litestar(
         TagController,
     ],
     cors_config=cors_config,
+    middleware=[ETagMiddleware()],
     openapi_config=openapi_config,
     plugins=[sql_plugin.plugin],
     on_app_init=[sql_plugin.on_app_init, authenticator.on_app_init],
