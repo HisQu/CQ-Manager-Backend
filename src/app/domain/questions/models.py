@@ -65,7 +65,9 @@ class Question(UUIDAuditBase):
         viewonly=True,
     )
     versions: Mapped[list[Version]] = relationship(back_populates="question", cascade="all, delete-orphan")
-    annotations: Mapped[list[Passage]] = relationship(secondary="annotated_passages", back_populates="questions")
+    annotations: Mapped[list[Passage]] = relationship(
+        back_populates="question", cascade="all, delete-orphan"
+    )
 
     @hybrid_property
     def no_consolidations(self) -> int:

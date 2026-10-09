@@ -64,7 +64,7 @@ class TermController(Controller):
     async def add(
         self, session: AsyncSession, question_id: UUID, data: AnnotationAddDTO
     ) -> Sequence[Passage]:
-        """Adds one or more `Passage`s and `Term`s to a `Question` or updates existing `Passage`s."""
+        """Adds question-specific span annotations and creates terms when needed."""
         return await AnnotationService.annotate(session, question_id, data)
 
     @put(
@@ -76,7 +76,7 @@ class TermController(Controller):
     async def remove_annotations(
         self, session: AsyncSession, question_id: UUID, data: AnnotationRemove
     ) -> Sequence[Passage]:
-        """Removes one or more `Passage`s and `Term`s from a `Question`, returns leftover `Passage`s."""
+        """Removes selected annotation occurrences from a question."""
         return await AnnotationService.remove_annotations(session, question_id, data)
 
     @put(
@@ -94,7 +94,7 @@ class TermController(Controller):
         passage_id: UUID,
         data: AnnotationUpdate,
     ) -> Passage:
-        """Updates a `Passage` and optionally reassigns it to another `Term` within a `Project`."""
+        """Updates an annotation occurrence and optionally reassigns its term."""
         return await AnnotationService.update_annotation(
             session, project_id, question_id, passage_id, data
         )

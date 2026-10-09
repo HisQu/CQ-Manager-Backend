@@ -15,7 +15,12 @@ from litestar import Controller, Request, delete, get, post, put
 from litestar.enums import RequestEncodingType
 from litestar.exceptions import HTTPException
 from litestar.params import Body
-from litestar.status_codes import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
+from litestar.status_codes import (
+    HTTP_200_OK,
+    HTTP_201_CREATED,
+    HTTP_204_NO_CONTENT,
+    HTTP_400_BAD_REQUEST,
+)
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -151,8 +156,16 @@ class QuestionController(Controller):
             if not (group := await session.scalar(statement)):
                 raise HTTPException(status_code=404, detail="Group not found.")
 
-            passages: Sequence[Passage] = []
+            passages: list[Passage] = []
             if data.annotations:
+                for annotation in data.annotations:
+                    AnnotationService.validate_span(
+                        data.question,
+                        annotation.start,
+                        annotation.end,
+                        annotation.passage,
+                    )
+
                 for annotation in data.annotations:
                     term = await AnnotationService.get_or_create_term(
                         session,
@@ -161,8 +174,14 @@ class QuestionController(Controller):
                         annotation.definition,
                         annotation.concept_iri,
                     )
-                    passage = await AnnotationService.get_or_create_passage(session, term.id, annotation.passage)
-                    passages += [passage]
+                    passages.append(
+                        Passage(
+                            content=annotation.passage,
+                            start=annotation.start,
+                            end=annotation.end,
+                            term=term,
+                        )
+                    )
 
             question = Question(
                 question=data.question,
@@ -261,12 +280,39 @@ class QuestionController(Controller):
         question_id: UUID,
         request: Request[User, Any, Any],
     ) -> QuestionDetail:
-        question = await session.scalar(select(Question).where(Question.id == question_id))
+        question = await session.scalar(
+            select(Question)
+            .where(Question.id == question_id)
+            .options(selectinload(Question.annotations))
+        )
 
         if not question:
             raise HTTPException(status_code=404, detail="Question not found.")
 
         try:
+            if data.question is not None and data.question != question.question:
+                invalid_annotations = [
+                    annotation
+                    for annotation in question.annotations
+                    if not AnnotationService.span_matches(
+                        data.question,
+                        annotation.start,
+                        annotation.end,
+                        annotation.content,
+                    )
+                ]
+                if invalid_annotations and not data.discard_annotations:
+                    raise HTTPException(
+                        status_code=HTTP_400_BAD_REQUEST,
+                        detail=(
+                            "Changing the question text would invalidate existing "
+                            "annotations. Confirm discarding them and retry."
+                        ),
+                    )
+
+            if data.discard_annotations:
+                question.annotations.clear()
+
             version = Version(
                 question_string=question.question,
                 version_number=question.version_number,

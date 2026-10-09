@@ -300,6 +300,8 @@ class QuestionService:
                 QuestionAnnotation(
                     id=annotation.id,
                     content=annotation.content,
+                    start=annotation.start,
+                    end=annotation.end,
                     term=QuestionAnnotationTerm(
                         id=annotation.term.id,
                         content=annotation.term.content,

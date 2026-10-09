@@ -18,7 +18,7 @@ class TermDTO(SQLAlchemyDTO[Term]):
 
 class PassageDTO(SQLAlchemyDTO[Passage]):
     config = SQLAlchemyDTOConfig(
-        include={"id", "term_id", "content"},
+        include={"id", "question_id", "term_id", "content", "start", "end"},
         rename_strategy="camel",
     )
 
@@ -30,6 +30,8 @@ class AnnotationDTO(BaseModel):
     term: NonEmptyString
     definition: NonEmptyString | None = None
     concept_iri: NonEmptyString | None = Field(default=None, alias="conceptIri")
+    start: int = Field(ge=0, strict=True)
+    end: int = Field(gt=0, strict=True)
 
 
 class AnnotationAddDTO(BaseModel):
@@ -37,7 +39,6 @@ class AnnotationAddDTO(BaseModel):
 
 
 class AnnotationRemove(BaseModel):
-    term_ids: list[UUID] | None = None
     passage_ids: list[UUID] | None = None
 
 
@@ -58,6 +59,8 @@ class TermUpdateDTO(PydanticDTO[TermUpdate]):
 class AnnotationUpdate(BaseModel):
     term: NonEmptyString
     passage: NonEmptyString
+    start: int = Field(ge=0, strict=True)
+    end: int = Field(gt=0, strict=True)
 
 
 class AnnotationUpdateDTO(PydanticDTO[AnnotationUpdate]):

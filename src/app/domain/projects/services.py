@@ -11,7 +11,7 @@ from domain.consolidations.models import ConsolidatedQuestions, Consolidation
 from domain.groups.models import Group, GroupMembers
 from domain.questions.models import Question
 from domain.ratings.models import Rating
-from domain.terms.models import AnnotatedPassages, Passage, Term
+from domain.terms.models import Passage, Term
 from domain.topics.models import Topic
 from domain.versions.models import Version
 from litestar.exceptions import HTTPException
@@ -238,7 +238,6 @@ class ProjectService:
         question_ids = select(Question.id).where(Question.group_id.in_(group_ids))
         consolidation_ids = select(Consolidation.id).where(Consolidation.project_id == id)
         term_ids = select(Term.id).where(Term.project_id == id)
-        passage_ids = select(Passage.id).where(Passage.term_id.in_(term_ids))
 
         statements = [
             delete(ConsolidatedQuestions).where(
@@ -247,20 +246,19 @@ class ProjectService:
                     ConsolidatedQuestions.c.question_id.in_(question_ids),
                 )
             ),
-            delete(AnnotatedPassages).where(
-                or_(
-                    AnnotatedPassages.c.question_id.in_(question_ids),
-                    AnnotatedPassages.c.passage_id.in_(passage_ids),
-                )
-            ),
             delete(Comment).where(Comment.question_id.in_(question_ids)),
             delete(Rating).where(Rating.question_id.in_(question_ids)),
             delete(Version).where(Version.question_id.in_(question_ids)),
             delete(Consolidation).where(Consolidation.project_id == id),
+            delete(Passage).where(
+                or_(
+                    Passage.question_id.in_(question_ids),
+                    Passage.term_id.in_(term_ids),
+                )
+            ),
             delete(Question).where(Question.group_id.in_(group_ids)),
             delete(GroupMembers).where(GroupMembers.c.group_id.in_(group_ids)),
             delete(Group).where(Group.project_id == id),
-            delete(Passage).where(Passage.term_id.in_(term_ids)),
             delete(Term).where(Term.project_id == id),
             delete(Topic).where(Topic.project_id == id),
             delete(ProjectManagers).where(ProjectManagers.c.project_id == id),

@@ -113,6 +113,8 @@ class QuestionAnnotationTerm(BaseModel):
 class QuestionAnnotation(BaseModel):
     id: UUID
     content: str
+    start: int
+    end: int
     term: QuestionAnnotationTerm
 
 
@@ -181,6 +183,7 @@ class QuestionUpdate(QuestionMetadataMixin):
     question: str | None = None
     comment: str | None = None
     sparql_query: str | None = None
+    discard_annotations: bool = False
 
 
 class QuestionUpdateDTO(PydanticDTO[QuestionUpdate]):

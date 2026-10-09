@@ -17,6 +17,7 @@ dependencies = [
     "pydantic",
     "pydantic[email]",
     "advanced-alchemy>=1.9.3,<2",
+    "pytest>=9.1.1",
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
