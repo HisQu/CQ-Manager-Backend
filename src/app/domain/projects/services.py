@@ -13,7 +13,7 @@ from domain.history.models import QuestionEvent
 from domain.questions.models import Question
 from domain.ratings.models import Rating
 from domain.tags.models import QuestionTags, Tag
-from domain.terms.models import AnnotatedPassages, Passage, Term
+from domain.terms.models import Passage, Term
 from domain.topics.models import Topic
 from domain.topics.services import TopicService
 from domain.versions.models import Version
@@ -250,12 +250,6 @@ class ProjectService:
                 or_(
                     ConsolidatedQuestions.c.consolidation_id.in_(consolidation_ids),
                     ConsolidatedQuestions.c.question_id.in_(question_ids),
-                )
-            ),
-            delete(AnnotatedPassages).where(
-                or_(
-                    AnnotatedPassages.c.question_id.in_(question_ids),
-                    AnnotatedPassages.c.passage_id.in_(passage_ids),
                 )
             ),
             delete(QuestionTags).where(QuestionTags.c.question_id.in_(question_ids)),
