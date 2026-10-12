@@ -52,6 +52,17 @@ class QuestionTopic(BaseModel):
     name: str
 
 
+class QuestionTag(BaseModel):
+    id: UUID
+    name: str
+
+
+class QuestionLastComment(BaseModel):
+    comment: str
+    author: str | None = None
+    created_at: datetime
+
+
 class QuestionConsolidationRole(str, Enum):
     SOURCE = "source"
     TARGET = "target"
@@ -76,10 +87,14 @@ class QuestionOverview(QuestionMetadataMixin):
     created_at: datetime | None = None
     updated_at: datetime | None = None
     last_comment_at: datetime | None = None
+    last_comment: QuestionLastComment | None = None
+    no_unread_comments: int = 0
     group: QuestionGroup | None = None
     topic: QuestionTopic | None = None
+    tags: list[QuestionTag] = Field(default_factory=list)
     author: QuestionUser | None = None
     consolidations: list[QuestionConsolidationContext] = Field(default_factory=list)
+    deleted_at: datetime | None = None
 
 
 class QuestionOverviewDTO(PydanticDTO[QuestionOverview]):
@@ -99,6 +114,8 @@ class QuestionComment(BaseModel):
 
 class QuestionVersion(BaseModel):
     question_string: str
+    sparql_query: str | None = None
+    example_answer: str | None = None
     version_number: int
     editor: QuestionUser
 
@@ -157,11 +174,13 @@ class QuestionDetail(QuestionMetadataMixin):
     editor: QuestionUser
     group: QuestionGroup
     topic: QuestionTopic | None = None
+    tags: list[QuestionTag] = Field(default_factory=list)
     comments: list[QuestionComment] = Field(default_factory=list)
     no_consolidations: int = 0
     consolidations: list[QuestionDetailConsolidation] = Field(default_factory=list)
     versions: list[QuestionVersion] = Field(default_factory=list)
     annotations: list[QuestionAnnotation] = Field(default_factory=list)
+    deleted_at: datetime | None = None
 
 
 class QuestionDetailDTO(PydanticDTO[QuestionDetail]):
@@ -173,6 +192,7 @@ class QuestionCreate(QuestionMetadataMixin):
     comment: str | None = None
     sparql_query: str | None = None
     annotations: list[AnnotationDTO] = []
+    tag_ids: list[UUID] = []
 
 
 class QuestionCreateDTO(PydanticDTO[QuestionCreate]):
@@ -236,8 +256,11 @@ class UnifiedQuestionOverview(QuestionMetadataMixin):
     created_at: datetime | None = None
     updated_at: datetime | None = None
     last_comment_at: datetime | None = None
+    last_comment: QuestionLastComment | None = None
+    no_unread_comments: int = 0
     group: UnifiedQuestionGroup | None = None
     topic: UnifiedQuestionTopic | None = None
+    tags: list[QuestionTag] = Field(default_factory=list)
     author: UnifiedQuestionAuthor | None = None
     unified_entry_kind: UnifiedQuestionEntryKind
     consolidation: QuestionConsolidationContext | None = None

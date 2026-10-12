@@ -2,12 +2,14 @@ import re
 from typing import Iterable, Sequence
 from uuid import UUID
 
+from domain.accounts.models import User
+from domain.comments.services import CommentReader
 from domain.consolidations.models import Consolidation
 from domain.groups.models import Group
 from domain.topics.models import Topic
 from litestar.exceptions import HTTPException
 from litestar.status_codes import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
-from sqlalchemy import select
+from sqlalchemy import Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.base import ExecutableOption
 
@@ -25,6 +27,8 @@ from .dtos import (
     QuestionOverview,
     QuestionProject,
     QuestionRating,
+    QuestionLastComment,
+    QuestionTag,
     QuestionTopic,
     QuestionUser,
     QuestionVersion,
@@ -34,9 +38,9 @@ from .dtos import (
     UnifiedQuestionOverview,
     UnifiedQuestionTopic,
 )
-from .models import Question
+from .models import INCLUDE_DELETED, Question
 
-CQ_CATALOGUE_IDENTIFIER_PATTERN = re.compile(r"^([A-Z]+)\.(\d+)$")
+CQ_CATALOGUE_IDENTIFIER_PATTERN = re.compile(r"^([A-Z]+|#)\.(\d+)$")
 
 
 def normalize_cq_catalogue_identifier(identifier: str) -> tuple[str, int]:
@@ -45,7 +49,7 @@ def normalize_cq_catalogue_identifier(identifier: str) -> tuple[str, int]:
     if not match:
         raise HTTPException(
             status_code=HTTP_400_BAD_REQUEST,
-            detail="CQ catalogue identifier must use the format '<topic>.<index>', e.g. 'A.1'.",
+            detail="CQ catalogue identifier must use the format '<topic>.<index>', e.g. 'A.1' or '#.1'.",
         )
 
     topic_identifier, catalogue_index = match.groups()
@@ -54,7 +58,12 @@ def normalize_cq_catalogue_identifier(identifier: str) -> tuple[str, int]:
 
 class QuestionService:
     @staticmethod
-    def to_question_overview(question: Question) -> QuestionOverview:
+    def visible_to(statement: Select, user: User) -> Select:
+        """System admins can still fetch soft deleted `Question`s, everybody else cannot."""
+        return statement.execution_options(**{INCLUDE_DELETED: user.is_system_admin})
+
+    @staticmethod
+    def to_question_overview(question: Question, reader: CommentReader | None = None) -> QuestionOverview:
         return QuestionOverview(
             id=question.id,
             question=question.question,
@@ -71,6 +80,7 @@ class QuestionService:
             created_at=question.created_at,
             updated_at=question.updated_at,
             last_comment_at=question.last_comment_at,
+            **QuestionService._to_comment_state(question, reader),
             group=QuestionGroup(id=question.group.id, name=question.group.name) if question.group else None,
             topic=(
                 QuestionTopic(
@@ -81,6 +91,7 @@ class QuestionService:
                 if question.topic
                 else None
             ),
+            tags=QuestionService._to_tags(question),
             author=(
                 QuestionUser(
                     id=question.author.id,
@@ -91,11 +102,32 @@ class QuestionService:
                 else None
             ),
             consolidations=QuestionService._to_consolidation_contexts(question),
+            deleted_at=question.deleted_at,
         )
 
     @staticmethod
-    def to_question_overviews(questions: Sequence[Question]) -> list[QuestionOverview]:
-        return [QuestionService.to_question_overview(question) for question in questions]
+    def _to_comment_state(question: Question, reader: CommentReader | None) -> dict:
+        """The unread comments of the `reader`; the last comment is only included while it is unread."""
+        unread = reader.unread_comments(question) if reader else []
+        comment = max(question.comments, key=lambda c: c.created_at, default=None)
+        last_comment = None
+        if comment is not None and comment in unread:
+            last_comment = QuestionLastComment(
+                comment=comment.comment,
+                author=comment.author.name if comment.author else None,
+                created_at=comment.created_at,
+            )
+        return {"last_comment": last_comment, "no_unread_comments": len(unread)}
+
+    @staticmethod
+    def _to_tags(question: Question) -> list[QuestionTag]:
+        return [QuestionTag(id=tag.id, name=tag.name) for tag in question.tags]
+
+    @staticmethod
+    def to_question_overviews(
+        questions: Sequence[Question], reader: CommentReader | None = None
+    ) -> list[QuestionOverview]:
+        return [QuestionService.to_question_overview(question, reader) for question in questions]
 
     @staticmethod
     def _to_consolidation_context(
@@ -270,6 +302,7 @@ class QuestionService:
                 if question.topic
                 else None
             ),
+            tags=QuestionService._to_tags(question),
             comments=[
                 QuestionComment(
                     comment=comment.comment,
@@ -287,6 +320,8 @@ class QuestionService:
             versions=[
                 QuestionVersion(
                     question_string=version.question_string,
+                    sparql_query=version.sparql_query,
+                    example_answer=version.example_answer,
                     version_number=version.version_number,
                     editor=QuestionUser(
                         id=version.editor.id,
@@ -311,6 +346,7 @@ class QuestionService:
                 )
                 for annotation in question.annotations
             ],
+            deleted_at=question.deleted_at,
         )
 
     @staticmethod
@@ -319,6 +355,7 @@ class QuestionService:
         entry_kind: UnifiedQuestionEntryKind = UnifiedQuestionEntryKind.QUESTION,
         consolidation_id: UUID | None = None,
         consolidation_context: QuestionConsolidationContext | None = None,
+        reader: CommentReader | None = None,
     ) -> UnifiedQuestionOverview:
         return UnifiedQuestionOverview(
             id=question.id,
@@ -336,6 +373,7 @@ class QuestionService:
             created_at=question.created_at,
             updated_at=question.updated_at,
             last_comment_at=question.last_comment_at,
+            **QuestionService._to_comment_state(question, reader),
             group=UnifiedQuestionGroup(id=question.group.id, name=question.group.name),
             topic=(
                 UnifiedQuestionTopic(
@@ -346,6 +384,7 @@ class QuestionService:
                 if question.topic
                 else None
             ),
+            tags=QuestionService._to_tags(question),
             author=UnifiedQuestionAuthor(
                 id=question.author.id,
                 email=question.author.email,
@@ -357,7 +396,7 @@ class QuestionService:
 
     @staticmethod
     def _to_unified_consolidation_entry(
-        consolidation: Consolidation, fallback_question: Question
+        consolidation: Consolidation, fallback_question: Question, reader: CommentReader | None = None
     ) -> UnifiedQuestionOverview:
         consolidation_context = QuestionService._to_consolidation_context(
             consolidation,
@@ -382,6 +421,7 @@ class QuestionService:
                 created_at=consolidation.created_at,
                 updated_at=consolidation.updated_at,
                 last_comment_at=fallback_question.last_comment_at,
+                **QuestionService._to_comment_state(fallback_question, reader),
                 group=UnifiedQuestionGroup(id=fallback_question.group.id, name=fallback_question.group.name),
                 topic=(
                     UnifiedQuestionTopic(
@@ -392,6 +432,7 @@ class QuestionService:
                     if fallback_question.topic
                     else None
                 ),
+                tags=QuestionService._to_tags(fallback_question),
                 author=UnifiedQuestionAuthor(
                     id=consolidation.engineer.id,
                     email=consolidation.engineer.email,
@@ -406,6 +447,7 @@ class QuestionService:
             entry_kind=UnifiedQuestionEntryKind.CONSOLIDATION_RESULT,
             consolidation_id=consolidation.id,
             consolidation_context=consolidation_context,
+            reader=reader,
         )
 
     @staticmethod
@@ -426,6 +468,22 @@ class QuestionService:
     ) -> Sequence[Question]:
         options = [] if not options else options
         statement = select(Question).join(Group).filter(Group.project_id == project_id).options(*options)
+        return (await session.scalars(statement)).all()
+
+    @staticmethod
+    async def get_deleted_questions_by_project(
+        session: AsyncSession,
+        project_id: UUID,
+        options: Iterable[ExecutableOption] | None = None,
+    ) -> Sequence[Question]:
+        statement = (
+            select(Question)
+            .join(Group)
+            .where(Group.project_id == project_id, Question.deleted_at.is_not(None))
+            .order_by(Question.deleted_at.desc())
+            .options(*(options or []))
+            .execution_options(**{INCLUDE_DELETED: True})
+        )
         return (await session.scalars(statement)).all()
 
     @staticmethod
@@ -461,6 +519,7 @@ class QuestionService:
     @staticmethod
     def _unify_consolidated_questions(
         questions: Sequence[Question],
+        reader: CommentReader | None = None,
     ) -> list[UnifiedQuestionOverview]:
         unified: list[UnifiedQuestionOverview] = []
         consolidation_map: dict[UUID, Consolidation] = {
@@ -483,7 +542,7 @@ class QuestionService:
             )
 
             if not consolidation_ids:
-                unified.append(QuestionService._to_unified_question_entry(question))
+                unified.append(QuestionService._to_unified_question_entry(question, reader=reader))
                 continue
 
             unconsolidated_ids = [
@@ -497,7 +556,7 @@ class QuestionService:
             # One consolidation result entry is emitted per unseen consolidation.
             for consolidation_id in unconsolidated_ids:
                 consolidation = consolidation_map[consolidation_id]
-                unified.append(QuestionService._to_unified_consolidation_entry(consolidation, question))
+                unified.append(QuestionService._to_unified_consolidation_entry(consolidation, question, reader))
             seen_consolidation_ids.update(unconsolidated_ids)
 
         return unified
@@ -507,15 +566,17 @@ class QuestionService:
         session: AsyncSession,
         group_id: UUID,
         options: Iterable[ExecutableOption] | None = None,
+        reader: CommentReader | None = None,
     ) -> Sequence[UnifiedQuestionOverview]:
         questions = await QuestionService.get_questions_by_group(session, group_id, options)
-        return QuestionService._unify_consolidated_questions(questions)
+        return QuestionService._unify_consolidated_questions(questions, reader)
 
     @staticmethod
     async def get_unified_questions_by_project(
         session: AsyncSession,
         project_id: UUID,
         options: Iterable[ExecutableOption] | None = None,
+        reader: CommentReader | None = None,
     ) -> Sequence[UnifiedQuestionOverview]:
         questions = await QuestionService.get_questions_by_project(session, project_id, options)
-        return QuestionService._unify_consolidated_questions(questions)
+        return QuestionService._unify_consolidated_questions(questions, reader)

@@ -276,6 +276,49 @@ def test_add_annotation_can_create_term_with_definition_and_concept_iri(
             client.delete(f"/projects/{project['id']}", headers=admin_header)
 
 
+def test_get_project_terms_sets_engineer_permission_headers(
+    test_client: TestClient[Litestar],
+    admin_header: Headers,
+) -> None:
+    with test_client as client:
+        project, _, question, engineer_header, _ = _create_terms_context(client, admin_header)
+        unique = uuid4().hex
+        term = f"term-permissions-{unique}"
+        passage = f"passage-permissions-{unique}"
+        definition = "A term definition visible to engineers."
+        concept_iri = f"https://example.org/ontology/{unique}"
+
+        try:
+            response = client.put(
+                f"/terms/add/{question['id']}",
+                json={
+                    "annotations": [
+                        {
+                            "term": term,
+                            "passage": passage,
+                            "definition": definition,
+                            "conceptIri": concept_iri,
+                        }
+                    ]
+                },
+                headers=engineer_header,
+            )
+            assert response.status_code == HTTP_200_OK
+
+            term_response = client.get(f"/terms/project/{project['id']}", headers=engineer_header)
+            assert term_response.status_code == HTTP_200_OK
+            assert term_response.headers["Permissions-Project-Engineer"] == "True"
+            assert term_response.headers["Permissions-Project-Manager"] == "False"
+            assert term_response.headers["Permissions-Project-Member"] == "False"
+
+            selected_term = next(filter(lambda item: item["content"] == term, term_response.json()), None)
+            assert selected_term is not None
+            assert selected_term["definition"] == definition
+            assert selected_term["conceptIri"] == concept_iri
+        finally:
+            client.delete(f"/projects/{project['id']}", headers=admin_header)
+
+
 def test_delete_term_requires_engineer(
     test_client: TestClient[Litestar],
     admin_header: Headers,

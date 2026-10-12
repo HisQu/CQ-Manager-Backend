@@ -3,6 +3,7 @@ from uuid import UUID
 
 from domain.projects.guards import ontology_engineer_guard
 from domain.questions.controller import QuestionController
+from domain.projects.middleware import UserProjectPermissionsMiddleware
 from domain.questions.dtos import QuestionOverview, QuestionOverviewDTO
 from domain.questions.services import QuestionService
 from litestar import Controller, delete, get, put
@@ -28,6 +29,7 @@ from .services import AnnotationService
 class TermController(Controller):
     tags = ["Terms"]
     path = "/terms"
+    middleware = [UserProjectPermissionsMiddleware]
 
     @get("/", summary="Get All", return_dto=TermDTO)
     async def get_all(self, session: AsyncSession) -> Sequence[Term]:

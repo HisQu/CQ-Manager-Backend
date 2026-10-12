@@ -314,6 +314,16 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        createdAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        deletedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
         exampleAnswer:
           oneOf:
           - type: string
@@ -325,10 +335,22 @@ components:
         id:
           format: uuid
           type: string
+        lastComment:
+          oneOf:
+          - $ref: '#/components/schemas/AssignQuestionTopicQuestionOverview_0QuestionLastCommentResponseBody'
+          - type: 'null'
+        lastCommentAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
         noComments:
           default: 0
           type: integer
         noConsolidations:
+          default: 0
+          type: integer
+        noUnreadComments:
           default: 0
           type: integer
         question:
@@ -344,6 +366,10 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        tags:
+          items:
+            $ref: '#/components/schemas/AssignQuestionTopicQuestionOverview_0QuestionTagResponseBody'
+          type: array
         topic:
           oneOf:
           - $ref: '#/components/schemas/AssignQuestionTopicQuestionOverview_0QuestionTopicResponseBody'
@@ -364,6 +390,11 @@ components:
           type:
           - 'null'
           - string
+        updatedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
       required:
       - id
       - question
@@ -406,6 +437,34 @@ components:
       - id
       - name
       title: AssignQuestionTopicQuestionOverview_0QuestionGroupResponseBody
+      type: object
+    AssignQuestionTopicQuestionOverview_0QuestionLastCommentResponseBody:
+      properties:
+        author:
+          oneOf:
+          - type: string
+          - type: 'null'
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+      required:
+      - comment
+      - createdAt
+      title: AssignQuestionTopicQuestionOverview_0QuestionLastCommentResponseBody
+      type: object
+    AssignQuestionTopicQuestionOverview_0QuestionTagResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: AssignQuestionTopicQuestionOverview_0QuestionTagResponseBody
       type: object
     AssignQuestionTopicQuestionOverview_0QuestionTopicResponseBody:
       properties:
@@ -471,6 +530,16 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        createdAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        deletedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
         exampleAnswer:
           oneOf:
           - type: string
@@ -482,10 +551,22 @@ components:
         id:
           format: uuid
           type: string
+        lastComment:
+          oneOf:
+          - $ref: '#/components/schemas/ByProjectQuestionOverview_0QuestionLastCommentResponseBody'
+          - type: 'null'
+        lastCommentAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
         noComments:
           default: 0
           type: integer
         noConsolidations:
+          default: 0
+          type: integer
+        noUnreadComments:
           default: 0
           type: integer
         question:
@@ -501,6 +582,10 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        tags:
+          items:
+            $ref: '#/components/schemas/ByProjectQuestionOverview_0QuestionTagResponseBody'
+          type: array
         topic:
           oneOf:
           - $ref: '#/components/schemas/ByProjectQuestionOverview_0QuestionTopicResponseBody'
@@ -521,6 +606,11 @@ components:
           type:
           - 'null'
           - string
+        updatedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
       required:
       - id
       - question
@@ -563,6 +653,34 @@ components:
       - id
       - name
       title: ByProjectQuestionOverview_0QuestionGroupResponseBody
+      type: object
+    ByProjectQuestionOverview_0QuestionLastCommentResponseBody:
+      properties:
+        author:
+          oneOf:
+          - type: string
+          - type: 'null'
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+      required:
+      - comment
+      - createdAt
+      title: ByProjectQuestionOverview_0QuestionLastCommentResponseBody
+      type: object
+    ByProjectQuestionOverview_0QuestionTagResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: ByProjectQuestionOverview_0QuestionTagResponseBody
       type: object
     ByProjectQuestionOverview_0QuestionTopicResponseBody:
       properties:
@@ -616,6 +734,11 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        createdAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
         exampleAnswer:
           oneOf:
           - type: string
@@ -627,10 +750,22 @@ components:
         id:
           format: uuid
           type: string
+        lastComment:
+          oneOf:
+          - $ref: '#/components/schemas/ByProjectUnifiedUnifiedQuestionOverview_0QuestionLastCommentResponseBody'
+          - type: 'null'
+        lastCommentAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
         noComments:
           default: 0
           type: integer
         noConsolidations:
+          default: 0
+          type: integer
+        noUnreadComments:
           default: 0
           type: integer
         question:
@@ -646,6 +781,10 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        tags:
+          items:
+            $ref: '#/components/schemas/ByProjectUnifiedUnifiedQuestionOverview_0QuestionTagResponseBody'
+          type: array
         topic:
           oneOf:
           - $ref: '#/components/schemas/ByProjectUnifiedUnifiedQuestionOverview_0UnifiedQuestionTopicResponseBody'
@@ -668,6 +807,11 @@ components:
           - string
         unifiedEntryKind:
           $ref: '#/components/schemas/UnifiedQuestionEntryKind'
+        updatedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
       required:
       - id
       - question
@@ -695,6 +839,34 @@ components:
       - id
       - role
       title: ByProjectUnifiedUnifiedQuestionOverview_0QuestionConsolidationContextResponseBody
+      type: object
+    ByProjectUnifiedUnifiedQuestionOverview_0QuestionLastCommentResponseBody:
+      properties:
+        author:
+          oneOf:
+          - type: string
+          - type: 'null'
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+      required:
+      - comment
+      - createdAt
+      title: ByProjectUnifiedUnifiedQuestionOverview_0QuestionLastCommentResponseBody
+      type: object
+    ByProjectUnifiedUnifiedQuestionOverview_0QuestionTagResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: ByProjectUnifiedUnifiedQuestionOverview_0QuestionTagResponseBody
       type: object
     ByProjectUnifiedUnifiedQuestionOverview_0UnifiedQuestionAuthorResponseBody:
       properties:
@@ -772,6 +944,16 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        createdAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        deletedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
         exampleAnswer:
           oneOf:
           - type: string
@@ -783,10 +965,22 @@ components:
         id:
           format: uuid
           type: string
+        lastComment:
+          oneOf:
+          - $ref: '#/components/schemas/ChangeQuestionTopicQuestionOverview_0QuestionLastCommentResponseBody'
+          - type: 'null'
+        lastCommentAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
         noComments:
           default: 0
           type: integer
         noConsolidations:
+          default: 0
+          type: integer
+        noUnreadComments:
           default: 0
           type: integer
         question:
@@ -802,6 +996,10 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        tags:
+          items:
+            $ref: '#/components/schemas/ChangeQuestionTopicQuestionOverview_0QuestionTagResponseBody'
+          type: array
         topic:
           oneOf:
           - $ref: '#/components/schemas/ChangeQuestionTopicQuestionOverview_0QuestionTopicResponseBody'
@@ -822,6 +1020,11 @@ components:
           type:
           - 'null'
           - string
+        updatedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
       required:
       - id
       - question
@@ -864,6 +1067,34 @@ components:
       - id
       - name
       title: ChangeQuestionTopicQuestionOverview_0QuestionGroupResponseBody
+      type: object
+    ChangeQuestionTopicQuestionOverview_0QuestionLastCommentResponseBody:
+      properties:
+        author:
+          oneOf:
+          - type: string
+          - type: 'null'
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+      required:
+      - comment
+      - createdAt
+      title: ChangeQuestionTopicQuestionOverview_0QuestionLastCommentResponseBody
+      type: object
+    ChangeQuestionTopicQuestionOverview_0QuestionTagResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: ChangeQuestionTopicQuestionOverview_0QuestionTagResponseBody
       type: object
     ChangeQuestionTopicQuestionOverview_0QuestionTopicResponseBody:
       properties:
@@ -1269,6 +1500,11 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        tagIds:
+          items:
+            format: uuid
+            type: string
+          type: array
         type:
           enum:
           - RQ
@@ -1486,6 +1722,11 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        deletedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
         editor:
           $ref: '#/components/schemas/domain.questions.controller.QuestionController.create_questionQuestionDetailQuestionUserResponseBody'
         exampleAnswer:
@@ -1517,6 +1758,10 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        tags:
+          items:
+            $ref: '#/components/schemas/CreateQuestionQuestionDetail_0QuestionTagResponseBody'
+          type: array
         topic:
           oneOf:
           - $ref: '#/components/schemas/CreateQuestionQuestionDetail_0QuestionTopicResponseBody'
@@ -1620,6 +1865,18 @@ components:
       - rating
       title: CreateQuestionQuestionDetail_0QuestionRatingResponseBody
       type: object
+    CreateQuestionQuestionDetail_0QuestionTagResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: CreateQuestionQuestionDetail_0QuestionTagResponseBody
+      type: object
     CreateQuestionQuestionDetail_0QuestionTopicResponseBody:
       properties:
         id:
@@ -1639,8 +1896,16 @@ components:
       properties:
         editor:
           $ref: '#/components/schemas/CreateQuestionQuestionVersionQuestionUserResponseBody'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
         questionString:
           type: string
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
         versionNumber:
           type: integer
       required:
@@ -1691,6 +1956,33 @@ components:
       - name
       title: CreateQuestionQuestionVersionQuestionUserResponseBody
       type: object
+    CreateTagTagReadResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        noQuestions:
+          default: 0
+          type: integer
+        projectId:
+          format: uuid
+          type: string
+      required:
+      - id
+      - name
+      - projectId
+      title: CreateTagTagReadResponseBody
+      type: object
+    CreateTagTagWriteRequestBody:
+      properties:
+        name:
+          type: string
+      required:
+      - name
+      title: CreateTagTagWriteRequestBody
+      type: object
     CreateTopicTopicCreateRequestBody:
       properties:
         identifier:
@@ -1720,6 +2012,222 @@ components:
       - name
       - projectId
       title: CreateTopicTopicResponseBody
+      type: object
+    DeletedByProjectQuestionGroup_0QuestionProjectResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: DeletedByProjectQuestionGroup_0QuestionProjectResponseBody
+      type: object
+    DeletedByProjectQuestionOverviewResponseBody:
+      properties:
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
+        author:
+          oneOf:
+          - $ref: '#/components/schemas/DeletedByProjectQuestionOverview_0QuestionUserResponseBody'
+          - type: 'null'
+        comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        consolidations:
+          items:
+            $ref: '#/components/schemas/DeletedByProjectQuestionOverview_0QuestionConsolidationContextResponseBody'
+          type: array
+        cqCatalogueIdentifier:
+          oneOf:
+          - type: string
+          - type: 'null'
+        createdAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        deletedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
+        group:
+          oneOf:
+          - $ref: '#/components/schemas/DeletedByProjectQuestionOverview_0QuestionGroupResponseBody'
+          - type: 'null'
+        id:
+          format: uuid
+          type: string
+        lastComment:
+          oneOf:
+          - $ref: '#/components/schemas/DeletedByProjectQuestionOverview_0QuestionLastCommentResponseBody'
+          - type: 'null'
+        lastCommentAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        noComments:
+          default: 0
+          type: integer
+        noConsolidations:
+          default: 0
+          type: integer
+        noUnreadComments:
+          default: 0
+          type: integer
+        question:
+          type: string
+        rating:
+          default: 0
+          type: integer
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        tags:
+          items:
+            $ref: '#/components/schemas/DeletedByProjectQuestionOverview_0QuestionTagResponseBody'
+          type: array
+        topic:
+          oneOf:
+          - $ref: '#/components/schemas/DeletedByProjectQuestionOverview_0QuestionTopicResponseBody'
+          - type: 'null'
+        type:
+          enum:
+          - RQ
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
+        updatedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+      required:
+      - id
+      - question
+      title: DeletedByProjectQuestionOverviewResponseBody
+      type: object
+    DeletedByProjectQuestionOverview_0QuestionConsolidationContextResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        role:
+          $ref: '#/components/schemas/QuestionConsolidationRole'
+        sourceQuestionIds:
+          items:
+            format: uuid
+            type: string
+          type: array
+        targetQuestionId:
+          oneOf:
+          - format: uuid
+            type: string
+          - type: 'null'
+      required:
+      - id
+      - role
+      title: DeletedByProjectQuestionOverview_0QuestionConsolidationContextResponseBody
+      type: object
+    DeletedByProjectQuestionOverview_0QuestionGroupResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        project:
+          oneOf:
+          - $ref: '#/components/schemas/DeletedByProjectQuestionGroup_0QuestionProjectResponseBody'
+          - type: 'null'
+      required:
+      - id
+      - name
+      title: DeletedByProjectQuestionOverview_0QuestionGroupResponseBody
+      type: object
+    DeletedByProjectQuestionOverview_0QuestionLastCommentResponseBody:
+      properties:
+        author:
+          oneOf:
+          - type: string
+          - type: 'null'
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+      required:
+      - comment
+      - createdAt
+      title: DeletedByProjectQuestionOverview_0QuestionLastCommentResponseBody
+      type: object
+    DeletedByProjectQuestionOverview_0QuestionTagResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: DeletedByProjectQuestionOverview_0QuestionTagResponseBody
+      type: object
+    DeletedByProjectQuestionOverview_0QuestionTopicResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        identifier:
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - identifier
+      - name
+      title: DeletedByProjectQuestionOverview_0QuestionTopicResponseBody
+      type: object
+    DeletedByProjectQuestionOverview_0QuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: DeletedByProjectQuestionOverview_0QuestionUserResponseBody
       type: object
     ExtendMembersHandlerGroupReadResponseBody:
       properties:
@@ -1874,6 +2382,16 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        createdAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        deletedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
         exampleAnswer:
           oneOf:
           - type: string
@@ -1885,10 +2403,22 @@ components:
         id:
           format: uuid
           type: string
+        lastComment:
+          oneOf:
+          - $ref: '#/components/schemas/GetByTermQuestionOverview_0QuestionLastCommentResponseBody'
+          - type: 'null'
+        lastCommentAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
         noComments:
           default: 0
           type: integer
         noConsolidations:
+          default: 0
+          type: integer
+        noUnreadComments:
           default: 0
           type: integer
         question:
@@ -1904,6 +2434,10 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        tags:
+          items:
+            $ref: '#/components/schemas/GetByTermQuestionOverview_0QuestionTagResponseBody'
+          type: array
         topic:
           oneOf:
           - $ref: '#/components/schemas/GetByTermQuestionOverview_0QuestionTopicResponseBody'
@@ -1924,6 +2458,11 @@ components:
           type:
           - 'null'
           - string
+        updatedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
       required:
       - id
       - question
@@ -1966,6 +2505,34 @@ components:
       - id
       - name
       title: GetByTermQuestionOverview_0QuestionGroupResponseBody
+      type: object
+    GetByTermQuestionOverview_0QuestionLastCommentResponseBody:
+      properties:
+        author:
+          oneOf:
+          - type: string
+          - type: 'null'
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+      required:
+      - comment
+      - createdAt
+      title: GetByTermQuestionOverview_0QuestionLastCommentResponseBody
+      type: object
+    GetByTermQuestionOverview_0QuestionTagResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: GetByTermQuestionOverview_0QuestionTagResponseBody
       type: object
     GetByTermQuestionOverview_0QuestionTopicResponseBody:
       properties:
@@ -2414,6 +2981,16 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        createdAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        deletedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
         exampleAnswer:
           oneOf:
           - type: string
@@ -2425,10 +3002,22 @@ components:
         id:
           format: uuid
           type: string
+        lastComment:
+          oneOf:
+          - $ref: '#/components/schemas/GetGroupQuestionsQuestionOverview_0QuestionLastCommentResponseBody'
+          - type: 'null'
+        lastCommentAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
         noComments:
           default: 0
           type: integer
         noConsolidations:
+          default: 0
+          type: integer
+        noUnreadComments:
           default: 0
           type: integer
         question:
@@ -2444,6 +3033,10 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        tags:
+          items:
+            $ref: '#/components/schemas/GetGroupQuestionsQuestionOverview_0QuestionTagResponseBody'
+          type: array
         topic:
           oneOf:
           - $ref: '#/components/schemas/GetGroupQuestionsQuestionOverview_0QuestionTopicResponseBody'
@@ -2464,6 +3057,11 @@ components:
           type:
           - 'null'
           - string
+        updatedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
       required:
       - id
       - question
@@ -2506,6 +3104,34 @@ components:
       - id
       - name
       title: GetGroupQuestionsQuestionOverview_0QuestionGroupResponseBody
+      type: object
+    GetGroupQuestionsQuestionOverview_0QuestionLastCommentResponseBody:
+      properties:
+        author:
+          oneOf:
+          - type: string
+          - type: 'null'
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+      required:
+      - comment
+      - createdAt
+      title: GetGroupQuestionsQuestionOverview_0QuestionLastCommentResponseBody
+      type: object
+    GetGroupQuestionsQuestionOverview_0QuestionTagResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: GetGroupQuestionsQuestionOverview_0QuestionTagResponseBody
       type: object
     GetGroupQuestionsQuestionOverview_0QuestionTopicResponseBody:
       properties:
@@ -2559,6 +3185,11 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        createdAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
         exampleAnswer:
           oneOf:
           - type: string
@@ -2570,10 +3201,22 @@ components:
         id:
           format: uuid
           type: string
+        lastComment:
+          oneOf:
+          - $ref: '#/components/schemas/GetGroupQuestionsUnifiedUnifiedQuestionOverview_0QuestionLastCommentResponseBody'
+          - type: 'null'
+        lastCommentAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
         noComments:
           default: 0
           type: integer
         noConsolidations:
+          default: 0
+          type: integer
+        noUnreadComments:
           default: 0
           type: integer
         question:
@@ -2589,6 +3232,10 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        tags:
+          items:
+            $ref: '#/components/schemas/GetGroupQuestionsUnifiedUnifiedQuestionOverview_0QuestionTagResponseBody'
+          type: array
         topic:
           oneOf:
           - $ref: '#/components/schemas/GetGroupQuestionsUnifiedUnifiedQuestionOverview_0UnifiedQuestionTopicResponseBody'
@@ -2611,6 +3258,11 @@ components:
           - string
         unifiedEntryKind:
           $ref: '#/components/schemas/UnifiedQuestionEntryKind'
+        updatedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
       required:
       - id
       - question
@@ -2638,6 +3290,34 @@ components:
       - id
       - role
       title: GetGroupQuestionsUnifiedUnifiedQuestionOverview_0QuestionConsolidationContextResponseBody
+      type: object
+    GetGroupQuestionsUnifiedUnifiedQuestionOverview_0QuestionLastCommentResponseBody:
+      properties:
+        author:
+          oneOf:
+          - type: string
+          - type: 'null'
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+      required:
+      - comment
+      - createdAt
+      title: GetGroupQuestionsUnifiedUnifiedQuestionOverview_0QuestionLastCommentResponseBody
+      type: object
+    GetGroupQuestionsUnifiedUnifiedQuestionOverview_0QuestionTagResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: GetGroupQuestionsUnifiedUnifiedQuestionOverview_0QuestionTagResponseBody
       type: object
     GetGroupQuestionsUnifiedUnifiedQuestionOverview_0UnifiedQuestionAuthorResponseBody:
       properties:
@@ -3150,6 +3830,62 @@ components:
       - name
       title: GetProjectsHandlerProjectReadResponseBody
       type: object
+    GetQuestionHistoryQuestionEventReadResponseBody:
+      properties:
+        actor:
+          oneOf:
+          - $ref: '#/components/schemas/GetQuestionHistoryQuestionEventRead_0QuestionUserResponseBody'
+          - type: 'null'
+        catalogueIdentifier:
+          oneOf:
+          - type: string
+          - type: 'null'
+        createdAt:
+          format: date-time
+          type: string
+        eventType:
+          $ref: '#/components/schemas/QuestionEventType'
+        id:
+          format: uuid
+          type: string
+        tagId:
+          oneOf:
+          - format: uuid
+            type: string
+          - type: 'null'
+        tagName:
+          oneOf:
+          - type: string
+          - type: 'null'
+        topicId:
+          oneOf:
+          - format: uuid
+            type: string
+          - type: 'null'
+        versionNumber:
+          type: integer
+      required:
+      - createdAt
+      - eventType
+      - id
+      - versionNumber
+      title: GetQuestionHistoryQuestionEventReadResponseBody
+      type: object
+    GetQuestionHistoryQuestionEventRead_0QuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: GetQuestionHistoryQuestionEventRead_0QuestionUserResponseBody
+      type: object
     GetQuestionQuestionAnnotationQuestionAnnotationTermResponseBody:
       properties:
         conceptIri:
@@ -3363,6 +4099,11 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        deletedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
         editor:
           $ref: '#/components/schemas/domain.questions.controller.QuestionController.get_questionQuestionDetailQuestionUserResponseBody'
         exampleAnswer:
@@ -3394,6 +4135,10 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        tags:
+          items:
+            $ref: '#/components/schemas/GetQuestionQuestionDetail_0QuestionTagResponseBody'
+          type: array
         topic:
           oneOf:
           - $ref: '#/components/schemas/GetQuestionQuestionDetail_0QuestionTopicResponseBody'
@@ -3497,6 +4242,18 @@ components:
       - rating
       title: GetQuestionQuestionDetail_0QuestionRatingResponseBody
       type: object
+    GetQuestionQuestionDetail_0QuestionTagResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: GetQuestionQuestionDetail_0QuestionTagResponseBody
+      type: object
     GetQuestionQuestionDetail_0QuestionTopicResponseBody:
       properties:
         id:
@@ -3516,8 +4273,16 @@ components:
       properties:
         editor:
           $ref: '#/components/schemas/GetQuestionQuestionVersionQuestionUserResponseBody'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
         questionString:
           type: string
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
         versionNumber:
           type: integer
       required:
@@ -3602,6 +4367,16 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        createdAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        deletedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
         exampleAnswer:
           oneOf:
           - type: string
@@ -3613,10 +4388,22 @@ components:
         id:
           format: uuid
           type: string
+        lastComment:
+          oneOf:
+          - $ref: '#/components/schemas/GetQuestionsQuestionOverview_0QuestionLastCommentResponseBody'
+          - type: 'null'
+        lastCommentAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
         noComments:
           default: 0
           type: integer
         noConsolidations:
+          default: 0
+          type: integer
+        noUnreadComments:
           default: 0
           type: integer
         question:
@@ -3632,6 +4419,10 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        tags:
+          items:
+            $ref: '#/components/schemas/GetQuestionsQuestionOverview_0QuestionTagResponseBody'
+          type: array
         topic:
           oneOf:
           - $ref: '#/components/schemas/GetQuestionsQuestionOverview_0QuestionTopicResponseBody'
@@ -3652,6 +4443,11 @@ components:
           type:
           - 'null'
           - string
+        updatedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
       required:
       - id
       - question
@@ -3694,6 +4490,34 @@ components:
       - id
       - name
       title: GetQuestionsQuestionOverview_0QuestionGroupResponseBody
+      type: object
+    GetQuestionsQuestionOverview_0QuestionLastCommentResponseBody:
+      properties:
+        author:
+          oneOf:
+          - type: string
+          - type: 'null'
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+      required:
+      - comment
+      - createdAt
+      title: GetQuestionsQuestionOverview_0QuestionLastCommentResponseBody
+      type: object
+    GetQuestionsQuestionOverview_0QuestionTagResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: GetQuestionsQuestionOverview_0QuestionTagResponseBody
       type: object
     GetQuestionsQuestionOverview_0QuestionTopicResponseBody:
       properties:
@@ -3846,6 +4670,25 @@ components:
       required:
       - ids
       title: GroupUsersRemoveDTO
+      type: object
+    ListTagsTagReadResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        noQuestions:
+          default: 0
+          type: integer
+        projectId:
+          format: uuid
+          type: string
+      required:
+      - id
+      - name
+      - projectId
+      title: ListTagsTagReadResponseBody
       type: object
     ListTopicsTopicResponseBody:
       properties:
@@ -4078,6 +4921,16 @@ components:
       - source
       - target
       title: QuestionConsolidationRole
+      type: string
+    QuestionEventType:
+      enum:
+      - created
+      - revised
+      - tag_added
+      - tag_removed
+      - catalogue_assigned
+      - deleted
+      title: QuestionEventType
       type: string
     RemoveAnnotationsAnnotationRemoveRequestBody:
       properties:
@@ -4383,6 +5236,16 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        createdAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        deletedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
         exampleAnswer:
           oneOf:
           - type: string
@@ -4394,10 +5257,22 @@ components:
         id:
           format: uuid
           type: string
+        lastComment:
+          oneOf:
+          - $ref: '#/components/schemas/RemoveQuestionTopicQuestionOverview_0QuestionLastCommentResponseBody'
+          - type: 'null'
+        lastCommentAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
         noComments:
           default: 0
           type: integer
         noConsolidations:
+          default: 0
+          type: integer
+        noUnreadComments:
           default: 0
           type: integer
         question:
@@ -4413,6 +5288,10 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        tags:
+          items:
+            $ref: '#/components/schemas/RemoveQuestionTopicQuestionOverview_0QuestionTagResponseBody'
+          type: array
         topic:
           oneOf:
           - $ref: '#/components/schemas/RemoveQuestionTopicQuestionOverview_0QuestionTopicResponseBody'
@@ -4433,6 +5312,11 @@ components:
           type:
           - 'null'
           - string
+        updatedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
       required:
       - id
       - question
@@ -4476,6 +5360,34 @@ components:
       - name
       title: RemoveQuestionTopicQuestionOverview_0QuestionGroupResponseBody
       type: object
+    RemoveQuestionTopicQuestionOverview_0QuestionLastCommentResponseBody:
+      properties:
+        author:
+          oneOf:
+          - type: string
+          - type: 'null'
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+      required:
+      - comment
+      - createdAt
+      title: RemoveQuestionTopicQuestionOverview_0QuestionLastCommentResponseBody
+      type: object
+    RemoveQuestionTopicQuestionOverview_0QuestionTagResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: RemoveQuestionTopicQuestionOverview_0QuestionTagResponseBody
+      type: object
     RemoveQuestionTopicQuestionOverview_0QuestionTopicResponseBody:
       properties:
         id:
@@ -4506,6 +5418,33 @@ components:
       - name
       title: RemoveQuestionTopicQuestionOverview_0QuestionUserResponseBody
       type: object
+    RenameTagTagReadResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        noQuestions:
+          default: 0
+          type: integer
+        projectId:
+          format: uuid
+          type: string
+      required:
+      - id
+      - name
+      - projectId
+      title: RenameTagTagReadResponseBody
+      type: object
+    RenameTagTagWriteRequestBody:
+      properties:
+        name:
+          type: string
+      required:
+      - name
+      title: RenameTagTagWriteRequestBody
+      type: object
     ResolveCatalogueIdentifierQuestionCatalogueResolutionResponseBody:
       properties:
         cqCatalogueIdentifier:
@@ -4521,6 +5460,232 @@ components:
       - groupId
       - id
       title: ResolveCatalogueIdentifierQuestionCatalogueResolutionResponseBody
+      type: object
+    SetQuestionTagsQuestionGroup_0QuestionProjectResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: SetQuestionTagsQuestionGroup_0QuestionProjectResponseBody
+      type: object
+    SetQuestionTagsQuestionOverviewResponseBody:
+      properties:
+        anchor:
+          oneOf:
+          - type: string
+          - type: 'null'
+        author:
+          oneOf:
+          - $ref: '#/components/schemas/SetQuestionTagsQuestionOverview_0QuestionUserResponseBody'
+          - type: 'null'
+        comment:
+          oneOf:
+          - type: string
+          - type: 'null'
+        consolidations:
+          items:
+            $ref: '#/components/schemas/SetQuestionTagsQuestionOverview_0QuestionConsolidationContextResponseBody'
+          type: array
+        cqCatalogueIdentifier:
+          oneOf:
+          - type: string
+          - type: 'null'
+        createdAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        deletedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
+        group:
+          oneOf:
+          - $ref: '#/components/schemas/SetQuestionTagsQuestionOverview_0QuestionGroupResponseBody'
+          - type: 'null'
+        id:
+          format: uuid
+          type: string
+        lastComment:
+          oneOf:
+          - $ref: '#/components/schemas/SetQuestionTagsQuestionOverview_0QuestionLastCommentResponseBody'
+          - type: 'null'
+        lastCommentAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        noComments:
+          default: 0
+          type: integer
+        noConsolidations:
+          default: 0
+          type: integer
+        noUnreadComments:
+          default: 0
+          type: integer
+        question:
+          type: string
+        rating:
+          default: 0
+          type: integer
+        reference:
+          oneOf:
+          - type: string
+          - type: 'null'
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
+        tags:
+          items:
+            $ref: '#/components/schemas/SetQuestionTagsQuestionOverview_0QuestionTagResponseBody'
+          type: array
+        topic:
+          oneOf:
+          - $ref: '#/components/schemas/SetQuestionTagsQuestionOverview_0QuestionTopicResponseBody'
+          - type: 'null'
+        type:
+          enum:
+          - RQ
+          - SCQ
+          - VCQ
+          - FCQ
+          - RCQ
+          - aRCQ
+          - efRCQ
+          - drRCQ
+          - rpRCQ
+          - MpCQ
+          - null
+          type:
+          - 'null'
+          - string
+        updatedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+      required:
+      - id
+      - question
+      title: SetQuestionTagsQuestionOverviewResponseBody
+      type: object
+    SetQuestionTagsQuestionOverview_0QuestionConsolidationContextResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        role:
+          $ref: '#/components/schemas/QuestionConsolidationRole'
+        sourceQuestionIds:
+          items:
+            format: uuid
+            type: string
+          type: array
+        targetQuestionId:
+          oneOf:
+          - format: uuid
+            type: string
+          - type: 'null'
+      required:
+      - id
+      - role
+      title: SetQuestionTagsQuestionOverview_0QuestionConsolidationContextResponseBody
+      type: object
+    SetQuestionTagsQuestionOverview_0QuestionGroupResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+        project:
+          oneOf:
+          - $ref: '#/components/schemas/SetQuestionTagsQuestionGroup_0QuestionProjectResponseBody'
+          - type: 'null'
+      required:
+      - id
+      - name
+      title: SetQuestionTagsQuestionOverview_0QuestionGroupResponseBody
+      type: object
+    SetQuestionTagsQuestionOverview_0QuestionLastCommentResponseBody:
+      properties:
+        author:
+          oneOf:
+          - type: string
+          - type: 'null'
+        comment:
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+      required:
+      - comment
+      - createdAt
+      title: SetQuestionTagsQuestionOverview_0QuestionLastCommentResponseBody
+      type: object
+    SetQuestionTagsQuestionOverview_0QuestionTagResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: SetQuestionTagsQuestionOverview_0QuestionTagResponseBody
+      type: object
+    SetQuestionTagsQuestionOverview_0QuestionTopicResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        identifier:
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - identifier
+      - name
+      title: SetQuestionTagsQuestionOverview_0QuestionTopicResponseBody
+      type: object
+    SetQuestionTagsQuestionOverview_0QuestionUserResponseBody:
+      properties:
+        email:
+          type: string
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - email
+      - id
+      - name
+      title: SetQuestionTagsQuestionOverview_0QuestionUserResponseBody
+      type: object
+    SetQuestionTagsQuestionTagsUpdateRequestBody:
+      properties:
+        tagIds:
+          items:
+            format: uuid
+            type: string
+          type: array
+      required: []
+      title: SetQuestionTagsQuestionTagsUpdateRequestBody
       type: object
     SetRatingRatingResponseBody:
       properties:
@@ -5022,6 +6187,11 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        deletedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
         editor:
           $ref: '#/components/schemas/domain.questions.controller.QuestionController.update_questionQuestionDetailQuestionUserResponseBody'
         exampleAnswer:
@@ -5053,6 +6223,10 @@ components:
           oneOf:
           - type: string
           - type: 'null'
+        tags:
+          items:
+            $ref: '#/components/schemas/UpdateQuestionQuestionDetail_0QuestionTagResponseBody'
+          type: array
         topic:
           oneOf:
           - $ref: '#/components/schemas/UpdateQuestionQuestionDetail_0QuestionTopicResponseBody'
@@ -5156,6 +6330,18 @@ components:
       - rating
       title: UpdateQuestionQuestionDetail_0QuestionRatingResponseBody
       type: object
+    UpdateQuestionQuestionDetail_0QuestionTagResponseBody:
+      properties:
+        id:
+          format: uuid
+          type: string
+        name:
+          type: string
+      required:
+      - id
+      - name
+      title: UpdateQuestionQuestionDetail_0QuestionTagResponseBody
+      type: object
     UpdateQuestionQuestionDetail_0QuestionTopicResponseBody:
       properties:
         id:
@@ -5175,8 +6361,16 @@ components:
       properties:
         editor:
           $ref: '#/components/schemas/UpdateQuestionQuestionVersionQuestionUserResponseBody'
+        exampleAnswer:
+          oneOf:
+          - type: string
+          - type: 'null'
         questionString:
           type: string
+        sparqlQuery:
+          oneOf:
+          - type: string
+          - type: 'null'
         versionNumber:
           type: integer
       required:
@@ -6247,6 +7441,52 @@ paths:
                 type: object
           description: Bad request syntax or unsupported method
       summary: GetComment
+      tags:
+      - Comments
+  /comments/{question_id}/read:
+    post:
+      deprecated: false
+      description: Marks all current comments of a `Question` as read by the requesting
+        `User`.
+      operationId: CommentsQuestionIdReadMarkCommentsRead
+      parameters:
+      - deprecated: false
+        in: path
+        name: question_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '204':
+          description: Request fulfilled, nothing follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: MarkCommentsRead
       tags:
       - Comments
   /consolidations:
@@ -7989,6 +9229,58 @@ paths:
         id
       tags:
       - Questions
+  /questions/by_project/{project_id}/deleted:
+    get:
+      deprecated: false
+      description: Gets all soft deleted `Question`s of a `Project`, most recently
+        deleted first. System admins only.
+      operationId: QuestionsByProjectProjectIdDeletedDeletedByProject
+      parameters:
+      - deprecated: false
+        in: path
+        name: project_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/DeletedByProjectQuestionOverviewResponseBody'
+                type: array
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: Gets all deleted Questions of a Project
+      tags:
+      - Questions
   /questions/by_project/{project_id}/unified:
     get:
       deprecated: false
@@ -8044,7 +9336,8 @@ paths:
   /questions/{question_id}:
     delete:
       deprecated: false
-      description: 'Deletes a question from the database.
+      description: 'Marks a question as deleted. It keeps its catalogue identifier
+        and history and stays visible to system admins.
 
 
         :param session: The async session used to interact with the database.
@@ -8098,7 +9391,8 @@ paths:
       - Questions
     get:
       deprecated: false
-      description: 'Retrieves a question by its ID.
+      description: 'Retrieves a question by its ID. System admins can retrieve deleted
+        questions, too.
 
 
         :param session: An `AsyncSession` object representing the database session.
@@ -8207,6 +9501,58 @@ paths:
       summary: UpdateQuestion
       tags:
       - Questions
+  /questions/{question_id}/history:
+    get:
+      deprecated: false
+      description: Gets every recorded change of a `Question` (creation, revisions,
+        tags, catalogue, deletion), oldest first.
+      operationId: QuestionsQuestionIdHistoryGetQuestionHistory
+      parameters:
+      - deprecated: false
+        in: path
+        name: question_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/GetQuestionHistoryQuestionEventReadResponseBody'
+                type: array
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: Gets the provenance log of a Question
+      tags:
+      - Questions
   /ratings:
     post:
       deprecated: false
@@ -8309,6 +9655,289 @@ paths:
       summary: GetRating
       tags:
       - Ratings
+  /tags/{project_id}:
+    get:
+      deprecated: false
+      description: Lists all `Tag`s of a `Project` with the number of tagged `Question`s,
+        ordered by name.
+      operationId: TagsProjectIdListTags
+      parameters:
+      - deprecated: false
+        in: path
+        name: project_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/ListTagsTagReadResponseBody'
+                type: array
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: ListTags
+      tags:
+      - Tags
+    post:
+      deprecated: false
+      description: Creates a `Tag` within a `Project`. Tag names are unique per project
+        (case-insensitive).
+      operationId: TagsProjectIdCreateTag
+      parameters:
+      - deprecated: false
+        in: path
+        name: project_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTagTagWriteRequestBody'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateTagTagReadResponseBody'
+          description: Document created, URL follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: CreateTag
+      tags:
+      - Tags
+  /tags/{project_id}/questions/{question_id}:
+    put:
+      deprecated: false
+      description: Replaces the `Tag`s of a `Question`. An empty list removes all
+        tags.
+      operationId: TagsProjectIdQuestionsQuestionIdSetQuestionTags
+      parameters:
+      - deprecated: false
+        in: path
+        name: project_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - deprecated: false
+        in: path
+        name: question_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetQuestionTagsQuestionTagsUpdateRequestBody'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SetQuestionTagsQuestionOverviewResponseBody'
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: SetQuestionTags
+      tags:
+      - Tags
+  /tags/{project_id}/{tag_id}:
+    delete:
+      deprecated: false
+      description: Deletes a `Tag` and removes it from all `Question`s.
+      operationId: TagsProjectIdTagIdDeleteTag
+      parameters:
+      - deprecated: false
+        in: path
+        name: project_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - deprecated: false
+        in: path
+        name: tag_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '204':
+          description: Request fulfilled, nothing follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: DeleteTag
+      tags:
+      - Tags
+    put:
+      deprecated: false
+      description: Renames a `Tag`.
+      operationId: TagsProjectIdTagIdRenameTag
+      parameters:
+      - deprecated: false
+        in: path
+        name: project_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - deprecated: false
+        in: path
+        name: tag_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RenameTagTagWriteRequestBody'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RenameTagTagReadResponseBody'
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: RenameTag
+      tags:
+      - Tags
   /terms:
     get:
       deprecated: false
@@ -8894,7 +10523,8 @@ paths:
   /topics/{project_id}/questions/{question_id}:
     delete:
       deprecated: false
-      description: Removes a `Question` topic assignment.
+      description: Moves a `Question` back into the uncatalogued catch-all of its
+        `Project`.
       operationId: TopicsProjectIdQuestionsQuestionIdRemoveQuestionTopic
       parameters:
       - deprecated: false

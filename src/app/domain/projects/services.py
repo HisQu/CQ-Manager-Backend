@@ -9,10 +9,13 @@ from domain.accounts.services import UserService
 from domain.comments.models import Comment
 from domain.consolidations.models import ConsolidatedQuestions, Consolidation
 from domain.groups.models import Group, GroupMembers
+from domain.history.models import QuestionEvent
 from domain.questions.models import Question
 from domain.ratings.models import Rating
-from domain.terms.models import Passage, Term
+from domain.tags.models import QuestionTags, Tag
+from domain.terms.models import AnnotatedPassages, Passage, Term
 from domain.topics.models import Topic
+from domain.topics.services import TopicService
 from domain.versions.models import Version
 from litestar.exceptions import HTTPException
 from litestar.status_codes import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
@@ -80,6 +83,8 @@ class ProjectService:
 
         project = Project(name=data.name, description=data.description, managers=managers, engineers=engineers)
         session.add(project)
+        await session.flush()
+        await TopicService.get_uncatalogued_topic(session, project.id)
         await session.commit()
         await session.refresh(project)
         project = await ProjectService.get_project(session, project.id, options)
@@ -238,6 +243,7 @@ class ProjectService:
         question_ids = select(Question.id).where(Question.group_id.in_(group_ids))
         consolidation_ids = select(Consolidation.id).where(Consolidation.project_id == id)
         term_ids = select(Term.id).where(Term.project_id == id)
+        passage_ids = select(Passage.id).where(Passage.term_id.in_(term_ids))
 
         statements = [
             delete(ConsolidatedQuestions).where(
@@ -246,9 +252,17 @@ class ProjectService:
                     ConsolidatedQuestions.c.question_id.in_(question_ids),
                 )
             ),
+            delete(AnnotatedPassages).where(
+                or_(
+                    AnnotatedPassages.c.question_id.in_(question_ids),
+                    AnnotatedPassages.c.passage_id.in_(passage_ids),
+                )
+            ),
+            delete(QuestionTags).where(QuestionTags.c.question_id.in_(question_ids)),
             delete(Comment).where(Comment.question_id.in_(question_ids)),
             delete(Rating).where(Rating.question_id.in_(question_ids)),
             delete(Version).where(Version.question_id.in_(question_ids)),
+            delete(QuestionEvent).where(QuestionEvent.question_id.in_(question_ids)),
             delete(Consolidation).where(Consolidation.project_id == id),
             delete(Passage).where(
                 or_(
@@ -261,6 +275,7 @@ class ProjectService:
             delete(Group).where(Group.project_id == id),
             delete(Term).where(Term.project_id == id),
             delete(Topic).where(Topic.project_id == id),
+            delete(Tag).where(Tag.project_id == id),
             delete(ProjectManagers).where(ProjectManagers.c.project_id == id),
             delete(ProjectEngineers).where(ProjectEngineers.c.project_id == id),
             delete(Project).where(Project.id == id),

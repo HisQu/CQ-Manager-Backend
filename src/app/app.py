@@ -11,12 +11,17 @@ from domain.accounts.controllers import UserController
 from domain.comments.controller import CommentController
 from domain.consolidations.controllers import ConsolidationController
 from domain.groups.controllers import GroupController
+from domain.history.services import HistoryService
 from domain.projects.controllers import ProjectController
 from domain.questions.controller import QuestionController
 from domain.ratings.controller import RatingController
+from domain.tags.controllers import TagController
 from domain.terms.controllers import TermController
 from domain.topics.controllers import TopicController
+from domain.topics.services import TopicService
+from lib.etag import ETagMiddleware
 from lib.mails import MailService
+from lib.orm import session as session_maker
 from lib.services import MockDataService
 from litestar import Litestar
 from litestar.config.cors import CORSConfig
@@ -30,6 +35,7 @@ cors_config = CORSConfig(
         "Permissions-Project-Manager",
         "Permissions-Project-Engineer",
         "Permissions-Project-Member",
+        "ETag",
     ],
 )
 openapi_config = OpenAPIConfig("CQ Manager", "0.1.0", use_handler_docstrings=True)
@@ -42,6 +48,17 @@ authenticator = AuthenticationMiddleware(authentication_secret, "Authorization",
 encryption = EncryptionService()
 
 mock_data = MockDataService()
+
+
+async def import_question_history() -> None:
+    async with session_maker() as session:
+        await HistoryService.import_existing_questions(session)
+
+
+async def assign_uncatalogued_questions() -> None:
+    async with session_maker() as session:
+        await TopicService.assign_all_uncatalogued(session)
+
 mail_service = MailService.from_env()
 
 app = Litestar(
@@ -55,12 +72,14 @@ app = Litestar(
         CommentController,
         TermController,
         TopicController,
+        TagController,
     ],
     cors_config=cors_config,
+    middleware=[ETagMiddleware()],
     openapi_config=openapi_config,
     plugins=[sql_plugin.plugin],
     on_app_init=[sql_plugin.on_app_init, authenticator.on_app_init],
-    on_startup=[sql_plugin.on_startup, mock_data.on_startup],
+    on_startup=[sql_plugin.on_startup, mock_data.on_startup, import_question_history, assign_uncatalogued_questions],
     dependencies={
         "authenticator": authenticator.dependency,
         "encryption": encryption.dependency,

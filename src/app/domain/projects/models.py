@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from domain.accounts.models import User
     from domain.consolidations.models import Consolidation
     from domain.groups.models import Group
+    from domain.tags.models import Tag
     from domain.terms.models import Term
     from domain.topics.models import Topic
 
@@ -47,6 +48,10 @@ class Project(UUIDAuditBase):
     )
     terms: Mapped[list[Term]] = relationship(back_populates="project")
     topics: Mapped[list[Topic]] = relationship(
+        back_populates="project",
+        cascade="all, delete-orphan",
+    )
+    tags: Mapped[list[Tag]] = relationship(
         back_populates="project",
         cascade="all, delete-orphan",
     )

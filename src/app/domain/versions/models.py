@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 from uuid import UUID
 
 from litestar.contrib.sqlalchemy.base import UUIDAuditBase
+from sqlalchemy import Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.schema import ForeignKey
 
@@ -15,7 +16,11 @@ if TYPE_CHECKING:
 
 
 class Version(UUIDAuditBase):
+    """Snapshot of the revised fields of a `Question` revision, written when the next revision replaces it."""
+
     question_string: Mapped[str]
+    sparql_query: Mapped[str | None] = mapped_column(default=None)
+    example_answer: Mapped[str | None] = mapped_column(Text, default=None)
     version_number: Mapped[int]
     editor_id: Mapped[UUID] = mapped_column(ForeignKey("user.id"))
 
