@@ -28,6 +28,7 @@ class Term(UUIDAuditBase):
 
 class Passage(UUIDAuditBase):
     __table_args__ = (
+        # prevent the same term being annotated at the same place in the same question
         UniqueConstraint("question_id", "term_id", "start", "end"),
         CheckConstraint("start >= 0", name="ck_passage_start_nonnegative"),
         CheckConstraint("end > start", name="ck_passage_end_after_start"),

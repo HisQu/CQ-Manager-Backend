@@ -85,7 +85,7 @@ class AnnotationService:
             project_id=project_id,
         )
         session.add(model)
-        # Keep term creation in the caller's transaction. Committing here expires
+        # Keep term creation in the callers transaction. Committing here expires
         # already-loaded ORM objects (including the Question being annotated),
         # and accessing their attributes later can trigger async lazy loading.
         await session.flush()
