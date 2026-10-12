@@ -11,7 +11,10 @@ class ETagMiddleware(ASGIMiddleware):
     """Conditional `GET` requests for JSON responses.
 
     Tags every successful JSON `GET` response with an `ETag` (a hash of the body and the permission headers)
-    and answers a request whose `If-None-Match` carries that tag with an empty `304 Not Modified`.
+    and answers an explicitly opted-in request whose `If-None-Match` carries that tag with an empty
+    `304 Not Modified`. Browsers also add `If-None-Match` automatically for cache revalidation, but
+    most API callers do not retain the previous response body. The opt-in header prevents those
+    callers from receiving an unusable empty response.
     The response is still built, but an unchanged one is neither transferred nor parsed by the client.
 
     Notes:
@@ -60,7 +63,13 @@ class ETagMiddleware(ASGIMiddleware):
         headers["ETag"] = etag
         headers["Cache-Control"] = "private, no-cache"
 
-        if_none_match = Headers.from_scope(scope).get("if-none-match", "")
+        request_headers = Headers.from_scope(scope)
+        if request_headers.get("x-etag-cache") != "true":
+            await send(start)
+            await send({"type": "http.response.body", "body": body, "more_body": False})
+            return
+
+        if_none_match = request_headers.get("if-none-match", "")
         if etag in {tag.strip().removeprefix("W/") for tag in if_none_match.split(",")}:
             start["status"] = HTTP_304_NOT_MODIFIED
             del headers["content-length"]
