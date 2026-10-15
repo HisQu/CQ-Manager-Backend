@@ -269,7 +269,7 @@ class QuestionService:
             return AnnotationVersionRead(
                 id=annotation_version.id,
                 version_number=annotation_version.version_number,
-                copy_status=annotation_version.copy_status,
+                retained_from_annotation_version_id=annotation_version.retained_from_annotation_version_id,
                 editor=QuestionUser(
                     id=annotation_version.editor.id,
                     email=annotation_version.editor.email,

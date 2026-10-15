@@ -19,6 +19,7 @@ from domain.ratings.models import Rating
 from domain.tags.services import TagService
 from domain.topics.services import TopicService
 from domain.versions.models import AnnotationVersion, Version
+from domain.versions.annotation_migration import AnnotationMigrationService
 from litestar import Controller, Request, delete, get, post, put
 from litestar.enums import RequestEncodingType
 from litestar.exceptions import HTTPException
@@ -225,14 +226,11 @@ class QuestionController(Controller):
                 version_number=1,
                 question_id=question.id,
                 editor_id=request.user.id,
-                annotation_versions=[
-                    AnnotationVersion(
-                        version_number=1,
-                        editor_id=request.user.id,
-                        copy_status="initial",
-                        annotations=passages,
-                    )
-                ],
+                annotation_versions=(
+                    [AnnotationVersion(version_number=1, editor_id=request.user.id, annotations=passages)]
+                    if passages
+                    else []
+                ),
             )
             session.add(initial_revision)
             HistoryService.record(session, question, QuestionEventType.CREATED, request.user.id)
@@ -383,34 +381,8 @@ class QuestionController(Controller):
             if revision_changed:
                 question.editor_id = request.user.id
                 question.version_number = question.version_number + 1
-                can_copy_annotations = all(
-                    AnnotationService.span_matches(
-                        question.question,
-                        annotation.start,
-                        annotation.end,
-                        annotation.content,
-                    )
-                    for annotation in current_annotations
-                )
-                # Old clients may still send this flag after asking the user to discard invalid spans.
-                can_copy_annotations = can_copy_annotations and not data.discard_annotations
-                copied_annotations = (
-                    [
-                        Passage(
-                            content=annotation.content,
-                            start=annotation.start,
-                            end=annotation.end,
-                            term=annotation.term,
-                        )
-                        for annotation in current_annotations
-                    ]
-                    if can_copy_annotations
-                    else []
-                )
-                copy_status = (
-                    "copied"
-                    if copied_annotations
-                    else "empty" if not current_annotations else "needs_annotation"
+                copied_annotations = AnnotationMigrationService.retain_if_offsets_match(
+                    question.question, current_annotations
                 )
                 session.add(
                     Version(
@@ -420,14 +392,18 @@ class QuestionController(Controller):
                         version_number=question.version_number,
                         question=question,
                         editor_id=request.user.id,
-                        annotation_versions=[
-                            AnnotationVersion(
-                                version_number=1,
-                                editor_id=request.user.id,
-                                copy_status=copy_status,
-                                annotations=copied_annotations,
-                            )
-                        ],
+                        annotation_versions=(
+                            [
+                                AnnotationVersion(
+                                    version_number=1,
+                                    editor_id=request.user.id,
+                                    retained_from_annotation_version_id=current_annotation_version.id,
+                                    annotations=copied_annotations,
+                                )
+                            ]
+                            if current_annotation_version is not None and copied_annotations is not None
+                            else []
+                        ),
                     )
                 )
                 HistoryService.record(session, question, QuestionEventType.REVISED, request.user.id)

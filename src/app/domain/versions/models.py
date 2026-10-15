@@ -43,7 +43,9 @@ class AnnotationVersion(UUIDAuditBase):
     version_number: Mapped[int]
     question_version_id: Mapped[UUID] = mapped_column(ForeignKey("version.id", ondelete="CASCADE"))
     editor_id: Mapped[UUID] = mapped_column(ForeignKey("user.id"))
-    copy_status: Mapped[str] = mapped_column(default="initial")
+    retained_from_annotation_version_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("annotation_version.id", ondelete="SET NULL"), default=None
+    )
 
     question_version: Mapped[Version] = relationship(back_populates="annotation_versions")
     editor: Mapped[User] = relationship()

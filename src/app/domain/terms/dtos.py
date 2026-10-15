@@ -35,7 +35,7 @@ class AnnotationDTO(BaseModel):
 
 
 class AnnotationSetSaveDTO(BaseModel):
-    base_annotation_version_id: UUID
+    base_annotation_version_id: UUID | None = None
     annotations: list[AnnotationDTO]
 
 
@@ -62,7 +62,7 @@ class AnnotationVersionRead(BaseModel):
     id: UUID
     question_version_id: UUID
     version_number: int
-    copy_status: str
+    retained_from_annotation_version_id: UUID | None = None
     editor_id: UUID
     annotations: list[PassageRead]
 

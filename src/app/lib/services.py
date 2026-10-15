@@ -39,13 +39,7 @@ class MockDataService:
             version_number=1,
             question_id=UUID("2de6c0c8-3565-4c5a-bc85-3b5971e0e452"),
             editor_id=UUID("a8693768-244b-4b87-9972-548034df1cc3"),
-            annotation_versions=[
-                AnnotationVersion(
-                    version_number=1,
-                    editor_id=UUID("a8693768-244b-4b87-9972-548034df1cc3"),
-                    copy_status="initial",
-                )
-            ],
+            annotation_versions=[],
         )
     ]
     mock_questions = [
@@ -184,25 +178,24 @@ class MockDataService:
             version_number=question.version_number,
             question_id=question.id,
             editor_id=question.editor_id,
-            annotation_versions=[
-                AnnotationVersion(
-                    version_number=1,
-                    editor_id=question.editor_id,
-                    copy_status="initial",
-                    annotations=(
-                        [
+            annotation_versions=(
+                [
+                    AnnotationVersion(
+                        version_number=1,
+                        editor_id=question.editor_id,
+                        annotations=[
                             Passage(
                                 content="really",
                                 start=10,
                                 end=16,
                                 term_id=UUID("ec1b45bc-a901-4f0e-934b-bf90cb61855a"),
                             )
-                        ]
-                        if question.id == UUID("2de6c0c8-3565-4c5a-bc85-3b5971e0e452")
-                        else []
-                    ),
-                )
-            ],
+                        ],
+                    )
+                ]
+                if question.id == UUID("2de6c0c8-3565-4c5a-bc85-3b5971e0e452")
+                else []
+            ),
         )
         for question in mock_questions
     )

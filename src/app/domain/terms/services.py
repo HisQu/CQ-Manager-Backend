@@ -211,12 +211,14 @@ class AnnotationService:
 
         existing_versions = revision.annotation_versions
         latest = max(existing_versions, key=lambda item: item.version_number, default=None)
-        if latest is None or latest.id != data.base_annotation_version_id:
+        if (latest is None and data.base_annotation_version_id is not None) or (
+            latest is not None and latest.id != data.base_annotation_version_id
+        ):
             raise HTTPException(
                 status_code=HTTP_409_CONFLICT,
                 detail="The annotation version changed. Reload the latest annotations before saving.",
             )
-        latest_number = latest.version_number
+        latest_number = latest.version_number if latest is not None else 0
         seen_spans: set[tuple[str, int, int]] = set()
         for annotation in data.annotations:
             identity = (annotation.term, annotation.start, annotation.end)
@@ -227,7 +229,6 @@ class AnnotationService:
             question_version_id=revision.id,
             version_number=latest_number + 1,
             editor_id=editor_id,
-            copy_status="saved",
         )
         session.add(snapshot)
         # Persist the snapshot first so it has an ID before passages are

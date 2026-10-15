@@ -139,7 +139,7 @@ class QuestionAnnotation(BaseModel):
 class AnnotationVersionRead(BaseModel):
     id: UUID
     version_number: int
-    copy_status: str
+    retained_from_annotation_version_id: UUID | None = None
     editor: QuestionUser
     annotations: list[QuestionAnnotation] = Field(default_factory=list)
 
@@ -225,7 +225,6 @@ class QuestionUpdate(QuestionMetadataMixin):
     question: str | None = None
     comment: str | None = None
     sparql_query: str | None = None
-    discard_annotations: bool = False
 
 
 class QuestionUpdateDTO(PydanticDTO[QuestionUpdate]):
