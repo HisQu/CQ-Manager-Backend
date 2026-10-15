@@ -18,7 +18,7 @@ class TermDTO(SQLAlchemyDTO[Term]):
 
 class PassageDTO(SQLAlchemyDTO[Passage]):
     config = SQLAlchemyDTOConfig(
-        include={"id", "question_id", "term_id", "content", "start", "end"},
+        include={"id", "annotation_version_id", "term_id", "content", "start", "end"},
         rename_strategy="camel",
     )
 
@@ -34,15 +34,40 @@ class AnnotationDTO(BaseModel):
     end: int = Field(gt=0, strict=True)
 
 
-class AnnotationAddDTO(BaseModel):
+class AnnotationSetSaveDTO(BaseModel):
+    base_annotation_version_id: UUID
     annotations: list[AnnotationDTO]
 
 
-class AnnotationRemove(BaseModel):
-    passage_ids: list[UUID] | None = None
+class AnnotationSetSavePydanticDTO(PydanticDTO[AnnotationSetSaveDTO]):
+    config = DTOConfig(rename_strategy="camel")
 
 
-class AnnotationRemoveDTO(PydanticDTO[AnnotationRemove]):
+class AnnotationTermRead(BaseModel):
+    id: UUID
+    content: str
+    definition: str | None = None
+    concept_iri: str | None = None
+
+
+class PassageRead(BaseModel):
+    id: UUID
+    content: str
+    start: int
+    end: int
+    term: AnnotationTermRead
+
+
+class AnnotationVersionRead(BaseModel):
+    id: UUID
+    question_version_id: UUID
+    version_number: int
+    copy_status: str
+    editor_id: UUID
+    annotations: list[PassageRead]
+
+
+class AnnotationVersionReadDTO(PydanticDTO[AnnotationVersionRead]):
     config = DTOConfig(rename_strategy="camel")
 
 
@@ -52,18 +77,15 @@ class TermUpdate(BaseModel):
     concept_iri: NonEmptyString | None = None
 
 
-class TermUpdateDTO(PydanticDTO[TermUpdate]):
+class TermCreate(BaseModel):
+    content: NonEmptyString
+    definition: NonEmptyString | None = None
+    concept_iri: NonEmptyString | None = Field(default=None, alias="conceptIri")
+
+
+class TermCreateDTO(PydanticDTO[TermCreate]):
     config = DTOConfig(rename_strategy="camel")
 
 
-class AnnotationUpdate(BaseModel):
-    term: NonEmptyString
-    passage: NonEmptyString
-    start: int = Field(ge=0, strict=True)
-    end: int = Field(gt=0, strict=True)
-    definition: str | None = None
-    concept_iri: str | None = Field(default=None, alias="conceptIri")
-
-
-class AnnotationUpdateDTO(PydanticDTO[AnnotationUpdate]):
+class TermUpdateDTO(PydanticDTO[TermUpdate]):
     config = DTOConfig(rename_strategy="camel")

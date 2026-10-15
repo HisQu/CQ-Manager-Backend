@@ -18,7 +18,7 @@ from domain.questions.services import QuestionService
 from domain.ratings.models import Rating
 from domain.tags.services import TagService
 from domain.topics.services import TopicService
-from domain.versions.models import Version
+from domain.versions.models import AnnotationVersion, Version
 from litestar import Controller, Request, delete, get, post, put
 from litestar.enums import RequestEncodingType
 from litestar.exceptions import HTTPException
@@ -27,7 +27,6 @@ from litestar.status_codes import (
     HTTP_200_OK,
     HTTP_201_CREATED,
     HTTP_204_NO_CONTENT,
-    HTTP_400_BAD_REQUEST,
 )
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -136,8 +135,13 @@ class QuestionController(Controller):
             selectinload(Consolidation.project),
         ),
         selectinload(Question.group).options(selectinload(Group.project)),
-        selectinload(Question.versions).options(selectinload(Version.editor)),
-        selectinload(Question.annotations).options(selectinload(Passage.term)),
+        selectinload(Question.versions).options(
+            selectinload(Version.editor),
+            selectinload(Version.annotation_versions).options(
+                selectinload(AnnotationVersion.editor),
+                selectinload(AnnotationVersion.annotations).options(selectinload(Passage.term)),
+            ),
+        ),
         selectinload(Question.comments).options(selectinload(Comment.author)),
     ]
 
@@ -209,12 +213,28 @@ class QuestionController(Controller):
                 editor_id=request.user.id,
                 group_id=group_id,
                 version_number=1,
-                annotations=passages,
                 tags=tags,
             )
 
             session.add(question)
             await session.flush()
+            initial_revision = Version(
+                question_string=question.question,
+                sparql_query=question.sparql_query,
+                example_answer=question.example_answer,
+                version_number=1,
+                question_id=question.id,
+                editor_id=request.user.id,
+                annotation_versions=[
+                    AnnotationVersion(
+                        version_number=1,
+                        editor_id=request.user.id,
+                        copy_status="initial",
+                        annotations=passages,
+                    )
+                ],
+            )
+            session.add(initial_revision)
             HistoryService.record(session, question, QuestionEventType.CREATED, request.user.id)
             HistoryService.record_tag_changes(session, question, [], tags, request.user.id)
             await TopicService.assign_uncatalogued(session, group.project_id, question, request.user.id)
@@ -313,44 +333,27 @@ class QuestionController(Controller):
         question = await session.scalar(
             select(Question)
             .where(Question.id == question_id)
-            .options(selectinload(Question.annotations))
+            .options(
+                selectinload(Question.versions).options(
+                    selectinload(Version.annotation_versions).options(
+                        selectinload(AnnotationVersion.annotations).options(selectinload(Passage.term))
+                    )
+                )
+            )
         )
 
         if not question:
             raise HTTPException(status_code=404, detail="Question not found.")
 
         try:
-            if data.question is not None and data.question != question.question:
-                invalid_annotations = [
-                    annotation
-                    for annotation in question.annotations
-                    if not AnnotationService.span_matches(
-                        data.question,
-                        annotation.start,
-                        annotation.end,
-                        annotation.content,
-                    )
-                ]
-                if invalid_annotations and not data.discard_annotations:
-                    raise HTTPException(
-                        status_code=HTTP_400_BAD_REQUEST,
-                        detail=(
-                            "Changing the question text would invalidate existing "
-                            "annotations. Confirm discarding them and retry."
-                        ),
-                    )
-
-            if data.discard_annotations:
-                question.annotations.clear()
-
-            snapshot = Version(
-                question_string=question.question,
-                sparql_query=question.sparql_query,
-                example_answer=question.example_answer,
-                version_number=question.version_number,
-                question_id=question.id,
-                editor_id=question.editor_id,
+            current_revision = max(question.versions, key=lambda revision: revision.version_number, default=None)
+            current_annotation_version = (
+                max(current_revision.annotation_versions, key=lambda item: item.version_number, default=None)
+                if current_revision
+                else None
             )
+            current_annotations = current_annotation_version.annotations if current_annotation_version else []
+
             if data.question is not None:
                 question.question = data.question
             if "comment" in data.model_fields_set:
@@ -365,15 +368,67 @@ class QuestionController(Controller):
                 question.type = data.type
             if "sparql_query" in data.model_fields_set:
                 question.sparql_query = data.sparql_query
+
             # Only changes to the question, its SPARQL query or its example answer make a new revision.
-            if (question.question, question.sparql_query, question.example_answer) != (
-                snapshot.question_string,
-                snapshot.sparql_query,
-                snapshot.example_answer,
-            ):
-                session.add(snapshot)
+            revision_changed = current_revision is None or (
+                question.question,
+                question.sparql_query,
+                question.example_answer,
+            ) != (
+                current_revision.question_string,
+                current_revision.sparql_query,
+                current_revision.example_answer,
+            )
+            if revision_changed:
                 question.editor_id = request.user.id
                 question.version_number = question.version_number + 1
+                can_copy_annotations = all(
+                    AnnotationService.span_matches(
+                        question.question,
+                        annotation.start,
+                        annotation.end,
+                        annotation.content,
+                    )
+                    for annotation in current_annotations
+                )
+                # Old clients may still send this flag after asking the user to discard invalid spans.
+                can_copy_annotations = can_copy_annotations and not data.discard_annotations
+                copied_annotations = (
+                    [
+                        Passage(
+                            content=annotation.content,
+                            start=annotation.start,
+                            end=annotation.end,
+                            term=annotation.term,
+                        )
+                        for annotation in current_annotations
+                    ]
+                    if can_copy_annotations
+                    else []
+                )
+                copy_status = (
+                    "copied"
+                    if copied_annotations
+                    else "empty" if not current_annotations else "needs_annotation"
+                )
+                session.add(
+                    Version(
+                        question_string=question.question,
+                        sparql_query=question.sparql_query,
+                        example_answer=question.example_answer,
+                        version_number=question.version_number,
+                        question=question,
+                        editor_id=request.user.id,
+                        annotation_versions=[
+                            AnnotationVersion(
+                                version_number=1,
+                                editor_id=request.user.id,
+                                copy_status=copy_status,
+                                annotations=copied_annotations,
+                            )
+                        ],
+                    )
+                )
                 HistoryService.record(session, question, QuestionEventType.REVISED, request.user.id)
             await session.commit()
 

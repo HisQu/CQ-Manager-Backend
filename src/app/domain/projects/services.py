@@ -16,7 +16,7 @@ from domain.tags.models import QuestionTags, Tag
 from domain.terms.models import Passage, Term
 from domain.topics.models import Topic
 from domain.topics.services import TopicService
-from domain.versions.models import Version
+from domain.versions.models import AnnotationVersion, Version
 from litestar.exceptions import HTTPException
 from litestar.status_codes import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
 from sqlalchemy import delete, or_, select
@@ -243,7 +243,10 @@ class ProjectService:
         question_ids = select(Question.id).where(Question.group_id.in_(group_ids))
         consolidation_ids = select(Consolidation.id).where(Consolidation.project_id == id)
         term_ids = select(Term.id).where(Term.project_id == id)
-        passage_ids = select(Passage.id).where(Passage.term_id.in_(term_ids))
+        revision_ids = select(Version.id).where(Version.question_id.in_(question_ids))
+        annotation_version_ids = select(AnnotationVersion.id).where(
+            AnnotationVersion.question_version_id.in_(revision_ids)
+        )
 
         statements = [
             delete(ConsolidatedQuestions).where(
@@ -255,15 +258,16 @@ class ProjectService:
             delete(QuestionTags).where(QuestionTags.c.question_id.in_(question_ids)),
             delete(Comment).where(Comment.question_id.in_(question_ids)),
             delete(Rating).where(Rating.question_id.in_(question_ids)),
-            delete(Version).where(Version.question_id.in_(question_ids)),
-            delete(QuestionEvent).where(QuestionEvent.question_id.in_(question_ids)),
-            delete(Consolidation).where(Consolidation.project_id == id),
             delete(Passage).where(
                 or_(
-                    Passage.question_id.in_(question_ids),
+                    Passage.annotation_version_id.in_(annotation_version_ids),
                     Passage.term_id.in_(term_ids),
                 )
             ),
+            delete(AnnotationVersion).where(AnnotationVersion.question_version_id.in_(revision_ids)),
+            delete(Version).where(Version.question_id.in_(question_ids)),
+            delete(QuestionEvent).where(QuestionEvent.question_id.in_(question_ids)),
+            delete(Consolidation).where(Consolidation.project_id == id),
             delete(Question).where(Question.group_id.in_(group_ids)),
             delete(GroupMembers).where(GroupMembers.c.group_id.in_(group_ids)),
             delete(Group).where(Group.project_id == id),

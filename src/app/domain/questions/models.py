@@ -19,7 +19,6 @@ if TYPE_CHECKING:
     from domain.tags.models import Tag
     from domain.topics.models import Topic
     from domain.versions.models import Version
-    from domain.terms.models import Passage
 
 # Execution option that makes a `select` also return soft deleted `Question`s.
 INCLUDE_DELETED = "include_deleted"
@@ -75,9 +74,10 @@ class Question(UUIDAuditBase):
         foreign_keys="Consolidation.result_question_id",
         viewonly=True,
     )
-    versions: Mapped[list[Version]] = relationship(back_populates="question", cascade="all, delete-orphan")
-    annotations: Mapped[list[Passage]] = relationship(
-        back_populates="question", cascade="all, delete-orphan"
+    versions: Mapped[list[Version]] = relationship(
+        back_populates="question",
+        cascade="all, delete-orphan",
+        order_by="Version.version_number",
     )
     tags: Mapped[list[Tag]] = relationship(secondary="question_tags", back_populates="questions", order_by="Tag.name")
 

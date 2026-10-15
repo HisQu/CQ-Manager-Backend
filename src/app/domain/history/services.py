@@ -110,14 +110,14 @@ class HistoryService:
                     created_at=question.created_at,
                 )
             )
-            # A `Version` is the snapshot of a revision, written when the next revision replaced it.
-            for version, next_version in zip(versions, [*versions[1:], None]):
+            # Revision records now include the current version; version one is the creation event.
+            for version in versions[1:]:
                 session.add(
                     QuestionEvent(
                         question_id=question.id,
-                        actor_id=next_version.editor_id if next_version else question.editor_id,
+                        actor_id=version.editor_id,
                         event_type=QuestionEventType.REVISED.value,
-                        version_number=version.version_number + 1,
+                        version_number=version.version_number,
                         created_at=version.created_at,
                     )
                 )

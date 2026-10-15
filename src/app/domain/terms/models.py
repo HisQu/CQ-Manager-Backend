@@ -9,7 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 if TYPE_CHECKING:
     from domain.projects.models import Project
-    from domain.questions.models import Question
+    from domain.versions.models import AnnotationVersion
 
 
 class Term(UUIDAuditBase):
@@ -28,8 +28,8 @@ class Term(UUIDAuditBase):
 
 class Passage(UUIDAuditBase):
     __table_args__ = (
-        # prevent the same term being annotated at the same place in the same question
-        UniqueConstraint("question_id", "term_id", "start", "end"),
+        # prevent the same term being annotated at the same place in one annotation snapshot
+        UniqueConstraint("annotation_version_id", "term_id", "start", "end"),
         CheckConstraint("start >= 0", name="ck_passage_start_nonnegative"),
         CheckConstraint("end > start", name="ck_passage_end_after_start"),
     )
@@ -38,10 +38,10 @@ class Passage(UUIDAuditBase):
     # Offsets are UTF-16 code units (matching browser Range offsets); end is exclusive.
     start: Mapped[int] = mapped_column()
     end: Mapped[int] = mapped_column()
-    question_id: Mapped[UUID] = mapped_column(
-        ForeignKey("question.id", ondelete="CASCADE")
+    annotation_version_id: Mapped[UUID] = mapped_column(
+        ForeignKey("annotation_version.id", ondelete="CASCADE")
     )
     term_id: Mapped[UUID] = mapped_column(ForeignKey("term.id"))
 
     term: Mapped[Term] = relationship(back_populates="passages")
-    question: Mapped[Question] = relationship(back_populates="annotations")
+    annotation_version: Mapped[AnnotationVersion] = relationship(back_populates="annotations")
