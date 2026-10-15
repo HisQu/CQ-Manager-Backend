@@ -192,6 +192,8 @@ class AnnotationService:
         if question.deleted_at is not None:
             raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Deleted questions are read-only.")
 
+        # verify that since the last time the user loaded the annotations, no new annotation version has been created
+        # otherwise we throw a conflict and ask the user to reload the latest annotations before saving
         revision = next((item for item in question.versions if item.id == revision_id), None)
         if revision is None:
             raise NotFoundException()

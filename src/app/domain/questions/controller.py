@@ -370,6 +370,7 @@ class QuestionController(Controller):
                 question.sparql_query = data.sparql_query
 
             # Only changes to the question, its SPARQL query or its example answer make a new revision.
+            # Since terms are project-wide and not versioned, changes in their definitions or iris do not trigger a revision
             revision_changed = current_revision is None or (
                 question.question,
                 question.sparql_query,
