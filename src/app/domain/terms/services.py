@@ -1,18 +1,18 @@
-from typing import Iterable, Sequence
+from collections.abc import Iterable, Sequence
 from uuid import UUID
 
 from domain.questions.models import Question
-from litestar.exceptions import HTTPException
-from litestar.exceptions import NotFoundException
-from litestar.status_codes import HTTP_400_BAD_REQUEST
-from sqlalchemy import select
+from litestar.exceptions import HTTPException, NotFoundException
+from litestar.status_codes import HTTP_400_BAD_REQUEST, HTTP_409_CONFLICT
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.base import ExecutableOption
 from sqlalchemy.sql.elements import ColumnElement
 
-from .dtos import AnnotationAddDTO, AnnotationRemove, AnnotationUpdate, TermUpdate
+from .dtos import AnnotationSetSaveDTO, TermCreate, TermUpdate
 from .models import Passage, Term
+from domain.versions.models import AnnotationVersion, Version
 
 
 class AnnotationService:
@@ -32,20 +32,29 @@ class AnnotationService:
     async def list_by_question(
         session: AsyncSession,
         question_id: UUID,
-        options: Iterable[ExecutableOption] | None = None,
     ) -> Sequence[Passage]:
-        options = [] if not options else options
-        statement = select(Question).where(Question.id == question_id)
-        if not await session.scalar(statement):
-            raise NotFoundException()
-
-        statement = (
-            select(Passage)
-            .where(Passage.questions.any(Question.id == question_id))
-            .options(*options)
+        question = await session.scalar(
+            select(Question)
+            .where(Question.id == question_id)
+            .options(
+                selectinload(Question.versions).options(
+                    selectinload(Version.annotation_versions).options(
+                        selectinload(AnnotationVersion.annotations).options(selectinload(Passage.term))
+                    )
+                )
+            )
         )
-        scalars = await session.scalars(statement)
-        return scalars.all()
+        if not question:
+            raise NotFoundException()
+        current_revision = next(
+            (revision for revision in question.versions if revision.version_number == question.version_number), None
+        )
+        current_annotation_version = (
+            max(current_revision.annotation_versions, key=lambda item: item.version_number, default=None)
+            if current_revision
+            else None
+        )
+        return current_annotation_version.annotations if current_annotation_version else []
 
     @staticmethod
     async def list_questions_by_term(
@@ -60,9 +69,31 @@ class AnnotationService:
             .where(Term.id == term_id, Term.project_id == project_id)
             .subquery()
         )
-        statement = select(Question).join(Passage, Question.annotations)
+        latest_annotation_versions = (
+            select(
+                AnnotationVersion.question_version_id.label("question_version_id"),
+                func.max(AnnotationVersion.version_number).label("version_number"),
+            )
+            .group_by(AnnotationVersion.question_version_id)
+            .subquery()
+        )
+        statement = select(Question).join(Version, Version.question_id == Question.id)
+        statement = statement.where(Version.version_number == Question.version_number)
+        statement = statement.join(
+            latest_annotation_versions,
+            latest_annotation_versions.c.question_version_id == Version.id,
+        )
+        statement = statement.join(
+            AnnotationVersion,
+            and_(
+                AnnotationVersion.question_version_id == Version.id,
+                AnnotationVersion.version_number == latest_annotation_versions.c.version_number,
+            ),
+        )
+        statement = statement.join(Passage, Passage.annotation_version_id == AnnotationVersion.id)
         statement = statement.join(subquery, Passage.term_id == subquery.c.id)
         statement = statement.options(*options)
+        statement = statement.distinct()
         scalars = await session.scalars(statement)
         return scalars.all()
 
@@ -86,30 +117,24 @@ class AnnotationService:
             project_id=project_id,
         )
         session.add(model)
-        await session.commit()
-        await session.refresh(model)
+        # Keep term creation in the callers transaction. Committing here expires
+        # already-loaded ORM objects (including the Question being annotated),
+        # and accessing their attributes later can trigger async lazy loading.
+        await session.flush()
         return model
 
     @staticmethod
-    async def get_or_create_passage(
-        session: AsyncSession,
-        term_id: UUID,
-        passage: str,
-        options: Iterable[ExecutableOption] | None = None,
-    ) -> Passage:
-        options = [] if not options else options
-        if model := await session.scalar(
-            select(Passage).where(
-                Passage.content == passage, Passage.term_id == term_id
-            )
-        ):
-            return model
-
-        model = Passage(content=passage, term_id=term_id)
-        session.add(model)
+    async def create_term(session: AsyncSession, project_id: UUID, data: TermCreate) -> Term:
+        term = await AnnotationService.get_or_create_term(
+            session, project_id, data.content, data.definition, data.concept_iri
+        )
+        if "definition" in data.model_fields_set:
+            term.definition = data.definition
+        if "concept_iri" in data.model_fields_set:
+            term.concept_iri = data.concept_iri
         await session.commit()
-        await session.refresh(model)
-        return model  # await session.scalar(select(Passage).where(Passage.id == model.id).options(*options))  # pyright: ignore
+        await session.refresh(term)
+        return term
 
     @staticmethod
     async def update_term(
@@ -143,80 +168,107 @@ class AnnotationService:
         return term
 
     @staticmethod
-    async def update_annotation(
+    async def save_annotation_version(
         session: AsyncSession,
-        project_id: UUID,
         question_id: UUID,
-        passage_id: UUID,
-        data: AnnotationUpdate,
-    ) -> Passage:
+        revision_id: UUID,
+        data: AnnotationSetSaveDTO,
+        editor_id: UUID,
+    ) -> AnnotationVersion:
         statement = (
             select(Question)
             .where(Question.id == question_id)
             .options(
                 selectinload(Question.group),
-                selectinload(Question.annotations).options(selectinload(Passage.term)),
+                selectinload(Question.versions).options(
+                    selectinload(Version.annotation_versions).options(
+                        selectinload(AnnotationVersion.annotations)
+                    )
+                ),
             )
         )
         if not (question := await session.scalar(statement)):
             raise NotFoundException()
+        if question.deleted_at is not None:
+            raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Deleted questions are read-only.")
 
-        if question.group.project_id != project_id:
+        # verify that since the last time the user loaded the annotations, no new annotation version has been created
+        # otherwise we throw a conflict and ask the user to reload the latest annotations before saving
+        revision = next((item for item in question.versions if item.id == revision_id), None)
+        if revision is None:
             raise NotFoundException()
+        if revision.version_number != question.version_number:
+            raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Only the latest CQ revision can be annotated.")
 
-        passage = next(filter(lambda p: p.id == passage_id, question.annotations), None)
-        if not passage:
-            raise NotFoundException()
+        project_id = question.group.project_id
+        for annotation in data.annotations:
+            AnnotationService.validate_span(
+                revision.question_string,
+                annotation.start,
+                annotation.end,
+                annotation.passage,
+            )
 
-        target_term = await session.scalar(
-            select(Term).where(Term.project_id == project_id, Term.content == data.term)
+        existing_versions = revision.annotation_versions
+        latest = max(existing_versions, key=lambda item: item.version_number, default=None)
+        if (latest is None and data.base_annotation_version_id is not None) or (
+            latest is not None and latest.id != data.base_annotation_version_id
+        ):
+            raise HTTPException(
+                status_code=HTTP_409_CONFLICT,
+                detail="The annotation version changed. Reload the latest annotations before saving.",
+            )
+        latest_number = latest.version_number if latest is not None else 0
+        seen_spans: set[tuple[str, int, int]] = set()
+        for annotation in data.annotations:
+            identity = (annotation.term, annotation.start, annotation.end)
+            if identity in seen_spans:
+                raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Duplicate annotation occurrence.")
+            seen_spans.add(identity)
+        snapshot = AnnotationVersion(
+            question_version_id=revision.id,
+            version_number=latest_number + 1,
+            editor_id=editor_id,
         )
-        if not target_term:
-            target_term = Term(content=data.term, project_id=project_id)
-            session.add(target_term)
-            await session.flush()
+        session.add(snapshot)
+        # Persist the snapshot first so it has an ID before passages are
+        # created. Assigning new children through relationships to objects
+        # that are not yet in the session can trigger autoflush warnings and
+        # leave the children detached from this transaction.
+        await session.flush()
+        snapshot_id = snapshot.id
 
-        duplicate = await session.scalar(
-            select(Passage).where(
-                Passage.id != passage.id,
-                Passage.term_id == target_term.id,
-                Passage.content == data.passage,
+        for annotation in data.annotations:
+            term = await AnnotationService.get_or_create_term(
+                session,
+                project_id,
+                annotation.term,
+                annotation.definition,
+                annotation.concept_iri,
+            )
+            if "definition" in annotation.model_fields_set:
+                term.definition = annotation.definition
+            if "concept_iri" in annotation.model_fields_set:
+                term.concept_iri = annotation.concept_iri
+            session.add(
+                Passage(
+                    content=annotation.passage,
+                    start=annotation.start,
+                    end=annotation.end,
+                    annotation_version_id=snapshot_id,
+                    term_id=term.id,
+                )
+            )
+
+        await session.commit()
+        return await session.scalar(
+            select(AnnotationVersion)
+            .where(AnnotationVersion.id == snapshot_id)
+            .options(
+                selectinload(AnnotationVersion.editor),
+                selectinload(AnnotationVersion.annotations).options(selectinload(Passage.term)),
             )
         )
-
-        if duplicate:
-            if duplicate not in question.annotations:
-                question.annotations.append(duplicate)
-
-            question.annotations.remove(passage)
-            await AnnotationService._cleanup_orphaned_passage(session, passage)
-            await session.commit()
-            await session.refresh(duplicate)
-            return duplicate
-
-        passage.content = data.passage
-        passage.term = target_term
-        await session.commit()
-        await session.refresh(passage)
-        return passage
-
-    @staticmethod
-    async def _cleanup_orphaned_passage(
-        session: AsyncSession, passage: Passage
-    ) -> None:
-        statement = select(Question.id).where(
-            Question.annotations.any(Passage.id == passage.id)
-        )
-        if await session.scalar(statement):
-            return
-
-        term_id = passage.term_id
-        await session.delete(passage)
-
-        statement = select(Passage.id).where(Passage.term_id == term_id)
-        if not await session.scalar(statement):
-            if term := await session.scalar(select(Term).where(Term.id == term_id)):
-                await session.delete(term)
 
     @staticmethod
     async def delete_term(
@@ -225,91 +277,32 @@ class AnnotationService:
         statement = (
             select(Term)
             .where(Term.id == term_id, Term.project_id == project_id)
-            .options(
-                selectinload(Term.passages).options(selectinload(Passage.questions))
-            )
+            .options(selectinload(Term.passages))
         )
         if not (term := await session.scalar(statement)):
             return False
-
-        for passage in term.passages:
-            passage.questions.clear()
-            await session.delete(passage)
 
         await session.delete(term)
         await session.commit()
         return True
 
     @staticmethod
-    async def annotate(
-        session: AsyncSession,
-        question_id: UUID,
-        data: AnnotationAddDTO,
-        options: Iterable[ExecutableOption] | None = None,
-    ) -> Sequence[Passage]:
-        options = [] if not options else options
-        statement = (
-            select(Question)
-            .where(Question.id == question_id)
-            .options(
-                selectinload(Question.annotations).options(selectinload(Passage.term)),
-                selectinload(Question.group),
-                *options,
+    @staticmethod
+    def validate_span(text: str, start: int, end: int, value: str) -> None:
+        if not AnnotationService.span_matches(text, start, end, value):
+            raise HTTPException(
+                status_code=HTTP_400_BAD_REQUEST,
+                detail="Annotation span must match the selected text in the question.",
             )
-        )
-        if question := await session.scalar(statement):
-            for annotation in data.annotations:
-                term = await AnnotationService.get_or_create_term(
-                    session,
-                    question.group.project_id,
-                    annotation.term,
-                    annotation.definition,
-                    annotation.concept_iri,
-                )
-                passage = await AnnotationService.get_or_create_passage(
-                    session, term.id, annotation.passage
-                )
-                question = await session.scalar(statement)
-                assert question
-                if passage not in question.annotations:
-                    question.annotations.append(passage)
-            return question.annotations
-        raise NotFoundException()
 
     @staticmethod
-    async def remove_annotations(
-        session: AsyncSession,
-        question_id: UUID,
-        data: AnnotationRemove,
-        options: Iterable[ExecutableOption] | None = None,
-    ) -> Sequence[Passage]:
-        options = [] if not options else options
-        statement = (
-            select(Question)
-            .where(Question.id == question_id)
-            .options(selectinload(Question.annotations), selectinload(Question.group))
+    def span_matches(text: str, start: int, end: int, value: str) -> bool:
+        """Check offsets measured in JavaScript UTF-16 code units."""
+        encoded_text = text.encode("utf-16-le", errors="surrogatepass")
+        if start < 0 or end <= start or end * 2 > len(encoded_text):
+            return False
+
+        selected = encoded_text[start * 2 : end * 2].decode(
+            "utf-16-le", errors="surrogatepass"
         )
-        if question := await session.scalar(statement):
-            if data.term_ids:
-                statement = select(Passage).where(
-                    Passage.term_id.in_(data.term_ids),
-                    Passage.questions.any(Question.id == question_id),
-                )
-                scalars = (await session.scalars(statement)).all()
-                _ = [question.annotations.remove(scalar) for scalar in scalars]
-                await session.commit()
-
-            if data.passage_ids:
-                statement = select(Passage).where(
-                    Passage.id.in_(data.passage_ids),
-                    Passage.questions.any(Question.id == question_id),
-                )
-                scalars = (await session.scalars(statement)).all()
-                _ = [question.annotations.remove(scalar) for scalar in scalars]
-                await session.commit()
-
-            scalars = await session.scalars(
-                select(Passage).where(Passage.questions.any(Question.id == question_id))
-            )
-            return scalars.all()
-        raise NotFoundException()
+        return selected == value

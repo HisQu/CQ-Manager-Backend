@@ -113,6 +113,7 @@ class QuestionComment(BaseModel):
 
 
 class QuestionVersion(BaseModel):
+    id: UUID
     question_string: str
     sparql_query: str | None = None
     example_answer: str | None = None
@@ -130,7 +131,27 @@ class QuestionAnnotationTerm(BaseModel):
 class QuestionAnnotation(BaseModel):
     id: UUID
     content: str
+    start: int
+    end: int
     term: QuestionAnnotationTerm
+
+
+class AnnotationVersionRead(BaseModel):
+    id: UUID
+    version_number: int
+    retained_from_annotation_version_id: UUID | None = None
+    editor: QuestionUser
+    annotations: list[QuestionAnnotation] = Field(default_factory=list)
+
+
+class QuestionRevision(BaseModel):
+    id: UUID
+    question_string: str
+    sparql_query: str | None = None
+    example_answer: str | None = None
+    version_number: int
+    editor: QuestionUser
+    annotation_versions: list[AnnotationVersionRead] = Field(default_factory=list)
 
 
 class QuestionDetailConsolidationQuestionGroup(BaseModel):
@@ -177,12 +198,15 @@ class QuestionDetail(QuestionMetadataMixin):
     no_consolidations: int = 0
     consolidations: list[QuestionDetailConsolidation] = Field(default_factory=list)
     versions: list[QuestionVersion] = Field(default_factory=list)
+    revisions: list[QuestionRevision] = Field(default_factory=list)
     annotations: list[QuestionAnnotation] = Field(default_factory=list)
     deleted_at: datetime | None = None
 
 
 class QuestionDetailDTO(PydanticDTO[QuestionDetail]):
-    config = DTOConfig(rename_strategy="camel", max_nested_depth=3)
+    # Revisions contain annotation versions, annotations, and nested terms.
+    # Keep the DTO transformation deep enough to camel-case the complete tree.
+    config = DTOConfig(rename_strategy="camel", max_nested_depth=6)
 
 
 class QuestionCreate(QuestionMetadataMixin):

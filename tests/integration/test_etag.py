@@ -32,17 +32,23 @@ def test_question_list_is_answered_with_not_modified_until_it_changes(
             etag = response.headers["ETag"]
             assert response.headers["Cache-Control"] == "private, no-cache"
 
-            unchanged = client.get(path, headers={**admin_header, "If-None-Match": etag})
+            etag_headers = {**admin_header, "X-ETag-Cache": "true", "If-None-Match": etag}
+            unchanged = client.get(path, headers=etag_headers)
             assert unchanged.status_code == HTTP_304_NOT_MODIFIED
             assert unchanged.content == b""
             assert unchanged.headers["ETag"] == etag
 
             # Weak and listed tags match as well.
-            listed = client.get(path, headers={**admin_header, "If-None-Match": f'"other", W/{etag}'})
+            listed = client.get(
+                path,
+                headers={**admin_header, "X-ETag-Cache": "true", "If-None-Match": f'"other", W/{etag}'},
+            )
             assert listed.status_code == HTTP_304_NOT_MODIFIED
 
             # Another user sees other unread counts and permissions, so the tag is not shared.
-            other_user = client.get(path, headers={**engineer_header, "If-None-Match": etag})
+            other_user = client.get(
+                path, headers={**engineer_header, "X-ETag-Cache": "true", "If-None-Match": etag}
+            )
             assert other_user.status_code == HTTP_200_OK
 
             response = client.post(
@@ -50,7 +56,7 @@ def test_question_list_is_answered_with_not_modified_until_it_changes(
             )
             assert response.status_code == HTTP_201_CREATED, response.text
 
-            changed = client.get(path, headers={**admin_header, "If-None-Match": etag})
+            changed = client.get(path, headers={**admin_header, "X-ETag-Cache": "true", "If-None-Match": etag})
             assert changed.status_code == HTTP_200_OK
             assert changed.headers["ETag"] != etag
             assert changed.json()[0]["noUnreadComments"] == 1

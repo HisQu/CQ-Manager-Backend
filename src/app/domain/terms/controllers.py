@@ -1,31 +1,32 @@
-from typing import Sequence
+from collections.abc import Sequence
+from typing import Any
 from uuid import UUID
 
+from domain.accounts.models import User
 from domain.projects.guards import ontology_engineer_guard
+from domain.questions.controller import QuestionController
 from domain.projects.middleware import UserProjectPermissionsMiddleware
 from domain.questions.dtos import QuestionOverview, QuestionOverviewDTO
-from domain.questions.models import Question
 from domain.questions.services import QuestionService
-from litestar import Controller, delete, get, put
+from litestar import Controller, Request, delete, get, post, put
 from litestar.exceptions import NotFoundException
-from litestar.status_codes import HTTP_204_NO_CONTENT
+from litestar.status_codes import HTTP_201_CREATED, HTTP_204_NO_CONTENT
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .dtos import (
-    AnnotationAddDTO,
-    AnnotationRemove,
-    AnnotationRemoveDTO,
-    AnnotationUpdate,
-    AnnotationUpdateDTO,
+    AnnotationSetSaveDTO,
+    AnnotationSetSavePydanticDTO,
+    AnnotationVersionRead,
+    AnnotationVersionReadDTO,
     PassageDTO,
+    TermCreate,
+    TermCreateDTO,
     TermDTO,
     TermUpdate,
     TermUpdateDTO,
 )
 from .models import Passage, Term
 from .services import AnnotationService
-
-from domain.questions.controller import QuestionController
 
 
 class TermController(Controller):
@@ -47,6 +48,19 @@ class TermController(Controller):
         """Gets all `Term`s and  `Passage`s within a `Project`."""
         return await AnnotationService.list(session, (Term.project_id == project_id,))
 
+    @post(
+        "/project/{project_id:uuid}",
+        summary="Create or retrieve a project term",
+        dto=TermCreateDTO,
+        return_dto=TermDTO,
+        status_code=HTTP_201_CREATED,
+    )
+    async def create_term(
+        self, session: AsyncSession, project_id: UUID, data: TermCreate
+    ) -> Term:
+        """Writes a term to the shared project glossary independently of annotation snapshots."""
+        return await AnnotationService.create_term(session, project_id, data)
+
     @get(
         "/question/{question_id:uuid}",
         summary="Get Passages by Question",
@@ -55,50 +69,26 @@ class TermController(Controller):
     async def get_all_question_project(
         self, session: AsyncSession, question_id: UUID
     ) -> Sequence[Passage]:
-        """Gets all `Passage`s associated with a `Question`."""
+        """Gets annotations for the current CQ and annotation versions."""
         return await AnnotationService.list_by_question(session, question_id)
 
     @put(
-        "/add/{question_id:uuid}",
-        summary="Add Annotations to Question",
-        return_dto=PassageDTO,
+        "/question/{question_id:uuid}/revisions/{revision_id:uuid}/annotations",
+        summary="Save an Annotation Version",
+        dto=AnnotationSetSavePydanticDTO,
+        return_dto=AnnotationVersionReadDTO,
     )
-    async def add(
-        self, session: AsyncSession, question_id: UUID, data: AnnotationAddDTO
-    ) -> Sequence[Passage]:
-        """Adds one or more `Passage`s and `Term`s to a `Question` or updates existing `Passage`s."""
-        return await AnnotationService.annotate(session, question_id, data)
-
-    @put(
-        "/remove/{question_id:uuid}",
-        summary="Remove Annotations from Question",
-        dto=AnnotationRemoveDTO,
-        return_dto=PassageDTO,
-    )
-    async def remove_annotations(
-        self, session: AsyncSession, question_id: UUID, data: AnnotationRemove
-    ) -> Sequence[Passage]:
-        """Removes one or more `Passage`s and `Term`s from a `Question`, returns leftover `Passage`s."""
-        return await AnnotationService.remove_annotations(session, question_id, data)
-
-    @put(
-        "/{project_id:uuid}/{question_id:uuid}/{passage_id:uuid}",
-        summary="Edit an Annotation",
-        dto=AnnotationUpdateDTO,
-        return_dto=PassageDTO,
-        guards=[ontology_engineer_guard],
-    )
-    async def update_annotation(
+    async def save_annotation_version(
         self,
         session: AsyncSession,
-        project_id: UUID,
         question_id: UUID,
-        passage_id: UUID,
-        data: AnnotationUpdate,
-    ) -> Passage:
-        """Updates a `Passage` and optionally reassigns it to another `Term` within a `Project`."""
-        return await AnnotationService.update_annotation(
-            session, project_id, question_id, passage_id, data
+        revision_id: UUID,
+        data: AnnotationSetSaveDTO,
+        request: Request[User, Any, Any],
+    ) -> AnnotationVersionRead:
+        """Stores the submitted annotation set as a new immutable snapshot."""
+        return await AnnotationService.save_annotation_version(
+            session, question_id, revision_id, data, request.user.id
         )
 
     @put(

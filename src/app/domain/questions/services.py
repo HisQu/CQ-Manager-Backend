@@ -24,6 +24,7 @@ from .dtos import (
     QuestionDetailConsolidationQuestion,
     QuestionDetailConsolidationQuestionGroup,
     QuestionGroup,
+    QuestionRevision,
     QuestionOverview,
     QuestionProject,
     QuestionRating,
@@ -32,6 +33,7 @@ from .dtos import (
     QuestionTopic,
     QuestionUser,
     QuestionVersion,
+    AnnotationVersionRead,
     UnifiedQuestionAuthor,
     UnifiedQuestionEntryKind,
     UnifiedQuestionGroup,
@@ -247,6 +249,35 @@ class QuestionService:
 
     @staticmethod
     def to_question_detail(question: Question) -> QuestionDetail:
+        revisions = sorted(question.versions, key=lambda version: version.version_number)
+
+        def annotation_read(annotation) -> QuestionAnnotation:
+            return QuestionAnnotation(
+                id=annotation.id,
+                content=annotation.content,
+                start=annotation.start,
+                end=annotation.end,
+                term=QuestionAnnotationTerm(
+                    id=annotation.term.id,
+                    content=annotation.term.content,
+                    definition=annotation.term.definition,
+                    concept_iri=annotation.term.concept_iri,
+                ),
+            )
+
+        def annotation_version_read(annotation_version) -> AnnotationVersionRead:
+            return AnnotationVersionRead(
+                id=annotation_version.id,
+                version_number=annotation_version.version_number,
+                retained_from_annotation_version_id=annotation_version.retained_from_annotation_version_id,
+                editor=QuestionUser(
+                    id=annotation_version.editor.id,
+                    email=annotation_version.editor.email,
+                    name=annotation_version.editor.name,
+                ),
+                annotations=[annotation_read(item) for item in annotation_version.annotations],
+            )
+
         return QuestionDetail(
             id=question.id,
             question=question.question,
@@ -319,6 +350,7 @@ class QuestionService:
             consolidations=QuestionService._to_detail_consolidations(question),
             versions=[
                 QuestionVersion(
+                    id=version.id,
                     question_string=version.question_string,
                     sparql_query=version.sparql_query,
                     example_answer=version.example_answer,
@@ -329,21 +361,39 @@ class QuestionService:
                         name=version.editor.name,
                     ),
                 )
-                for version in question.versions
+                for version in revisions
+                if version.version_number < question.version_number
             ],
-            annotations=[
-                QuestionAnnotation(
-                    id=annotation.id,
-                    content=annotation.content,
-                    term=QuestionAnnotationTerm(
-                        id=annotation.term.id,
-                        content=annotation.term.content,
-                        definition=annotation.term.definition,
-                        concept_iri=annotation.term.concept_iri,
+            revisions=[
+                QuestionRevision(
+                    id=revision.id,
+                    question_string=revision.question_string,
+                    sparql_query=revision.sparql_query,
+                    example_answer=revision.example_answer,
+                    version_number=revision.version_number,
+                    editor=QuestionUser(
+                        id=revision.editor.id,
+                        email=revision.editor.email,
+                        name=revision.editor.name,
                     ),
+                    annotation_versions=[
+                        annotation_version_read(item)
+                        for item in sorted(revision.annotation_versions, key=lambda item: item.version_number)
+                    ],
                 )
-                for annotation in question.annotations
+                for revision in revisions
             ],
+            annotations=(
+                [
+                    annotation_read(item)
+                    for item in max(
+                        revisions[-1].annotation_versions,
+                        key=lambda item: item.version_number,
+                    ).annotations
+                ]
+                if revisions and revisions[-1].annotation_versions
+                else []
+            ),
             deleted_at=question.deleted_at,
         )
 

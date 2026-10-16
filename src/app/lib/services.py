@@ -7,7 +7,7 @@ from domain.projects.models import Project
 from domain.questions.models import Question, QuestionCatalogueReservation
 from domain.ratings.models import Rating
 from domain.topics.models import Topic
-from domain.versions.models import Version
+from domain.versions.models import AnnotationVersion, Version
 from domain.comments.models import Comment
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -39,6 +39,7 @@ class MockDataService:
             version_number=1,
             question_id=UUID("2de6c0c8-3565-4c5a-bc85-3b5971e0e452"),
             editor_id=UUID("a8693768-244b-4b87-9972-548034df1cc3"),
+            annotation_versions=[],
         )
     ]
     mock_questions = [
@@ -49,13 +50,6 @@ class MockDataService:
             author_id=UUID("a8693768-244b-4b87-9972-548034df1cc3"),
             editor_id=UUID("a3fbf0c3-35cb-4774-8eba-10bdd1cbfb0c"),
             group_id=UUID("b0488a1e-3768-4d34-8c90-f24f1f9036a3"),
-            annotations=[
-                Passage(
-                    content="really",
-                    #author_id=UUID("a3fbf0c3-35cb-4774-8eba-10bdd1cbfb0c"),
-                    term_id=UUID("ec1b45bc-a901-4f0e-934b-bf90cb61855a"),
-                )
-            ],
         ),
         Question(
             question="Hot take: what if the earth is actually a cube?",
@@ -175,6 +169,36 @@ class MockDataService:
             group_id=UUID("0469f9f6-a1a5-4e1b-b829-48366171f7ed"),
         ),
     ]
+
+    mock_versions.extend(
+        Version(
+            question_string=question.question,
+            sparql_query=question.sparql_query,
+            example_answer=question.example_answer,
+            version_number=question.version_number,
+            question_id=question.id,
+            editor_id=question.editor_id,
+            annotation_versions=(
+                [
+                    AnnotationVersion(
+                        version_number=1,
+                        editor_id=question.editor_id,
+                        annotations=[
+                            Passage(
+                                content="really",
+                                start=10,
+                                end=16,
+                                term_id=UUID("ec1b45bc-a901-4f0e-934b-bf90cb61855a"),
+                            )
+                        ],
+                    )
+                ]
+                if question.id == UUID("2de6c0c8-3565-4c5a-bc85-3b5971e0e452")
+                else []
+            ),
+        )
+        for question in mock_questions
+    )
 
     mock_users = [
         User(

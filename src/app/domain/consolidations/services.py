@@ -6,6 +6,7 @@ from domain.groups.models import Group
 from domain.history.models import QuestionEventType
 from domain.history.services import HistoryService
 from domain.questions.models import Question
+from domain.versions.models import Version
 from domain.topics.services import TopicService
 from litestar.exceptions import HTTPException
 from litestar.status_codes import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
@@ -80,6 +81,17 @@ class ConsolidationService:
         )
         session.add(result_question)
         await session.flush()
+        session.add(
+            Version(
+                question_string=result_question.question,
+                sparql_query=result_question.sparql_query,
+                example_answer=result_question.example_answer,
+                version_number=1,
+                question=result_question,
+                editor_id=user_id,
+                annotation_versions=[],
+            )
+        )
         HistoryService.record(session, result_question, QuestionEventType.CREATED, user_id)
         await TopicService.assign_uncatalogued(session, project_id, result_question, user_id)
         return result_question
