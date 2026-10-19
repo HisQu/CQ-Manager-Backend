@@ -50,6 +50,10 @@ filterwarnings = [
     "ignore::DeprecationWarning:litestar.contrib.*",
 ]
 
+[tool.uv]
+# openapi-markdown pins openapi-core 0.19.*, which caps werkzeug below the security fixes in 3.1.9.
+override-dependencies = ["werkzeug>=3.1.9"]
+
 [dependency-groups]
 dev = [
     "openapi-markdown>=0.4.3",
