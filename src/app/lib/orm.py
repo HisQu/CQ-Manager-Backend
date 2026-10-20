@@ -144,6 +144,58 @@ class AsyncSqlPlugin:
                 connection.execute(text(f"ALTER TABLE term ADD COLUMN {column_name} {column_type}"))
 
     @staticmethod
+    def _rebuild_legacy_passage_table(connection: Connection) -> None:
+        """Rebuilds a `passage` table from before annotation versioning with the current constraints.
+
+        Legacy passages were shared between questions and unique per content and term, which rejects the same
+        passage in a new annotation version. SQLite cannot drop that constraint, so the table is rebuilt. The
+        annotation version and offsets stay nullable for the legacy rows, which are only linked through
+        `annotated_passages`.
+        """
+        columns = {column["name"] for column in inspect(connection).get_columns("passage")}
+        legacy_unique = any(
+            sorted(constraint["column_names"]) == ["content", "term_id"]
+            for constraint in inspect(connection).get_unique_constraints("passage")
+        )
+        if "annotation_version_id" in columns and not legacy_unique:
+            return
+
+        copied = ["id", "content", "term_id", "sa_orm_sentinel", "created_at", "updated_at"]
+        copied += [column for column in ("annotation_version_id", "start", "end") if column in columns]
+        column_list = ", ".join(f'"{column}"' for column in copied)
+
+        connection.execute(text("PRAGMA foreign_keys=OFF"))
+        connection.execute(text("DROP TABLE IF EXISTS passage_new"))
+        connection.execute(
+            text(
+                """
+                CREATE TABLE passage_new (
+                    id BINARY(16) NOT NULL,
+                    content VARCHAR NOT NULL,
+                    start INTEGER,
+                    "end" INTEGER,
+                    annotation_version_id BINARY(16),
+                    term_id BINARY(16) NOT NULL,
+                    sa_orm_sentinel INTEGER,
+                    created_at DATETIME NOT NULL,
+                    updated_at DATETIME NOT NULL,
+                    CONSTRAINT pk_passage PRIMARY KEY (id),
+                    CONSTRAINT uq_passage_annotation_version_id UNIQUE (annotation_version_id, term_id, start, "end"),
+                    CONSTRAINT ck_passage_ck_passage_start_nonnegative CHECK (start >= 0),
+                    CONSTRAINT ck_passage_ck_passage_end_after_start CHECK ("end" > start),
+                    CONSTRAINT fk_passage_annotation_version_id_annotation_version
+                        FOREIGN KEY(annotation_version_id) REFERENCES annotation_version (id) ON DELETE CASCADE,
+                    CONSTRAINT fk_passage_term_id_term FOREIGN KEY(term_id) REFERENCES term (id)
+                )
+                """
+            )
+        )
+        connection.execute(text(f"INSERT INTO passage_new ({column_list}) SELECT {column_list} FROM passage"))
+        connection.execute(text("DROP TABLE passage"))
+        connection.execute(text("ALTER TABLE passage_new RENAME TO passage"))
+        connection.execute(text("PRAGMA foreign_keys=ON"))
+
+    @staticmethod
     def _ensure_consolidation_result_question_id_column(connection: Connection) -> None:
         columns = {
             column["name"]
@@ -316,6 +368,7 @@ class AsyncSqlPlugin:
             await conn.run_sync(self._ensure_version_snapshot_columns)
             await conn.run_sync(self._rename_lcq_question_type)
             await conn.run_sync(self._ensure_term_metadata_columns)
+            await conn.run_sync(self._rebuild_legacy_passage_table)
             await conn.run_sync(self._ensure_consolidation_result_question_id_column)
             await conn.run_sync(self._ensure_group_comment_column)
             await conn.run_sync(self._ensure_question_topic_id_column)

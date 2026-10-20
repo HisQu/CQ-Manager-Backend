@@ -16,6 +16,19 @@ class TermDTO(SQLAlchemyDTO[Term]):
     )
 
 
+class TermOverview(BaseModel):
+    id: UUID
+    project_id: UUID
+    content: str
+    definition: str | None = None
+    concept_iri: str | None = None
+    no_questions: int = 0
+
+
+class TermOverviewDTO(PydanticDTO[TermOverview]):
+    config = DTOConfig(rename_strategy="camel")
+
+
 class PassageDTO(SQLAlchemyDTO[Passage]):
     config = SQLAlchemyDTOConfig(
         include={"id", "annotation_version_id", "term_id", "content", "start", "end"},

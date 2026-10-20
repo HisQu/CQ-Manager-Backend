@@ -22,6 +22,8 @@ from .dtos import (
     TermCreate,
     TermCreateDTO,
     TermDTO,
+    TermOverview,
+    TermOverviewDTO,
     TermUpdate,
     TermUpdateDTO,
 )
@@ -40,13 +42,25 @@ class TermController(Controller):
         return await AnnotationService.list(session)
 
     @get(
-        "/project/{project_id:uuid}", summary="Get Terms by Project", return_dto=TermDTO
+        "/project/{project_id:uuid}", summary="Get Terms by Project", return_dto=TermOverviewDTO
     )
     async def get_all_project(
         self, session: AsyncSession, project_id: UUID
-    ) -> Sequence[Term]:
-        """Gets all `Term`s and  `Passage`s within a `Project`."""
-        return await AnnotationService.list(session, (Term.project_id == project_id,))
+    ) -> Sequence[TermOverview]:
+        """Gets all `Term`s within a `Project` with the number of `Question`s currently annotating each."""
+        terms = await AnnotationService.list(session, (Term.project_id == project_id,))
+        counts = await AnnotationService.count_questions_per_term(session, project_id)
+        return [
+            TermOverview(
+                id=term.id,
+                project_id=term.project_id,
+                content=term.content,
+                definition=term.definition,
+                concept_iri=term.concept_iri,
+                no_questions=counts.get(term.id, 0),
+            )
+            for term in terms
+        ]
 
     @post(
         "/project/{project_id:uuid}",

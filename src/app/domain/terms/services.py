@@ -4,7 +4,7 @@ from uuid import UUID
 from domain.questions.models import Question
 from litestar.exceptions import HTTPException, NotFoundException
 from litestar.status_codes import HTTP_400_BAD_REQUEST, HTTP_409_CONFLICT
-from sqlalchemy import and_, func, select
+from sqlalchemy import Select, and_, distinct, func, select
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.base import ExecutableOption
@@ -57,18 +57,8 @@ class AnnotationService:
         return current_annotation_version.annotations if current_annotation_version else []
 
     @staticmethod
-    async def list_questions_by_term(
-        session: AsyncSession,
-        term_id: UUID,
-        project_id: UUID,
-        options: Iterable[ExecutableOption] | None = None,
-    ) -> Sequence[Question]:
-        options = [] if not options else options
-        subquery = (
-            select(Term)
-            .where(Term.id == term_id, Term.project_id == project_id)
-            .subquery()
-        )
+    def _join_current_passages(statement: Select) -> Select:
+        """Joins the `Passage`s of the latest annotation version of each `Question`'s current revision."""
         latest_annotation_versions = (
             select(
                 AnnotationVersion.question_version_id.label("question_version_id"),
@@ -77,7 +67,7 @@ class AnnotationService:
             .group_by(AnnotationVersion.question_version_id)
             .subquery()
         )
-        statement = select(Question).join(Version, Version.question_id == Question.id)
+        statement = statement.join(Version, Version.question_id == Question.id)
         statement = statement.where(Version.version_number == Question.version_number)
         statement = statement.join(
             latest_annotation_versions,
@@ -90,7 +80,32 @@ class AnnotationService:
                 AnnotationVersion.version_number == latest_annotation_versions.c.version_number,
             ),
         )
-        statement = statement.join(Passage, Passage.annotation_version_id == AnnotationVersion.id)
+        return statement.join(Passage, Passage.annotation_version_id == AnnotationVersion.id)
+
+    @staticmethod
+    async def count_questions_per_term(session: AsyncSession, project_id: UUID) -> dict[UUID, int]:
+        """How many `Question`s of a `Project` currently annotate each of its `Term`s; unused terms are missing."""
+        statement = AnnotationService._join_current_passages(
+            select(Passage.term_id, func.count(distinct(Question.id))).select_from(Question)
+        )
+        statement = statement.join(Term, Term.id == Passage.term_id)
+        statement = statement.where(Term.project_id == project_id).group_by(Passage.term_id)
+        return {term_id: count for term_id, count in (await session.execute(statement)).all()}
+
+    @staticmethod
+    async def list_questions_by_term(
+        session: AsyncSession,
+        term_id: UUID,
+        project_id: UUID,
+        options: Iterable[ExecutableOption] | None = None,
+    ) -> Sequence[Question]:
+        options = [] if not options else options
+        subquery = (
+            select(Term)
+            .where(Term.id == term_id, Term.project_id == project_id)
+            .subquery()
+        )
+        statement = AnnotationService._join_current_passages(select(Question))
         statement = statement.join(subquery, Passage.term_id == subquery.c.id)
         statement = statement.options(*options)
         statement = statement.distinct()
@@ -159,10 +174,9 @@ class AnnotationService:
                 )
             term.content = data.content
 
-        if data.definition is not None:
-            term.definition = data.definition
-        if data.concept_iri is not None:
-            term.concept_iri = data.concept_iri
+        # The definition and IRI are replaced, so null (or leaving them out) clears them.
+        term.definition = data.definition
+        term.concept_iri = data.concept_iri
         await session.commit()
         await session.refresh(term)
         return term
