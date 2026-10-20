@@ -38,7 +38,7 @@ cors_config = CORSConfig(
         "ETag",
     ],
 )
-openapi_config = OpenAPIConfig("CQ Manager", "0.8.0", use_handler_docstrings=True)
+openapi_config = OpenAPIConfig("CQ Manager", "0.9.0", use_handler_docstrings=True)
 
 authentication_secret = os.environ.get(
     "AUTHENTICATION_SECRET",
