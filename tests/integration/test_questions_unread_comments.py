@@ -4,6 +4,7 @@ from litestar.status_codes import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CON
 from litestar.testing import TestClient
 
 from ._fixtures import (
+    ADMIN_EMAIL,
     ENGINEER_EMAIL,
     admin_header,
     create_group,
@@ -35,6 +36,13 @@ def _comment_state(client: TestClient[Litestar], headers: Headers, path: str) ->
     return question["noComments"], question["noUnreadComments"], question["lastComment"]
 
 
+def _last_comment_author_email(client: TestClient[Litestar], headers: Headers, path: str) -> str | None:
+    response = client.get(path, headers=headers)
+    assert response.status_code == HTTP_200_OK, response.text
+    author = response.json()[0]["lastCommentAuthor"]
+    return author["email"] if author else None
+
+
 def test_question_lists_report_unread_comments_per_user(
     test_client: TestClient[Litestar],
     admin_header: Headers,
@@ -49,6 +57,7 @@ def test_question_lists_report_unread_comments_per_user(
 
         try:
             assert _comment_state(client, admin_header, paths[0]) == (0, 0, None)
+            assert _last_comment_author_email(client, admin_header, paths[0]) is None
 
             _comment(client, engineer_header, question["id"], "First comment")
             _comment(client, engineer_header, question["id"], "Latest comment")
@@ -63,6 +72,10 @@ def test_question_lists_report_unread_comments_per_user(
                 # Own comments never count as unread.
                 assert _comment_state(client, engineer_header, path) == (2, 0, None), path
 
+                # The last commenter is reported regardless of read state.
+                assert _last_comment_author_email(client, admin_header, path) == ENGINEER_EMAIL, path
+                assert _last_comment_author_email(client, engineer_header, path) == ENGINEER_EMAIL, path
+
             response = client.post(f"/comments/{question['id']}/read", headers=admin_header)
             assert response.status_code == HTTP_204_NO_CONTENT, response.text
             for path in paths:
@@ -74,6 +87,7 @@ def test_question_lists_report_unread_comments_per_user(
             total, unread, last_comment = _comment_state(client, engineer_header, paths[0])
             assert (total, unread) == (3, 1)
             assert last_comment["comment"] == "Answer"
+            assert _last_comment_author_email(client, engineer_header, paths[0]) == ADMIN_EMAIL
         finally:
             client.delete(f"/projects/{project['id']}", headers=admin_header)
 
