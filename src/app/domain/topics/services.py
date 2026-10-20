@@ -147,10 +147,10 @@ class TopicService:
     ) -> None:
         """Puts a `Question` into the uncatalogued catch-all. Needs a flushed question."""
         topic = await TopicService.get_uncatalogued_topic(session, project_id)
-        await TopicService._place_question(session, question, topic, actor_id)
+        await TopicService.place_question(session, question, topic, actor_id)
 
     @staticmethod
-    async def _place_question(session: AsyncSession, question: Question, topic: Topic, actor_id: UUID | None) -> None:
+    async def place_question(session: AsyncSession, question: Question, topic: Topic, actor_id: UUID | None) -> None:
         """Gives a `Question` the next free identifier of a catalogue and records it in the question's history."""
         await TopicService.unassign_catalogue_identifier(session, question)
         question.topic_id = topic.id
@@ -291,7 +291,7 @@ class TopicService:
             )
 
         if question.topic_id != topic_id:
-            await TopicService._place_question(session, question, topic, actor_id)
+            await TopicService.place_question(session, question, topic, actor_id)
         await session.commit()
         await session.refresh(question)
         return await TopicService.get_project_question(session, project_id, question.id, options)
@@ -308,7 +308,7 @@ class TopicService:
         topic = await TopicService.get_topic(session, project_id, topic_id)
         question = await TopicService.get_project_question(session, project_id, question_id)
         if question.topic_id != topic_id or question.catalogue_index is None:
-            await TopicService._place_question(session, question, topic, actor_id)
+            await TopicService.place_question(session, question, topic, actor_id)
         await session.commit()
         await session.refresh(question)
         return await TopicService.get_project_question(session, project_id, question.id, options)

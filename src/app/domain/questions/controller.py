@@ -12,7 +12,9 @@ from domain.groups.models import Group
 from domain.history.dtos import QuestionEventRead, QuestionEventReadDTO
 from domain.history.models import QuestionEventType
 from domain.history.services import HistoryService
+from domain.projects.exceptions import ProjectEngineerRequiredException
 from domain.projects.middleware import UserProjectPermissionsMiddleware
+from domain.projects.services import ProjectService
 from domain.questions.middleware import UserQuestionGroupPermissionsMiddleware
 from domain.questions.services import QuestionService
 from domain.ratings.models import Rating
@@ -173,6 +175,15 @@ class QuestionController(Controller):
             if not (group := await session.scalar(statement)):
                 raise HTTPException(status_code=404, detail="Group not found.")
 
+            # Like moving a question between catalogues, choosing one is up to ontology engineers.
+            topic = None
+            if data.topic_id is not None:
+                if not request.user.is_system_admin and not await ProjectService.is_engineer(
+                    session, group.project_id, request.user.id
+                ):
+                    raise ProjectEngineerRequiredException()
+                topic = await TopicService.get_topic(session, group.project_id, data.topic_id)
+
             passages: list[Passage] = []
             if data.annotations:
                 for annotation in data.annotations:
@@ -235,7 +246,10 @@ class QuestionController(Controller):
             session.add(initial_revision)
             HistoryService.record(session, question, QuestionEventType.CREATED, request.user.id)
             HistoryService.record_tag_changes(session, question, [], tags, request.user.id)
-            await TopicService.assign_uncatalogued(session, group.project_id, question, request.user.id)
+            if topic is not None:
+                await TopicService.place_question(session, question, topic, request.user.id)
+            else:
+                await TopicService.assign_uncatalogued(session, group.project_id, question, request.user.id)
             await session.commit()
             await session.refresh(question)
 

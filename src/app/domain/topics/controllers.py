@@ -5,6 +5,7 @@ from domain.accounts.models import User
 from domain.comments.models import Comment
 from domain.comments.services import CommentsService
 from domain.projects.guards import ontology_engineer_guard
+from domain.projects.middleware import UserProjectPermissionsMiddleware
 from domain.consolidations.models import Consolidation
 from domain.questions.dtos import QuestionOverview, QuestionOverviewDTO
 from domain.questions.models import Question
@@ -36,6 +37,7 @@ JsonEncoded = Annotated[T, Body(media_type=RequestEncodingType.JSON)]
 class TopicController(Controller):
     path = "/topics"
     tags = ["Topics"]
+    middleware = [UserProjectPermissionsMiddleware]
 
     detail_options = [selectinload(Topic.questions)]
     question_options = [

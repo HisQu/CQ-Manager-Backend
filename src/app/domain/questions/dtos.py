@@ -216,6 +216,8 @@ class QuestionCreate(QuestionMetadataMixin):
     sparql_query: str | None = None
     annotations: list[AnnotationDTO] = []
     tag_ids: list[UUID] = []
+    # The catalogue to put the question in (ontology engineers only); the uncatalogued catch-all by default.
+    topic_id: UUID | None = None
 
 
 class QuestionCreateDTO(PydanticDTO[QuestionCreate]):

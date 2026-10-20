@@ -1,6 +1,6 @@
 from httpx import Headers
 from litestar import Litestar
-from litestar.status_codes import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED
+from litestar.status_codes import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED, HTTP_404_NOT_FOUND
 from litestar.testing import TestClient
 
 from ._fixtures import (
@@ -395,3 +395,54 @@ def test_new_questions_are_uncatalogued(
             assert remove_response.json()["cqCatalogueIdentifier"] == "#.2"
         finally:
             client.delete(f"/projects/{project['id']}", headers=admin_header)
+
+
+def test_question_can_be_created_directly_in_a_catalogue_by_engineers(
+    test_client: TestClient[Litestar],
+    admin_header: Headers,
+) -> None:
+    with test_client as client:
+        admin_header = login(client)
+        project = create_project(client, admin_header, managers=[MANAGER_EMAIL], engineers=[ENGINEER_EMAIL])
+        other_project = create_project(client, admin_header)
+        group = create_group(client, admin_header, project["id"])
+        engineer_header = login(client, ENGINEER_EMAIL)
+        manager_header = login(client, MANAGER_EMAIL)
+
+        def create(headers: Headers, topic_id: str | None = None):
+            payload = {"question": unique_text("Directly catalogued?")}
+            if topic_id is not None:
+                payload["topicId"] = topic_id
+            return client.post(f"/questions/by_group/{group['id']}", json=payload, headers=headers)
+
+        try:
+            topic = create_topic(client, engineer_header, project["id"], identifier="A")
+            foreign_topic = create_topic(client, admin_header, other_project["id"], identifier="A")
+
+            response = create(engineer_header, topic["id"])
+            assert response.status_code == HTTP_201_CREATED, response.text
+            assert response.json()["cqCatalogueIdentifier"] == "A.1"
+            response = create(admin_header, topic["id"])
+            assert response.status_code == HTTP_201_CREATED, response.text
+            assert response.json()["cqCatalogueIdentifier"] == "A.2"
+
+            # Without a catalogue, new questions stay uncatalogued, for everybody.
+            response = create(manager_header)
+            assert response.status_code == HTTP_201_CREATED, response.text
+            assert response.json()["cqCatalogueIdentifier"].startswith("#.")
+
+            # Only engineers choose catalogues, and only those of the question's project.
+            assert create(manager_header, topic["id"]).status_code == HTTP_401_UNAUTHORIZED
+            assert create(engineer_header, foreign_topic["id"]).status_code == HTTP_404_NOT_FOUND
+
+            listed = client.get(f"/questions/by_group/{group['id']}", headers=admin_header).json()
+            assert sorted(q["cqCatalogueIdentifier"] for q in listed if q["topic"]["identifier"] == "A") == ["A.1", "A.2"]
+            assert len(listed) == 3
+
+            response = client.get(f"/topics/{project['id']}", headers=engineer_header)
+            assert response.headers["Permissions-Project-Engineer"] == "True"
+            response = client.get(f"/topics/{project['id']}", headers=manager_header)
+            assert response.headers["Permissions-Project-Engineer"] == "False"
+        finally:
+            client.delete(f"/projects/{project['id']}", headers=admin_header)
+            client.delete(f"/projects/{other_project['id']}", headers=admin_header)
