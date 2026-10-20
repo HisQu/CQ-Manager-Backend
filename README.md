@@ -1,7 +1,7 @@
 # CQ Manager Backend
 
 
-The repository containing the frontend can be found here: https://github.com/HerrMotz/Competency-Question-Manager-Frontend
+The repository containing the frontend can be found here: https://github.com/HisQu/CQ-Manager-Frontend
 
 A student project by:
 - Dominik Buschhold (Backend)

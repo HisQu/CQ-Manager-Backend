@@ -25,8 +25,8 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://git.uni-jena.de/fusion/teaching/project/2023wise/swep/competency-questions-management-for-ontology-development/cq-manager"
-Issues = "https://git.uni-jena.de/fusion/teaching/project/2023wise/swep/competency-questions-management-for-ontology-development/cq-manager/-/issues"
+Homepage = "https://github.com/HisQu/CQ-Manager-Backend"
+Issues = "https://github.com/HisQu/CQ-Manager-Backend/issues"
 
 [tool.black]
 line-length = 119
