@@ -109,17 +109,28 @@ class QuestionService:
 
     @staticmethod
     def _to_comment_state(question: Question, reader: CommentReader | None) -> dict:
-        """The unread comments of the `reader`; the last comment is only included while it is unread."""
+        """The unread comments of the `reader`; the last comment is only included while it is unread, its author always."""
         unread = reader.unread_comments(question) if reader else []
         comment = max(question.comments, key=lambda c: c.created_at, default=None)
         last_comment = None
+        last_comment_author = None
+        if comment is not None and comment.author is not None:
+            last_comment_author = QuestionUser(
+                id=comment.author.id,
+                email=comment.author.email,
+                name=comment.author.name,
+            )
         if comment is not None and comment in unread:
             last_comment = QuestionLastComment(
                 comment=comment.comment,
                 author=comment.author.name if comment.author else None,
                 created_at=comment.created_at,
             )
-        return {"last_comment": last_comment, "no_unread_comments": len(unread)}
+        return {
+            "last_comment": last_comment,
+            "last_comment_author": last_comment_author,
+            "no_unread_comments": len(unread),
+        }
 
     @staticmethod
     def _to_tags(question: Question) -> list[QuestionTag]:
