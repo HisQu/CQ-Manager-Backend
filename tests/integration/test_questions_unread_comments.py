@@ -125,3 +125,47 @@ def test_question_detail_identifies_each_comment_and_its_author(
             }
         finally:
             client.delete(f"/projects/{project['id']}", headers=admin_header)
+
+
+def test_mark_last_comment_unread(test_client: TestClient[Litestar], admin_header: Headers) -> None:
+    with test_client as client:
+        admin_header = login(client)
+        engineer_header = login(client, ENGINEER_EMAIL)
+        project = create_project(client, admin_header, engineers=[ENGINEER_EMAIL])
+        group = create_group(client, admin_header, project["id"])
+        question = create_question(client, admin_header, group["id"])
+        path = f"/questions/by_project/{project['id']}"
+        unread_path = f"/comments/{question['id']}/unread"
+
+        try:
+            # Nothing written by others: there is nothing to mark.
+            _comment(client, admin_header, question["id"], "Own comment")
+            assert client.post(unread_path, headers=admin_header).status_code == HTTP_204_NO_CONTENT
+            assert _comment_state(client, admin_header, path)[:2] == (1, 0)
+
+            # Without a previous read marker only the latest comment of others becomes unread.
+            _comment(client, engineer_header, question["id"], "Single engineer comment")
+            client.post(f"/comments/{question['id']}/read", headers=admin_header)
+            assert client.post(unread_path, headers=admin_header).status_code == HTTP_204_NO_CONTENT
+            total, unread, last_comment = _comment_state(client, admin_header, path)
+            assert (total, unread, last_comment["comment"]) == (2, 1, "Single engineer comment")
+
+            # Earlier comments stay read; own comments after the latest foreign one stay read too.
+            _comment(client, engineer_header, question["id"], "Latest engineer comment")
+            _comment(client, admin_header, question["id"], "Own reply")
+            assert client.post(unread_path, headers=admin_header).status_code == HTTP_204_NO_CONTENT
+            total, unread, last_comment = _comment_state(client, admin_header, path)
+            assert (total, unread, last_comment) == (4, 1, None)
+
+            # Opening the question marks everything read again.
+            client.post(f"/comments/{question['id']}/read", headers=admin_header)
+            assert _comment_state(client, admin_header, path)[:2] == (4, 0)
+        finally:
+            client.delete(f"/projects/{project['id']}", headers=admin_header)
+
+
+def test_mark_last_comment_unread_unknown_question(test_client: TestClient[Litestar], admin_header: Headers) -> None:
+    with test_client as client:
+        admin_header = login(client)
+        response = client.post("/comments/00000000-0000-0000-0000-000000000000/unread", headers=admin_header)
+        assert response.status_code == 404, response.text

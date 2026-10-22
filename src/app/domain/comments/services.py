@@ -55,6 +55,32 @@ class CommentsService:
             session.add(CommentReadMarker(user_id=user_id, question_id=question_id, read_at=now))
 
     @staticmethod
+    async def mark_last_unread(session: AsyncSession, user_id: UUID, question_id: UUID) -> None:
+        """Marks the latest comment of another `User` as unread, keeping every earlier comment read."""
+        comments = (
+            await session.scalars(
+                select(Comment).where(Comment.question_id == question_id).order_by(Comment.created_at.desc())
+            )
+        ).all()
+        last_index = next((index for index, item in enumerate(comments) if item.author_id != user_id), None)
+        if last_index is None:
+            return
+        marker = await session.scalar(
+            select(CommentReadMarker).where(
+                CommentReadMarker.user_id == user_id, CommentReadMarker.question_id == question_id
+            )
+        )
+        previous = comments[last_index + 1] if last_index + 1 < len(comments) else None
+        if previous is None:
+            # Without a marker every comment of others is unread, which here is only the latest one.
+            if marker:
+                await session.delete(marker)
+        elif marker:
+            marker.read_at = previous.created_at
+        else:
+            session.add(CommentReadMarker(user_id=user_id, question_id=question_id, read_at=previous.created_at))
+
+    @staticmethod
     async def create_comment(session: AsyncSession, author_id: UUID, data: CommentCreate) -> Comment:
         comment = Comment(author_id=author_id, question_id=data.question_id, comment=data.comment)
         session.add(comment)

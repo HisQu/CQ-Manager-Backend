@@ -48,3 +48,12 @@ class CommentController(Controller):
         if not await session.get(Question, question_id):
             raise NotFoundException(detail="Question not found.")
         await CommentsService.mark_read(session=session, user_id=request.user.id, question_id=question_id)
+
+    @post("/{question_id:uuid}/unread", status_code=HTTP_204_NO_CONTENT)
+    async def mark_last_comment_unread(
+        self, session: AsyncSession, question_id: UUID, request: Request[User, Any, Any]
+    ) -> None:
+        """Marks the latest comment of another `User` on a `Question` as unread by the requesting `User`."""
+        if not await session.get(Question, question_id):
+            raise NotFoundException(detail="Question not found.")
+        await CommentsService.mark_last_unread(session=session, user_id=request.user.id, question_id=question_id)
