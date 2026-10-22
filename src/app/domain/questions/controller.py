@@ -36,6 +36,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from domain.terms.dtos import AnnotationDTO
 from .dtos import (
     QuestionCatalogueResolution,
     QuestionCatalogueResolutionDTO,
@@ -184,32 +185,9 @@ class QuestionController(Controller):
                     raise ProjectEngineerRequiredException()
                 topic = await TopicService.get_topic(session, group.project_id, data.topic_id)
 
-            passages: list[Passage] = []
-            if data.annotations:
-                for annotation in data.annotations:
-                    AnnotationService.validate_span(
-                        data.question,
-                        annotation.start,
-                        annotation.end,
-                        annotation.passage,
-                    )
-
-                for annotation in data.annotations:
-                    term = await AnnotationService.get_or_create_term(
-                        session,
-                        group.project_id,
-                        annotation.term,
-                        annotation.definition,
-                        annotation.concept_iri,
-                    )
-                    passages.append(
-                        Passage(
-                            content=annotation.passage,
-                            start=annotation.start,
-                            end=annotation.end,
-                            term=term,
-                        )
-                    )
+            passages = await AnnotationService.build_passages(
+                session, group.project_id, data.question, data.annotations
+            )
 
             tags = await TagService.resolve_tags(session, group.project_id, data.tag_ids)
 
@@ -329,6 +307,30 @@ class QuestionController(Controller):
 
         return QuestionService.to_question_detail(question)
 
+    @staticmethod
+    async def _copied_annotations(
+        session: AsyncSession,
+        question: Question,
+        current_revision: Version | None,
+        current_annotation_version: AnnotationVersion | None,
+        submitted: Sequence[AnnotationDTO] | None,
+    ) -> Sequence[Passage] | None:
+        """The annotations a new revision carries over; `None` starts it without a snapshot.
+
+        The editor moves annotations along with each text edit and submits them; other clients
+        leave that to `AnnotationMigrationService`.
+        """
+        if current_revision is None or current_annotation_version is None:
+            return None
+        current_annotations = current_annotation_version.annotations
+        if submitted is None:
+            return AnnotationMigrationService.retain_matching(
+                current_revision.question_string, question.question, current_annotations
+            )
+        project_id = await session.scalar(select(Group.project_id).where(Group.id == question.group_id))
+        passages = await AnnotationService.build_passages(session, project_id, question.question, submitted)
+        return None if current_annotations and not passages else passages
+
     @put(
         "/{question_id:uuid}",
         dto=QuestionUpdateDTO,
@@ -364,7 +366,6 @@ class QuestionController(Controller):
                 if current_revision
                 else None
             )
-            current_annotations = current_annotation_version.annotations if current_annotation_version else []
 
             if data.question is not None:
                 question.question = data.question
@@ -395,12 +396,8 @@ class QuestionController(Controller):
             if revision_changed:
                 question.editor_id = request.user.id
                 question.version_number = question.version_number + 1
-                copied_annotations = (
-                    AnnotationMigrationService.retain_matching(
-                        current_revision.question_string, question.question, current_annotations
-                    )
-                    if current_revision is not None
-                    else None
+                copied_annotations = await self._copied_annotations(
+                    session, question, current_revision, current_annotation_version, data.annotations
                 )
                 session.add(
                     Version(

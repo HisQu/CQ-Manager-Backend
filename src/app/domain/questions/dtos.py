@@ -228,6 +228,8 @@ class QuestionUpdate(QuestionMetadataMixin):
     question: str | None = None
     comment: str | None = None
     sparql_query: str | None = None
+    # The current annotations moved along with the edited text; derived on the server when omitted.
+    annotations: list[AnnotationDTO] | None = None
 
 
 class QuestionUpdateDTO(PydanticDTO[QuestionUpdate]):

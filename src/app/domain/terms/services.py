@@ -10,7 +10,7 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.base import ExecutableOption
 from sqlalchemy.sql.elements import ColumnElement
 
-from .dtos import AnnotationSetSaveDTO, TermCreate, TermUpdate
+from .dtos import AnnotationDTO, AnnotationSetSaveDTO, TermCreate, TermUpdate
 from .models import Passage, Term
 from domain.versions.models import AnnotationVersion, Version
 
@@ -137,6 +137,25 @@ class AnnotationService:
         # and accessing their attributes later can trigger async lazy loading.
         await session.flush()
         return model
+
+    @staticmethod
+    async def build_passages(
+        session: AsyncSession, project_id: UUID, text: str, annotations: Sequence[AnnotationDTO]
+    ) -> Sequence[Passage]:
+        """Validates every span against `text` before creating missing terms, then builds the passages."""
+        for annotation in annotations:
+            AnnotationService.validate_span(text, annotation.start, annotation.end, annotation.passage)
+        return [
+            Passage(
+                content=annotation.passage,
+                start=annotation.start,
+                end=annotation.end,
+                term=await AnnotationService.get_or_create_term(
+                    session, project_id, annotation.term, annotation.definition, annotation.concept_iri
+                ),
+            )
+            for annotation in annotations
+        ]
 
     @staticmethod
     async def create_term(session: AsyncSession, project_id: UUID, data: TermCreate) -> Term:
