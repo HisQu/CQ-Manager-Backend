@@ -395,8 +395,12 @@ class QuestionController(Controller):
             if revision_changed:
                 question.editor_id = request.user.id
                 question.version_number = question.version_number + 1
-                copied_annotations = AnnotationMigrationService.retain_if_offsets_match(
-                    question.question, current_annotations
+                copied_annotations = (
+                    AnnotationMigrationService.retain_matching(
+                        current_revision.question_string, question.question, current_annotations
+                    )
+                    if current_revision is not None
+                    else None
                 )
                 session.add(
                     Version(
