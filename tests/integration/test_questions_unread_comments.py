@@ -97,3 +97,31 @@ def test_mark_comments_read_unknown_question(test_client: TestClient[Litestar], 
         admin_header = login(client)
         response = client.post("/comments/00000000-0000-0000-0000-000000000000/read", headers=admin_header)
         assert response.status_code == 404, response.text
+
+
+def test_question_detail_identifies_each_comment_and_its_author(
+    test_client: TestClient[Litestar],
+    admin_header: Headers,
+) -> None:
+    with test_client as client:
+        admin_header = login(client)
+        engineer_header = login(client, ENGINEER_EMAIL)
+        project = create_project(client, admin_header, engineers=[ENGINEER_EMAIL])
+        group = create_group(client, admin_header, project["id"])
+        question = create_question(client, admin_header, group["id"])
+
+        try:
+            _comment(client, engineer_header, question["id"], "Engineer comment")
+            _comment(client, admin_header, question["id"], "Admin comment")
+
+            response = client.get(f"/questions/{question['id']}", headers=admin_header)
+            assert response.status_code == HTTP_200_OK, response.text
+            comments = response.json()["comments"]
+            # The frontend keys comments by id; without it a new comment reuses another comment's avatar.
+            assert len({comment["id"] for comment in comments}) == 2
+            assert {comment["comment"]: comment["author"]["email"] for comment in comments} == {
+                "Engineer comment": ENGINEER_EMAIL,
+                "Admin comment": ADMIN_EMAIL,
+            }
+        finally:
+            client.delete(f"/projects/{project['id']}", headers=admin_header)

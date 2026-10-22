@@ -108,6 +108,7 @@ class QuestionRating(BaseModel):
 
 
 class QuestionComment(BaseModel):
+    id: UUID
     comment: str
     created_at: datetime
     author: QuestionUser

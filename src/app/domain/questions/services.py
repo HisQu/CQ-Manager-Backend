@@ -347,6 +347,7 @@ class QuestionService:
             tags=QuestionService._to_tags(question),
             comments=[
                 QuestionComment(
+                    id=comment.id,
                     comment=comment.comment,
                     created_at=comment.created_at,
                     author=QuestionUser(
