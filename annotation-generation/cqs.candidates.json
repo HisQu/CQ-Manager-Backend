@@ -1,7 +1,7 @@
 {
-  "source": "cqs.json",
+  "source": "annotation-generation/cqs.json",
   "model": "de_core_news_sm",
-  "stopwords": "/home/patrickstahl/DigitalHumanities/CQ/CQ-Manager-Backend/stopwords.txt",
+  "stopwords": "/home/patrickstahl/DigitalHumanities/CQ/CQ-Manager-Backend/annotation-generation/stopwords.txt",
   "records": [
     {
       "id": "d3a878a6-622d-4d24-84f8-1d6aa7644317",
