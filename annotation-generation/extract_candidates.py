@@ -22,17 +22,21 @@ def load_stopwords(path: Path) -> set[str]:
 
 
 def trim_boundary_stopwords(span: Any, stopwords: set[str]) -> Any:
-    """Trim configured function words at a span boundary, without changing its interior."""
+    """Trim boundary determiners and configured function words, preserving the interior."""
     start = 0
     end = len(span)
     while start < end:
         token = span[start]
-        if token.text.casefold() not in stopwords or token.pos_ not in {"DET", "ADP", "PRON", "CCONJ", "SCONJ"}:
+        if token.pos_ != "DET" and not (
+            token.text.casefold() in stopwords and token.pos_ in {"ADP", "PRON", "CCONJ", "SCONJ"}
+        ):
             break
         start += 1
     while end > start:
         token = span[end - 1]
-        if token.text.casefold() not in stopwords or token.pos_ not in {"DET", "ADP", "PRON", "CCONJ", "SCONJ"}:
+        if token.pos_ != "DET" and not (
+            token.text.casefold() in stopwords and token.pos_ in {"ADP", "PRON", "CCONJ", "SCONJ"}
+        ):
             break
         end -= 1
     return span[start:end]
@@ -71,6 +75,8 @@ def extract_question(question: str, nlp: Any, stopwords: set[str]) -> list[dict[
     proposals.extend((entity, f"ner:{entity.label_}") for entity in doc.ents)
 
     for span, rule in proposals:
+        if rule == "noun_chunk" and not any(token.pos_ in {"NOUN", "PROPN"} for token in span):
+            continue
         candidate = candidate_from_span(span, rule, stopwords)
         if candidate is None:
             continue

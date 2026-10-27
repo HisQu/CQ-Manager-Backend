@@ -1,0 +1,14 @@
+# One word per line. Removes question-frame determiners
+# only at noun-phrase boundaries.
+welche
+welcher
+welches
+welchem
+welchen
+was
+wer
+wen
+wem
+whose
+which
+what

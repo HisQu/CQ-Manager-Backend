@@ -1418,7 +1418,7 @@
     "exampleAnswer": "Modellierung als zeitlich befristeter Status der Pfründe (specifically dependent continuant einer generically dependent continuant) ist mit BFO konsistent. Alternativ als Phase eines Pfründenlebenszyklus-process.",
     "type": "FCQ",
     "id": "1a4dd03d-a7a0-483a-8d49-6bd7604ff375",
-    "question": "Ist eine *Vakanz per obitum* in BFO als eigener Prozesszustand zu modellieren oder als Eigenschaft der Pfründe nach einem Tod-process-boundary?",
+    "question": "Ist eine Vakanz per obitum in BFO als eigener Prozesszustand zu modellieren oder als Eigenschaft der Pfründe nach einem Tod-process-boundary?",
     "comment": "Katalog-ID: D.5\n\nBereich: Bereich D — Pfründentransaktionen und -prozesse\n\nAnmerkung: Designentscheidung dokumentieren.",
     "cqCatalogueIdentifier": "K.6",
     "sparqlQuery": null,
