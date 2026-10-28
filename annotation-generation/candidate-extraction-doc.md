@@ -57,4 +57,6 @@ Unicode NFKC, case folding, and whitespace collapsing, but the proposed
 candidate's original text is preserved. Close comparisons require the same
 number of whitespace-separated words to reduce misleading matches between
 single- and multiword forms. Evidence includes the matched form and, for
-annotated text, the question and database offsets.
+annotated text, one example question per matched term. Match output omits
+internal term/question IDs and annotation offsets; candidate text offsets from
+step 1 remain available on the candidate itself.

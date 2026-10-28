@@ -110,27 +110,20 @@ def match_candidate(
     """Classify a candidate as exact, close, or none, retaining term evidence."""
     normalized_candidate = normalize_for_match(candidate["text"])
 
-    exact_annotation_matches = []
+    exact_annotation_matches: dict[str, dict[str, Any]] = {}
     for term in terms:
         for annotation in term["annotations"]:
-            if normalized_candidate == annotation["normalized_text"]:
-                exact_annotation_matches.append(
-                    {
-                        "term_id": term["id"],
-                        "term": term["label"],
-                        "matched_text": annotation["text"],
-                        "source": "annotated_text",
-                        "annotation_start": annotation["start"],
-                        "annotation_end": annotation["end"],
-                        "question_id": annotation["question_id"],
-                        "question": annotation["question"],
-                    }
-                )
+            if normalized_candidate == annotation["normalized_text"] and term["id"] not in exact_annotation_matches:
+                exact_annotation_matches[term["id"]] = {
+                    "term": term["label"],
+                    "matched_text": annotation["text"],
+                    "question": annotation["question"],
+                }
     if exact_annotation_matches:
-        return {"status": "exact", "source": "annotated_text", "matches": exact_annotation_matches}
+        return {"status": "exact", "matches": list(exact_annotation_matches.values())}
 
     exact_label_matches = [
-        {"term_id": term["id"], "term": term["label"], "matched_text": term["label"], "source": "glossary_label"}
+        {"term": term["label"], "matched_text": term["label"]}
         for term in terms
         if normalized_candidate == term["normalized_label"]
     ]
@@ -172,9 +165,19 @@ def match_candidate(
 
         if scores:
             best_score = max(item["score"] for item in scores.values())
-            best_evidence = [item for item in scores.values() if item["score"] == best_score]
+            best_evidence = min(
+                (item for item in scores.values() if item["score"] == best_score),
+                key=lambda item: (item["source"], item["matched_text"].casefold()),
+            )
+            compact_match = {
+                "term": term["label"],
+                "score": best_score,
+                "matched_text": best_evidence["matched_text"],
+            }
+            if "question" in best_evidence:
+                compact_match["question"] = best_evidence["question"]
             close_matches.append(
-                {"term_id": term["id"], "term": term["label"], "score": best_score, "evidence": best_evidence}
+                compact_match
             )
 
     close_matches.sort(key=lambda item: (-item["score"], item["term"].casefold()))
