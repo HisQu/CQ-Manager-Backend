@@ -64,6 +64,13 @@ once. All unresolved candidates in the same question therefore receive the
 same broader ranking. This also means that different terms annotated in the
 same reference question share that question's embedding.
 
+References from the candidate's own question are excluded before selecting
+examples and computing term scores. A reference is excluded when its question
+ID matches the input record's ID, or its question text is exactly identical
+(including when IDs are missing or different). Terms with no remaining
+examples are skipped. `example_count` reports the remaining eligible examples.
+This filtering reuses the existing embeddings and does not rebuild the cache.
+
 The candidate context is compared with every annotated context, grouped by
 glossary term. The term score is the mean of its best `k` context similarities
 (default `k=3`, or all available examples if fewer than three). Similarities

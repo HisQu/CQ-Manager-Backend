@@ -133,6 +133,7 @@ def match_contexts(
                     {
                         "record_index": record_index,
                         "candidate_index": candidate_index,
+                        "question_id": record.get("id"),
                         "context": question,
                         "key": _cache_key(question),
                     }
@@ -173,8 +174,20 @@ def match_contexts(
     for candidate_row, item in enumerate(pending):
         term_matches = []
         for term_id, reference_indices in references_by_term.items():
+            eligible_indices = [
+                index
+                for index in reference_indices
+                if reference_contexts[index]["context"] != item["context"]
+                and not (
+                    item["question_id"] is not None
+                    and reference_contexts[index]["annotation"].get("question_id") is not None
+                    and str(reference_contexts[index]["annotation"]["question_id"]) == str(item["question_id"])
+                )
+            ]
+            if not eligible_indices:
+                continue
             ranked_indices = sorted(
-                reference_indices,
+                eligible_indices,
                 key=lambda index: float(similarities[candidate_row, index]),
                 reverse=True,
             )[:top_k]
@@ -194,7 +207,7 @@ def match_contexts(
                 {
                     "term": term_labels[term_id],
                     "score": score,
-                    "example_count": len(reference_indices),
+                    "example_count": len(eligible_indices),
                     "evidence": evidence,
                 }
             )
@@ -221,6 +234,7 @@ def _metadata(
         "candidate_prefix": "query: " if model_name.startswith("intfloat/multilingual-e5") else "",
         "annotation_prefix": "query: " if model_name.startswith("intfloat/multilingual-e5") else "",
         "stopwords_removed": False,
+        "exclude_same_question": True,
         "threshold": threshold,
         "top_k_examples": top_k,
         "cache": (
