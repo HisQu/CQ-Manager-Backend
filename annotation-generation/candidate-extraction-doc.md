@@ -65,10 +65,10 @@ file is still used by candidate extraction.
 The candidate context is compared with every annotated context, grouped by
 glossary term. The term score is the mean of its best `k` context similarities
 (default `k=3`, or all available examples if fewer than three). Similarities
-are cosine scores from normalized embeddings. The three top glossary terms and
-their best supporting examples are included by default. `--context-threshold`
-defaults to a provisional `0.85`; calibrate it against reviewed examples
-before treating it as a reliable decision boundary.
+are cosine scores from normalized embeddings. The single highest-scoring term
+and its best supporting examples are included when its score reaches
+`--context-threshold` (default `0.92`). Otherwise the match status remains
+`none`.
 
 Step 1 reads only each record's `question` field. Candidates retain their
 original surface text and character offsets. Noun chunks must contain a
@@ -85,14 +85,12 @@ the original candidate text is preserved. Close comparisons require the same
 number of whitespace-separated words. Match output omits internal term and
 question IDs; candidate offsets remain on each candidate.
 
-Default options:
+Run with the default E5 model:
 
 ```sh
 uv run python main.py cqs.json \
-  --embedding-model sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2 \
-  --context-threshold 0.82 \
+  --context-threshold 0.92 \
   --context-top-k 3 \
-  --context-top-n 5 \
   --embedding-batch-size 32 \
   -o cqs.proposals.json
 ```
@@ -107,20 +105,16 @@ should not be committed. Override its path with `--embedding-cache`.
 ## Output
 
 Every candidate retains its original surface text and character offsets.
-`match` contains the existing narrow lexical result. `broader_match` contains
-one of these statuses:
-
-- `skipped`: a narrow match was already found.
-- `suggested`: the top context match reached the configured threshold.
-- `below_threshold`: ranked terms are present, but the top score is below the
-  threshold.
-- `no_examples`: no annotated contexts were available to compare.
-
-Each broader match includes its score, the number of annotated examples for
-that term, and the supporting question/context snippets. Top-level
-`context_matcher` metadata records the model, context strategy, threshold,
-aggregation, and cache path. Embedding vectors are not written to the proposal
-JSON.
+`match.status` classifies the result as `exact_text`, `exact_glossary`,
+`close_text`, `close_glossary`, `broad_embedding`, or `none`. Exact and close
+results keep their existing `matches` entries. A `broad_embedding` result uses
+the same `matches` field and contains only the single highest-scoring glossary
+term, its aggregated score, the number of available examples, and its
+supporting question/context snippets. The threshold is applied to decide
+between `broad_embedding` and `none`, but is not repeated on individual
+matches. Top-level `context_matcher` metadata records the model, context
+strategy, configured threshold, evidence count, and cache path. Embedding
+vectors are not written to the proposal JSON.
 
 ## Run narrow matching separately
 

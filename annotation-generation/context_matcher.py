@@ -153,33 +153,35 @@ def _embed_missing(
     return cached
 
 
-def _empty_result(status: str, reason: str) -> dict[str, Any]:
-    return {"status": status, "reason": reason, "matches": []}
-
-
 def match_contexts(
     document: dict[str, Any],
     glossary: dict[str, Any],
     nlp: Any,
     model_name: str = DEFAULT_EMBEDDING_MODEL,
-    threshold: float = 0.85,
+    threshold: float = 0.92,
     top_k: int = 3,
-    top_n: int = 3,
     batch_size: int = 32,
     cache_path: Path | None = None,
 ) -> dict[str, Any]:
     """Add broader context-to-usage rankings for candidates without narrow matches."""
     result = dict(document)
     result["records"] = []
+    matcher_metadata = result.get("matcher")
+    if isinstance(matcher_metadata, dict):
+        matcher_metadata = dict(matcher_metadata)
+        statuses = list(matcher_metadata.get("statuses", []))
+        if "broad_embedding" not in statuses:
+            statuses.append("broad_embedding")
+        matcher_metadata["statuses"] = statuses
+        result["matcher"] = matcher_metadata
     pending: list[dict[str, Any]] = []
     parsed_questions: dict[str, Any] = {}
     for record_index, record in enumerate(document.get("records", [])):
         new_candidates = []
         for candidate_index, candidate in enumerate(record.get("candidates", [])):
             narrow = candidate.get("match", {})
-            broader: dict[str, Any]
             if narrow.get("status") != "none":
-                broader = _empty_result("skipped", "narrow_match_found")
+                new_candidates.append(candidate)
             else:
                 question = record["question"]
                 if question not in parsed_questions:
@@ -195,20 +197,15 @@ def match_contexts(
                         "key": _cache_key(context),
                     }
                 )
-                broader = _empty_result("pending", "")
-            new_candidates.append({**candidate, "broader_match": broader})
+                new_candidates.append(candidate)
         result["records"].append({**record, "candidates": new_candidates})
 
     reference_contexts = _context_index(glossary, nlp, parsed_questions)
     if not pending:
-        result["context_matcher"] = _metadata(model_name, threshold, top_k, top_n, cache_path)
+        result["context_matcher"] = _metadata(model_name, threshold, top_k, cache_path)
         return result
     if not reference_contexts:
-        for item in pending:
-            result["records"][item["record_index"]]["candidates"][item["candidate_index"]]["broader_match"] = (
-                _empty_result("no_examples", "no_annotated_contexts")
-            )
-        result["context_matcher"] = _metadata(model_name, threshold, top_k, top_n, cache_path)
+        result["context_matcher"] = _metadata(model_name, threshold, top_k, cache_path)
         return result
 
     path = cache_path or Path(__file__).with_name(".cache") / "annotation-context-embeddings.json"
@@ -257,22 +254,18 @@ def match_contexts(
             term_matches.append(
                 {
                     "term": term_labels[term_id],
-                    "score": round(score, 4),
+                    "score": score,
                     "example_count": len(reference_indices),
                     "evidence": evidence,
                 }
             )
         term_matches.sort(key=lambda match: (-match["score"], match["term"].casefold()))
-        leading = term_matches[:top_n]
-        status = "suggested" if leading and leading[0]["score"] >= threshold else "below_threshold"
-        result["records"][item["record_index"]]["candidates"][item["candidate_index"]]["broader_match"] = {
-            "status": status,
-            "threshold": threshold,
-            "aggregation": f"mean_top_{top_k}",
-            "matches": leading,
-        }
+        if term_matches and term_matches[0]["score"] >= threshold:
+            candidate = result["records"][item["record_index"]]["candidates"][item["candidate_index"]]
+            best_match = {**term_matches[0], "score": round(term_matches[0]["score"], 4)}
+            candidate["match"] = {"status": "broad_embedding", "matches": [best_match]}
 
-    result["context_matcher"] = _metadata(model_name, threshold, top_k, top_n, path)
+    result["context_matcher"] = _metadata(model_name, threshold, top_k, path)
     return result
 
 
@@ -280,7 +273,6 @@ def _metadata(
     model_name: str,
     threshold: float,
     top_k: int,
-    top_n: int,
     cache_path: Path | None,
 ) -> dict[str, Any]:
     return {
@@ -291,9 +283,7 @@ def _metadata(
         "annotation_prefix": "query: " if model_name.startswith("intfloat/multilingual-e5") else "",
         "stopwords_removed": False,
         "threshold": threshold,
-        "aggregation": f"mean_top_{top_k}",
         "top_k_examples": top_k,
-        "top_n_terms": top_n,
         "cache": (
             str(cache_path)
             if cache_path is not None

@@ -181,7 +181,7 @@ def match_candidate(
 
     close_matches.sort(key=lambda item: (-item["score"], item["term"].casefold()))
     if close_matches:
-        return {"status": close_matches[0]["status"], "threshold": threshold, "matches": close_matches}
+        return {"status": close_matches[0]["status"], "matches": close_matches}
     return {"status": "none", "matches": []}
 
 

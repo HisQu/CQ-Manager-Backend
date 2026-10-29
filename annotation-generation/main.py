@@ -40,11 +40,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--context-threshold",
         type=float,
-        default=0.85,
-        help="Provisional minimum context score for a broader suggestion; calibrate against reviewed examples",
+        default=0.92,
+        help="Minimum cosine score for a broader embedding match",
     )
     parser.add_argument("--context-top-k", type=int, default=3, help="Annotated contexts averaged per glossary term")
-    parser.add_argument("--context-top-n", type=int, default=3, help="Glossary terms included in broader results")
     parser.add_argument("--embedding-batch-size", type=int, default=32, help="Texts embedded per model batch")
     parser.add_argument(
         "--embedding-cache",
@@ -62,11 +61,10 @@ def main() -> int:
         or args.jw_min_length < 1
         or not 0 <= args.context_threshold <= 1
         or args.context_top_k < 1
-        or args.context_top_n < 1
         or args.embedding_batch_size < 1
     ):
         print(
-            "Use thresholds between 0 and 1 and positive values for minimum length, context k/n, and batch size.",
+            "Use similarity thresholds between 0 and 1 and positive values for minimum length, context k, and batch size.",
             file=sys.stderr,
         )
         return 2
@@ -95,7 +93,6 @@ def main() -> int:
             model_name=args.embedding_model,
             threshold=args.context_threshold,
             top_k=args.context_top_k,
-            top_n=args.context_top_n,
             batch_size=args.embedding_batch_size,
             cache_path=args.embedding_cache,
         )
