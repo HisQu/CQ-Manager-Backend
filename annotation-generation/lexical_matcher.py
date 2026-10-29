@@ -120,7 +120,7 @@ def match_candidate(
                     "question": annotation["question"],
                 }
     if exact_annotation_matches:
-        return {"status": "exact", "matches": list(exact_annotation_matches.values())}
+        return {"status": "exact_text", "matches": list(exact_annotation_matches.values())}
 
     exact_label_matches = [
         {"term": term["label"], "matched_text": term["label"]}
@@ -128,7 +128,7 @@ def match_candidate(
         if normalized_candidate == term["normalized_label"]
     ]
     if exact_label_matches:
-        return {"status": "exact", "source": "glossary_label", "matches": exact_label_matches}
+        return {"status": "exact_glossary", "matches": exact_label_matches}
 
     if len(normalized_candidate) < minimum_length:
         return {"status": "none", "matches": []}
@@ -170,19 +170,18 @@ def match_candidate(
                 key=lambda item: (item["source"], item["matched_text"].casefold()),
             )
             compact_match = {
+                "status": "close_text" if best_evidence["source"] == "annotated_text" else "close_glossary",
                 "term": term["label"],
                 "score": best_score,
                 "matched_text": best_evidence["matched_text"],
             }
             if "question" in best_evidence:
                 compact_match["question"] = best_evidence["question"]
-            close_matches.append(
-                compact_match
-            )
+            close_matches.append(compact_match)
 
     close_matches.sort(key=lambda item: (-item["score"], item["term"].casefold()))
     if close_matches:
-        return {"status": "close", "threshold": threshold, "matches": close_matches}
+        return {"status": close_matches[0]["status"], "threshold": threshold, "matches": close_matches}
     return {"status": "none", "matches": []}
 
 
@@ -220,6 +219,7 @@ def match_document(
                 "jaro_winkler_threshold": threshold,
                 "jaro_winkler_min_length": minimum_length,
                 "close_match_requires_same_word_count": True,
+                "statuses": ["exact_text", "exact_glossary", "close_text", "close_glossary", "none"],
             },
         }
     )

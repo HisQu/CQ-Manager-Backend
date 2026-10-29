@@ -9,7 +9,8 @@ reads the SQLite database. It does not save annotations or create terms.
 
 - `candidate_extractor.py` contains the spaCy-based POS and noun-chunk rules.
 - `lexical_matcher.py` loads the glossary and current annotations, then assigns
-  `exact`, `close`, or `none` match results. Jaro-Winkler comes from the
+  `exact_text`, `exact_glossary`, `close_text`, `close_glossary`, or `none`
+  match results. Jaro-Winkler comes from the
   installed `jarowinkler` package.
 - `extract_candidates.py` runs step 1 by itself.
 - `match_candidates.py` runs step 2 on a step 1 JSON file.
@@ -51,12 +52,15 @@ Nested candidates are retained, while duplicate spans produced by noun
 chunking and named-entity recognition are merged.
 
 Step 2 first compares normalized candidate text with current annotated surface
-forms, then with glossary labels. If neither is exact, Jaro-Winkler compares
+forms (`exact_text`), then with glossary labels (`exact_glossary`). If neither
+is exact, Jaro-Winkler compares
 the candidate with those same lexical forms. Comparison normalization applies
 Unicode NFKC, case folding, and whitespace collapsing, but the proposed
 candidate's original text is preserved. Close comparisons require the same
 number of whitespace-separated words to reduce misleading matches between
-single- and multiword forms. Evidence includes the matched form and, for
+single- and multiword forms. Close results use `close_text` or `close_glossary`
+for each suggested term, based on whether its best evidence was an annotated
+surface form or a glossary label. Evidence includes the matched form and, for
 annotated text, one example question per matched term. Match output omits
 internal term/question IDs and annotation offsets; candidate text offsets from
 step 1 remain available on the candidate itself.
