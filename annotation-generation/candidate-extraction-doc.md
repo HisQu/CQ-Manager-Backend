@@ -1,66 +1,134 @@
 # CQ term candidate workflow
 
-The workflow reads the `question` field from a JSON array of CQ objects,
-proposes noun phrases and named entities, and matches each candidate against
-the selected project's glossary labels and current annotated text. It only
-reads the SQLite database. It does not save annotations or create terms.
+The workflow reads the `question` field from a JSON array of CQ objects and
+proposes candidate annotations. It extracts noun phrases and named entities,
+tries narrow lexical matching against the selected project's current glossary
+annotations and labels, then ranks broader matches by comparing masked usage
+contexts. It only reads the SQLite database. It does not save annotations or
+create terms.
 
-## Modules and command-line entry points
+## Modules and entry points
 
-- `candidate_extractor.py` contains the spaCy-based POS and noun-chunk rules.
-- `lexical_matcher.py` loads the glossary and current annotations, then assigns
-  `exact_text`, `exact_glossary`, `close_text`, `close_glossary`, or `none`
-  match results. Jaro-Winkler comes from the
-  installed `jarowinkler` package.
-- `extract_candidates.py` runs step 1 by itself.
-- `match_candidates.py` runs step 2 on a step 1 JSON file.
-- `main.py` runs both steps in memory as the full workflow.
+- `candidate_extractor.py` contains the spaCy POS, noun-chunk, and NER rules.
+- `lexical_matcher.py` loads glossary terms and current annotations, then
+  assigns `exact_text`, `exact_glossary`, `close_text`, `close_glossary`, or
+  `none` results.
+- `context_matcher.py` prepares masked sentence contexts, embeds them with
+  Sentence Transformers, caches annotation-context embeddings, and adds
+  broader context-to-usage rankings.
+- `main.py` runs extraction and both matching stages in memory.
+- `match_candidates.py` runs only the narrow lexical matcher on an existing
+  candidate JSON file.
 
 The German spaCy model is the default. Install it in the environment used to
 run the scripts if it is not already available:
 
 ```sh
-python -m spacy download de_core_news_sm
+uv run python -m spacy download de_core_news_sm
 ```
+
+The default embedding model is `intfloat/multilingual-e5-small`. Its files are
+downloaded the first time it is used and then reused from the local model
+cache. Other potentially relevant models are listed below and can be selected
+with `--embedding-model`:
+
+| Model | Notes |
+| --- | --- |
+| [`intfloat/multilingual-e5-small`](https://huggingface.co/intfloat/multilingual-e5-small) | Default; multilingual retrieval model. Both sides use the `query:` prefix for symmetric similarity. |
+| [`sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`](https://huggingface.co/sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2) | Smaller, straightforward multilingual sentence-similarity alternative; no E5 prefix is added. |
+| [`sentence-transformers/distiluse-base-multilingual-cased-v2`](https://huggingface.co/sentence-transformers/distiluse-base-multilingual-cased-v2) | Another multilingual sentence-embedding model to compare in later trials. |
+
+All sentence embeddings in one run use the same configured model. Changing the
+model invalidates the annotation embedding cache automatically.
 
 ## Full workflow
 
 Run from this directory:
 
 ```sh
-python main.py cqs.json -o cqs.proposals.json
+uv run python main.py cqs.json -o cqs.proposals.json
 ```
 
 The database defaults to `database/cq-database.sqlite`, and the stopword file
 defaults to `stopwords.txt`. When the database contains more than one project,
-select one with `--project "Project name"`. The matching defaults are a
+select one with `--project "Project name"`. The narrow matcher defaults to a
 Jaro-Winkler threshold of `0.90` and a minimum comparison length of four
 characters; change them with `--jw-threshold` and `--jw-min-length`.
 
-## Run the steps separately
+Context matching only runs for candidates whose narrow match status is
+`none`. It uses the candidate's sentence with the candidate span replaced by
+`[TERM]`, so the comparison emphasizes usage context rather than the repeated
+surface word. Existing annotated spans are masked the same way. Stopwords are
+kept in these sentence inputs to preserve grammar; the configured stopword
+file is still used by candidate extraction.
+
+The candidate context is compared with every annotated context, grouped by
+glossary term. The term score is the mean of its best `k` context similarities
+(default `k=3`, or all available examples if fewer than three). Similarities
+are cosine scores from normalized embeddings. The three top glossary terms and
+their best supporting examples are included by default. `--context-threshold`
+defaults to a provisional `0.85`; calibrate it against reviewed examples
+before treating it as a reliable decision boundary.
+
+Step 1 reads only each record's `question` field. Candidates retain their
+original surface text and character offsets. Noun chunks must contain a
+`NOUN` or `PROPN`; boundary determiners (`DET`) are trimmed automatically, and
+other configured function words are trimmed only when present in
+`stopwords.txt`. Nested candidates are retained, while duplicate spans from
+noun chunking and NER are merged.
+
+Step 2 compares normalized candidate text with current annotated surface forms
+(`exact_text`), then glossary labels (`exact_glossary`). If neither is exact,
+Jaro-Winkler compares the candidate with those lexical forms. Comparison
+normalization uses Unicode NFKC, case folding, and whitespace collapsing, but
+the original candidate text is preserved. Close comparisons require the same
+number of whitespace-separated words. Match output omits internal term and
+question IDs; candidate offsets remain on each candidate.
+
+Default options:
 
 ```sh
-python extract_candidates.py cqs.json -o cqs.candidates.json
-python match_candidates.py cqs.candidates.json -o cqs.matched.json
+uv run python main.py cqs.json \
+  --embedding-model sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2 \
+  --context-threshold 0.82 \
+  --context-top-k 3 \
+  --context-top-n 5 \
+  --embedding-batch-size 32 \
+  -o cqs.proposals.json
 ```
 
-Step 1 reads only each record's `question` field. Candidates retain exact
-surface text and character offsets. Noun chunks must contain a `NOUN` or
-`PROPN`; boundary determiners (`DET`) are trimmed automatically, and other
-configured function words are trimmed only when present in `stopwords.txt`.
-Nested candidates are retained, while duplicate spans produced by noun
-chunking and named-entity recognition are merged.
+The local annotation-context cache defaults to
+`annotation-generation/.cache/annotation-context-embeddings.json`. It reuses
+unchanged annotated-context vectors across runs. New candidate contexts are
+embedded for the current run; if an accepted annotation later becomes a
+reference example, its context is added to the cache. The cache is local and
+should not be committed. Override its path with `--embedding-cache`.
 
-Step 2 first compares normalized candidate text with current annotated surface
-forms (`exact_text`), then with glossary labels (`exact_glossary`). If neither
-is exact, Jaro-Winkler compares
-the candidate with those same lexical forms. Comparison normalization applies
-Unicode NFKC, case folding, and whitespace collapsing, but the proposed
-candidate's original text is preserved. Close comparisons require the same
-number of whitespace-separated words to reduce misleading matches between
-single- and multiword forms. Close results use `close_text` or `close_glossary`
-for each suggested term, based on whether its best evidence was an annotated
-surface form or a glossary label. Evidence includes the matched form and, for
-annotated text, one example question per matched term. Match output omits
-internal term/question IDs and annotation offsets; candidate text offsets from
-step 1 remain available on the candidate itself.
+## Output
+
+Every candidate retains its original surface text and character offsets.
+`match` contains the existing narrow lexical result. `broader_match` contains
+one of these statuses:
+
+- `skipped`: a narrow match was already found.
+- `suggested`: the top context match reached the configured threshold.
+- `below_threshold`: ranked terms are present, but the top score is below the
+  threshold.
+- `no_examples`: no annotated contexts were available to compare.
+
+Each broader match includes its score, the number of annotated examples for
+that term, and the supporting question/context snippets. Top-level
+`context_matcher` metadata records the model, context strategy, threshold,
+aggregation, and cache path. Embedding vectors are not written to the proposal
+JSON.
+
+## Run narrow matching separately
+
+`match_candidates.py` remains useful for step 2 without loading an embedding
+model:
+
+```sh
+uv run python match_candidates.py cqs.candidates.json -o cqs.matched.json
+```
+
+The full `main.py` workflow is required to produce broader context rankings.

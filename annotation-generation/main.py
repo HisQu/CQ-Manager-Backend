@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from candidate_extractor import extract_records, load_stopwords
+from context_matcher import DEFAULT_EMBEDDING_MODEL, match_contexts
 from lexical_matcher import load_glossary, match_document
 
 
@@ -31,14 +32,43 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--project", help="Glossary project name (auto-selected when there is only one project)")
     parser.add_argument("--jw-threshold", type=float, default=0.90, help="Minimum Jaro-Winkler score for close matches")
     parser.add_argument("--jw-min-length", type=int, default=4, help="Minimum form length for fuzzy comparison")
+    parser.add_argument(
+        "--embedding-model",
+        default=DEFAULT_EMBEDDING_MODEL,
+        help="Sentence Transformers model used for context matching",
+    )
+    parser.add_argument(
+        "--context-threshold",
+        type=float,
+        default=0.85,
+        help="Provisional minimum context score for a broader suggestion; calibrate against reviewed examples",
+    )
+    parser.add_argument("--context-top-k", type=int, default=3, help="Annotated contexts averaged per glossary term")
+    parser.add_argument("--context-top-n", type=int, default=3, help="Glossary terms included in broader results")
+    parser.add_argument("--embedding-batch-size", type=int, default=32, help="Texts embedded per model batch")
+    parser.add_argument(
+        "--embedding-cache",
+        type=Path,
+        help="Path for the local annotation-context embedding cache (default: annotation-generation/.cache)",
+    )
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
     output_path = args.output or args.input.with_name(f"{args.input.stem}.proposals.json")
-    if not 0 <= args.jw_threshold <= 1 or args.jw_min_length < 1:
-        print("Use a --jw-threshold between 0 and 1 and a --jw-min-length of at least 1.", file=sys.stderr)
+    if (
+        not 0 <= args.jw_threshold <= 1
+        or args.jw_min_length < 1
+        or not 0 <= args.context_threshold <= 1
+        or args.context_top_k < 1
+        or args.context_top_n < 1
+        or args.embedding_batch_size < 1
+    ):
+        print(
+            "Use thresholds between 0 and 1 and positive values for minimum length, context k/n, and batch size.",
+            file=sys.stderr,
+        )
         return 2
 
     try:
@@ -58,9 +88,20 @@ def main() -> int:
         result = match_document(
             extraction_document, glossary, args.jw_threshold, args.jw_min_length, args.database
         )
+        result = match_contexts(
+            result,
+            glossary,
+            nlp,
+            model_name=args.embedding_model,
+            threshold=args.context_threshold,
+            top_k=args.context_top_k,
+            top_n=args.context_top_n,
+            batch_size=args.embedding_batch_size,
+            cache_path=args.embedding_cache,
+        )
         output_path.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    except ImportError:
-        print("spaCy is required. Install it with `python -m pip install spacy`.", file=sys.stderr)
+    except ImportError as error:
+        print(f"A required Python dependency is missing: {error}", file=sys.stderr)
         return 2
     except OSError as error:
         print(f"Could not load input, spaCy model, database, or output: {error}", file=sys.stderr)
