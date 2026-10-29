@@ -3,7 +3,7 @@
 The workflow reads the `question` field from a JSON array of CQ objects and
 proposes candidate annotations. It extracts noun phrases and named entities,
 tries narrow lexical matching against the selected project's current glossary
-annotations and labels, then ranks broader matches by comparing masked usage
+annotations and labels, then ranks broader matches by comparing full question
 contexts. It only reads the SQLite database. It does not save annotations or
 create terms.
 
@@ -13,7 +13,7 @@ create terms.
 - `lexical_matcher.py` loads glossary terms and current annotations, then
   assigns `exact_text`, `exact_glossary`, `close_text`, `close_glossary`, or
   `none` results.
-- `context_matcher.py` prepares masked sentence contexts, embeds them with
+- `context_matcher.py` embeds full questions with the original term text using
   Sentence Transformers, caches annotation-context embeddings, and adds
   broader context-to-usage rankings.
 - `main.py` runs extraction and both matching stages in memory.
@@ -38,8 +38,8 @@ with `--embedding-model`:
 | [`sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`](https://huggingface.co/sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2) | Smaller, straightforward multilingual sentence-similarity alternative; no E5 prefix is added. |
 | [`sentence-transformers/distiluse-base-multilingual-cased-v2`](https://huggingface.co/sentence-transformers/distiluse-base-multilingual-cased-v2) | Another multilingual sentence-embedding model to compare in later trials. |
 
-All sentence embeddings in one run use the same configured model. Changing the
-model invalidates the annotation embedding cache automatically.
+All question embeddings in one run use the same configured model. Changing the
+model or context strategy invalidates the annotation embedding cache automatically.
 
 ## Full workflow
 
@@ -56,11 +56,13 @@ Jaro-Winkler threshold of `0.90` and a minimum comparison length of four
 characters; change them with `--jw-threshold` and `--jw-min-length`.
 
 Context matching only runs for candidates whose narrow match status is
-`none`. It uses the candidate's sentence with the candidate span replaced by
-`[TERM]`, so the comparison emphasizes usage context rather than the repeated
-surface word. Existing annotated spans are masked the same way. Stopwords are
-kept in these sentence inputs to preserve grammar; the configured stopword
-file is still used by candidate extraction.
+`none`. It embeds the complete, original question with the candidate text
+retained. Reference embeddings likewise retain the annotated text in the full
+question. Stopwords are kept to preserve grammar; the configured stopword file
+is still used by candidate extraction. Identical questions are embedded only
+once. All unresolved candidates in the same question therefore receive the
+same broader ranking. This also means that different terms annotated in the
+same reference question share that question's embedding.
 
 The candidate context is compared with every annotated context, grouped by
 glossary term. The term score is the mean of its best `k` context similarities
@@ -101,6 +103,8 @@ unchanged annotated-context vectors across runs. New candidate contexts are
 embedded for the current run; if an accepted annotation later becomes a
 reference example, its context is added to the cache. The cache is local and
 should not be committed. Override its path with `--embedding-cache`.
+The former masked-context cache is invalidated automatically and rebuilt on
+the next run.
 
 ## Output
 
@@ -110,7 +114,9 @@ Every candidate retains its original surface text and character offsets.
 results keep their existing `matches` entries. A `broad_embedding` result uses
 the same `matches` field and contains only the single highest-scoring glossary
 term, its aggregated score, the number of available examples, and its
-supporting question/context snippets. The threshold is applied to decide
+supporting annotated text, questions, and example scores. The redundant
+`context` field is omitted because the embedding input is the question itself.
+The threshold is applied to decide
 between `broad_embedding` and `none`, but is not repeated on individual
 matches. Top-level `context_matcher` metadata records the model, context
 strategy, configured threshold, evidence count, and cache path. Embedding

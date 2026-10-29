@@ -89,7 +89,6 @@ def main() -> int:
         result = match_contexts(
             result,
             glossary,
-            nlp,
             model_name=args.embedding_model,
             threshold=args.context_threshold,
             top_k=args.context_top_k,

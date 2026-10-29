@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import re
 from pathlib import Path
 from typing import Any
 
@@ -12,44 +11,12 @@ import numpy as np
 
 
 DEFAULT_EMBEDDING_MODEL = "intfloat/multilingual-e5-small"
-CACHE_VERSION = 1
-CONTEXT_STRATEGY = "spaCy sentence with candidate span replaced by [TERM] (v1)"
-
-
-def masked_context(
-    question: str,
-    start: int,
-    end: int,
-    nlp: Any,
-    doc: Any | None = None,
-) -> str:
-    """Return the candidate's sentence with its surface span replaced by [TERM]."""
-    if start < 0 or end < start or end > len(question):
-        raise ValueError(f"Invalid span offsets {start}:{end} for question of length {len(question)}.")
-
-    doc = doc if doc is not None else nlp(question)
-    sentence = next(
-        (sent for sent in doc.sents if sent.start_char <= start and end <= sent.end_char),
-        None,
-    )
-    if sentence is None:
-        left, right = 0, len(question)
-    else:
-        left, right = sentence.start_char, sentence.end_char
-
-    before = question[left:start].rstrip()
-    after = question[end:right].lstrip()
-    return re.sub(r"\s+", " ", f"{before} [TERM] {after}").strip()
+CACHE_VERSION = 2
+CONTEXT_STRATEGY = "Full question with candidate and annotation text retained (v2)"
 
 
 def _cache_key(context: str) -> str:
     return hashlib.sha256(context.encode("utf-8")).hexdigest()
-
-
-def _utf16_offset_to_index(text: str, offset: int) -> int:
-    """Convert the backend's UTF-16 code-unit offset to a Python string index."""
-    encoded_prefix = text.encode("utf-16-le", errors="surrogatepass")[: offset * 2]
-    return len(encoded_prefix.decode("utf-16-le", errors="surrogatepass"))
 
 
 def _load_cache(path: Path, project: str, model_name: str) -> dict[str, list[float]]:
@@ -83,37 +50,17 @@ def _save_cache(path: Path, project: str, model_name: str, embeddings: dict[str,
     path.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
 
 
-def _context_index(
-    glossary: dict[str, Any], nlp: Any, parsed_questions: dict[str, Any] | None = None
-) -> list[dict[str, Any]]:
+def _context_index(glossary: dict[str, Any]) -> list[dict[str, Any]]:
     contexts: list[dict[str, Any]] = []
-    parsed_questions = parsed_questions if parsed_questions is not None else {}
     for term in glossary["terms"]:
         for annotation in term["annotations"]:
             question = annotation["question"]
-            start = _utf16_offset_to_index(question, annotation["start"])
-            end = _utf16_offset_to_index(question, annotation["end"])
-            if question not in parsed_questions:
-                parsed_questions[question] = nlp(question)
-            doc = parsed_questions[question]
-            sentence = next(
-                (
-                    sent
-                    for sent in doc.sents
-                    if sent.start_char <= start <= end <= sent.end_char
-                ),
-                None,
-            )
-            left, right = (sentence.start_char, sentence.end_char) if sentence is not None else (0, len(question))
-            before = question[left:start].rstrip()
-            after = question[end:right].lstrip()
-            context = re.sub(r"\s+", " ", f"{before} [TERM] {after}").strip()
             contexts.append(
                 {
                     "term_id": term["id"],
                     "term": term["label"],
-                    "context": context,
-                    "key": _cache_key(context),
+                    "context": question,
+                    "key": _cache_key(question),
                     "annotation": annotation,
                 }
             )
@@ -156,7 +103,6 @@ def _embed_missing(
 def match_contexts(
     document: dict[str, Any],
     glossary: dict[str, Any],
-    nlp: Any,
     model_name: str = DEFAULT_EMBEDDING_MODEL,
     threshold: float = 0.92,
     top_k: int = 3,
@@ -175,7 +121,6 @@ def match_contexts(
         matcher_metadata["statuses"] = statuses
         result["matcher"] = matcher_metadata
     pending: list[dict[str, Any]] = []
-    parsed_questions: dict[str, Any] = {}
     for record_index, record in enumerate(document.get("records", [])):
         new_candidates = []
         for candidate_index, candidate in enumerate(record.get("candidates", [])):
@@ -184,23 +129,18 @@ def match_contexts(
                 new_candidates.append(candidate)
             else:
                 question = record["question"]
-                if question not in parsed_questions:
-                    parsed_questions[question] = nlp(question)
-                context = masked_context(
-                    question, candidate["start"], candidate["end"], nlp, parsed_questions[question]
-                )
                 pending.append(
                     {
                         "record_index": record_index,
                         "candidate_index": candidate_index,
-                        "context": context,
-                        "key": _cache_key(context),
+                        "context": question,
+                        "key": _cache_key(question),
                     }
                 )
                 new_candidates.append(candidate)
         result["records"].append({**record, "candidates": new_candidates})
 
-    reference_contexts = _context_index(glossary, nlp, parsed_questions)
+    reference_contexts = _context_index(glossary)
     if not pending:
         result["context_matcher"] = _metadata(model_name, threshold, top_k, cache_path)
         return result
@@ -248,7 +188,6 @@ def match_contexts(
                         "score": round(example_score, 4),
                         "annotated_text": annotation["text"],
                         "question": annotation["question"],
-                        "context": reference_contexts[index]["context"],
                     }
                 )
             term_matches.append(
