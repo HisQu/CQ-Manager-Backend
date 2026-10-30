@@ -11,8 +11,35 @@ import numpy as np
 
 
 DEFAULT_EMBEDDING_MODEL = "intfloat/multilingual-e5-small"
-CACHE_VERSION = 2
-CONTEXT_STRATEGY = "Full question with candidate and annotation text retained (v2)"
+# Number of word tokens on each side of the complete candidate/annotation span.
+NEIGHBORHOOD_SIZE = 2
+CACHE_VERSION = 3
+CONTEXT_STRATEGY = "Span retained with up to neighborhood_size words on each side (v3)"
+
+
+def neighborhood_context(doc: Any, start: int, end: int) -> str:
+    """Keep the span and available neighbors; offsets are Python character indices."""
+    if NEIGHBORHOOD_SIZE < 0:
+        raise ValueError("NEIGHBORHOOD_SIZE must be nonnegative.")
+    if not 0 <= start < end <= len(doc.text):
+        raise ValueError(f"Invalid span offsets {start}:{end} for question of length {len(doc.text)}.")
+    if NEIGHBORHOOD_SIZE == 0:
+        return doc.text[start:end]
+
+    words = [token for token in doc if not token.is_punct and not token.is_space]
+    before = [token for token in words if token.idx + len(token.text) <= start][-NEIGHBORHOOD_SIZE:]
+    after = [token for token in words if token.idx >= end][:NEIGHBORHOOD_SIZE]
+    left = before[0].idx if before else start
+    right = after[-1].idx + len(after[-1].text) if after else end
+    return doc.text[left:right]
+
+
+def _utf16_offset_to_index(text: str, offset: int) -> int:
+    """Convert stored annotation offsets from UTF-16 code units to Python indices."""
+    encoded = text.encode("utf-16-le")
+    if not 0 <= offset * 2 <= len(encoded):
+        raise ValueError(f"Invalid UTF-16 offset {offset}.")
+    return len(encoded[: offset * 2].decode("utf-16-le"))
 
 
 def _cache_key(context: str) -> str:
@@ -32,6 +59,7 @@ def _load_cache(path: Path, project: str, model_name: str) -> dict[str, list[flo
         or payload.get("project") != project
         or payload.get("model") != model_name
         or payload.get("context_strategy") != CONTEXT_STRATEGY
+        or payload.get("neighborhood_size") != NEIGHBORHOOD_SIZE
         or not isinstance(payload.get("embeddings"), dict)
     ):
         return {}
@@ -45,22 +73,28 @@ def _save_cache(path: Path, project: str, model_name: str, embeddings: dict[str,
         "project": project,
         "model": model_name,
         "context_strategy": CONTEXT_STRATEGY,
+        "neighborhood_size": NEIGHBORHOOD_SIZE,
         "embeddings": embeddings,
     }
     path.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
 
 
-def _context_index(glossary: dict[str, Any]) -> list[dict[str, Any]]:
+def _context_index(glossary: dict[str, Any], nlp: Any, tokenized_questions: dict[str, Any]) -> list[dict[str, Any]]:
     contexts: list[dict[str, Any]] = []
     for term in glossary["terms"]:
         for annotation in term["annotations"]:
             question = annotation["question"]
+            if question not in tokenized_questions:
+                tokenized_questions[question] = nlp.make_doc(question)
+            start = _utf16_offset_to_index(question, annotation["start"])
+            end = _utf16_offset_to_index(question, annotation["end"])
+            context = neighborhood_context(tokenized_questions[question], start, end)
             contexts.append(
                 {
                     "term_id": term["id"],
                     "term": term["label"],
-                    "context": question,
-                    "key": _cache_key(question),
+                    "context": context,
+                    "key": _cache_key(context),
                     "annotation": annotation,
                 }
             )
@@ -103,6 +137,7 @@ def _embed_missing(
 def match_contexts(
     document: dict[str, Any],
     glossary: dict[str, Any],
+    nlp: Any,
     model_name: str = DEFAULT_EMBEDDING_MODEL,
     threshold: float = 0.92,
     top_k: int = 3,
@@ -110,6 +145,8 @@ def match_contexts(
     cache_path: Path | None = None,
 ) -> dict[str, Any]:
     """Add broader context-to-usage rankings for candidates without narrow matches."""
+    if NEIGHBORHOOD_SIZE < 0:
+        raise ValueError("NEIGHBORHOOD_SIZE must be nonnegative.")
     result = dict(document)
     result["records"] = []
     matcher_metadata = result.get("matcher")
@@ -121,6 +158,7 @@ def match_contexts(
         matcher_metadata["statuses"] = statuses
         result["matcher"] = matcher_metadata
     pending: list[dict[str, Any]] = []
+    tokenized_questions: dict[str, Any] = {}
     for record_index, record in enumerate(document.get("records", [])):
         new_candidates = []
         for candidate_index, candidate in enumerate(record.get("candidates", [])):
@@ -129,19 +167,23 @@ def match_contexts(
                 new_candidates.append(candidate)
             else:
                 question = record["question"]
+                if question not in tokenized_questions:
+                    tokenized_questions[question] = nlp.make_doc(question)
+                context = neighborhood_context(tokenized_questions[question], candidate["start"], candidate["end"])
                 pending.append(
                     {
                         "record_index": record_index,
                         "candidate_index": candidate_index,
                         "question_id": record.get("id"),
-                        "context": question,
-                        "key": _cache_key(question),
+                        "question": question,
+                        "context": context,
+                        "key": _cache_key(context),
                     }
                 )
                 new_candidates.append(candidate)
         result["records"].append({**record, "candidates": new_candidates})
 
-    reference_contexts = _context_index(glossary)
+    reference_contexts = _context_index(glossary, nlp, tokenized_questions)
     if not pending:
         result["context_matcher"] = _metadata(model_name, threshold, top_k, cache_path)
         return result
@@ -177,7 +219,7 @@ def match_contexts(
             eligible_indices = [
                 index
                 for index in reference_indices
-                if reference_contexts[index]["context"] != item["context"]
+                if reference_contexts[index]["annotation"]["question"] != item["question"]
                 and not (
                     item["question_id"] is not None
                     and reference_contexts[index]["annotation"].get("question_id") is not None
@@ -201,6 +243,7 @@ def match_contexts(
                         "score": round(example_score, 4),
                         "annotated_text": annotation["text"],
                         "question": annotation["question"],
+                        "context": reference_contexts[index]["context"],
                     }
                 )
             term_matches.append(
@@ -231,6 +274,7 @@ def _metadata(
         "model": model_name,
         "similarity": "cosine",
         "context_strategy": CONTEXT_STRATEGY,
+        "neighborhood_size": NEIGHBORHOOD_SIZE,
         "candidate_prefix": "query: " if model_name.startswith("intfloat/multilingual-e5") else "",
         "annotation_prefix": "query: " if model_name.startswith("intfloat/multilingual-e5") else "",
         "stopwords_removed": False,

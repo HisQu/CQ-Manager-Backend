@@ -3,8 +3,8 @@
 The workflow reads the `question` field from a JSON array of CQ objects and
 proposes candidate annotations. It extracts noun phrases and named entities,
 tries narrow lexical matching against the selected project's current glossary
-annotations and labels, then ranks broader matches by comparing full question
-contexts. It only reads the SQLite database. It does not save annotations or
+annotations and labels, then ranks broader matches by comparing local word
+neighborhoods. It only reads the SQLite database. It does not save annotations or
 create terms.
 
 ## Modules and entry points
@@ -13,7 +13,7 @@ create terms.
 - `lexical_matcher.py` loads glossary terms and current annotations, then
   assigns `exact_text`, `exact_glossary`, `close_text`, `close_glossary`, or
   `none` results.
-- `context_matcher.py` embeds full questions with the original term text using
+- `context_matcher.py` embeds local neighborhoods with the original term text using
   Sentence Transformers, caches annotation-context embeddings, and adds
   broader context-to-usage rankings.
 - `main.py` runs extraction and both matching stages in memory.
@@ -38,8 +38,9 @@ with `--embedding-model`:
 | [`sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`](https://huggingface.co/sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2) | Smaller, straightforward multilingual sentence-similarity alternative; no E5 prefix is added. |
 | [`sentence-transformers/distiluse-base-multilingual-cased-v2`](https://huggingface.co/sentence-transformers/distiluse-base-multilingual-cased-v2) | Another multilingual sentence-embedding model to compare in later trials. |
 
-All question embeddings in one run use the same configured model. Changing the
-model or context strategy invalidates the annotation embedding cache automatically.
+All context embeddings in one run use the same configured model. Changing the
+model, context strategy, or neighborhood size invalidates the annotation
+embedding cache automatically.
 
 ## Full workflow
 
@@ -56,13 +57,20 @@ Jaro-Winkler threshold of `0.90` and a minimum comparison length of four
 characters; change them with `--jw-threshold` and `--jw-min-length`.
 
 Context matching only runs for candidates whose narrow match status is
-`none`. It embeds the complete, original question with the candidate text
-retained. Reference embeddings likewise retain the annotated text in the full
-question. Stopwords are kept to preserve grammar; the configured stopword file
-is still used by candidate extraction. Identical questions are embedded only
-once. All unresolved candidates in the same question therefore receive the
-same broader ranking. This also means that different terms annotated in the
-same reference question share that question's embedding.
+`none`. It embeds the complete candidate span plus up to two word tokens before
+and after it. Set `NEIGHBORHOOD_SIZE` in `context_matcher.py` to change this
+window; zero embeds only the span. The same rule applies to existing annotated
+spans. Stopwords are retained. Punctuation and whitespace tokens do not count
+toward the neighborhood size, but punctuation between the selected words is
+preserved. Identical context strings are embedded only once.
+
+At the start or end of a question, the window uses only the words available
+on that side. There is no padding, placeholder, or expansion on the other
+side to compensate. For `Bischöfe beantragten einen Dispens.`, the two-word
+windows are `Bischöfe beantragten einen` for `Bischöfe`, and
+`beantragten einen Dispens` for `Dispens`. Multiword spans are kept in full,
+regardless of window size. Candidate offsets are Python character indices;
+stored annotation offsets are converted from UTF-16 before extracting windows.
 
 References from the candidate's own question are excluded before selecting
 examples and computing term scores. A reference is excluded when its question
@@ -76,7 +84,7 @@ glossary term. The term score is the mean of its best `k` context similarities
 (default `k=3`, or all available examples if fewer than three). Similarities
 are cosine scores from normalized embeddings. The single highest-scoring term
 and its best supporting examples are included when its score reaches
-`--context-threshold` (default `0.92`). Otherwise the match status remains
+`--context-threshold` (CLI default `0.85`). Otherwise the match status remains
 `none`.
 
 Step 1 reads only each record's `question` field. Candidates retain their
@@ -110,8 +118,8 @@ unchanged annotated-context vectors across runs. New candidate contexts are
 embedded for the current run; if an accepted annotation later becomes a
 reference example, its context is added to the cache. The cache is local and
 should not be committed. Override its path with `--embedding-cache`.
-The former masked-context cache is invalidated automatically and rebuilt on
-the next run.
+Earlier masked- or full-question caches are invalidated automatically and
+rebuilt on the next run. Editing `NEIGHBORHOOD_SIZE` also triggers a rebuild.
 
 ## Output
 
@@ -121,12 +129,12 @@ Every candidate retains its original surface text and character offsets.
 results keep their existing `matches` entries. A `broad_embedding` result uses
 the same `matches` field and contains only the single highest-scoring glossary
 term, its aggregated score, the number of available examples, and its
-supporting annotated text, questions, and example scores. The redundant
-`context` field is omitted because the embedding input is the question itself.
+supporting annotated text, questions, example scores, and actual neighborhood
+strings in the evidence `context` field.
 The threshold is applied to decide
 between `broad_embedding` and `none`, but is not repeated on individual
 matches. Top-level `context_matcher` metadata records the model, context
-strategy, configured threshold, evidence count, and cache path. Embedding
+strategy, neighborhood size, configured threshold, evidence count, and cache path. Embedding
 vectors are not written to the proposal JSON.
 
 ## Run narrow matching separately

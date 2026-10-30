@@ -40,7 +40,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--context-threshold",
         type=float,
-        default=0.92,
+        default=0.85,
         help="Minimum cosine score for a broader embedding match",
     )
     parser.add_argument("--context-top-k", type=int, default=3, help="Annotated contexts averaged per glossary term")
@@ -89,6 +89,7 @@ def main() -> int:
         result = match_contexts(
             result,
             glossary,
+            nlp,
             model_name=args.embedding_model,
             threshold=args.context_threshold,
             top_k=args.context_top_k,
