@@ -19,7 +19,8 @@ WORKDIR /usr/src/app
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 COPY pyproject.toml uv.lock ./
 
-RUN uv sync --frozen --no-dev --no-install-project
+RUN uv sync --frozen --no-dev --no-install-project \
+    && uv run python -m spacy download de_core_news_sm
 
 COPY src ./src
 

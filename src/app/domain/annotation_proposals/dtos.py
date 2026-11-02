@@ -1,0 +1,40 @@
+from typing import Any
+from uuid import UUID
+
+from lib.dto import BaseModel
+from litestar.contrib.pydantic import PydanticDTO
+from litestar.dto import DTOConfig
+from pydantic import Field
+
+
+class AnnotationProposalRequest(BaseModel):
+    revision_id: UUID
+    text: str = Field(min_length=1, max_length=20000)
+
+
+class AnnotationProposalRequestDTO(PydanticDTO[AnnotationProposalRequest]):
+    config = DTOConfig(rename_strategy="camel")
+
+
+class AnnotationCandidate(BaseModel):
+    text: str
+    start: int
+    end: int
+    lemma: str
+    rule: str
+    tokens: list[dict[str, str]]
+    match_status: str
+    matches: list[dict[str, Any]]
+    suggested_term: dict[str, Any]
+
+
+class AnnotationProposalResponse(BaseModel):
+    question_id: UUID
+    revision_id: UUID
+    candidates: list[AnnotationCandidate]
+    matcher: dict[str, Any]
+    context_matcher: dict[str, Any]
+
+
+class AnnotationProposalResponseDTO(PydanticDTO[AnnotationProposalResponse]):
+    config = DTOConfig(rename_strategy="camel")

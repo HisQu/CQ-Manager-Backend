@@ -13,6 +13,12 @@ A student project by:
 ## Functionality
 This tool enables team collaboration on Competency Questions for Ontologies.
 
+### Annotation proposals
+
+`POST /annotation-proposals/project/{project_id}/questions/{question_id}` accepts a `revisionId` and the question `text` currently shown in the editor. It returns candidate spans with UTF-16 offsets, glossary matches, and a suggested term; unmatched candidates receive a term suggestion with outer whitespace and punctuation trimmed. The endpoint is read-only and requires project participation. It only accepts the latest question revision as its base, while allowing unsaved text to be analyzed.
+
+Candidate extraction uses the German spaCy model by default. `CQ_ANNOTATION_SPACY_MODEL`, `CQ_ANNOTATION_LEXICAL_THRESHOLD`, `CQ_ANNOTATION_CONTEXT_MODEL`, `CQ_ANNOTATION_CONTEXT_THRESHOLD`, and `CQ_ANNOTATION_CONTEXT_CACHE` can configure model selection, thresholds, and the local embedding cache. The spaCy model is installed in the Docker image; Sentence Transformers downloads its configured embedding model on first use if it is not already cached.
+
 ## Roles
 
 The backend currently distinguishes the following roles and access levels:
