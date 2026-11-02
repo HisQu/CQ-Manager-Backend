@@ -4918,6 +4918,9 @@ components:
       type: object
     ProposeAnnotationProposalRequestRequestBody:
       properties:
+        excludeAnnotated:
+          default: true
+          type: boolean
         revisionId:
           format: uuid
           type: string

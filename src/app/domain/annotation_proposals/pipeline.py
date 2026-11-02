@@ -55,6 +55,7 @@ def generate_proposals(
     glossary: dict[str, Any],
     question_id: str,
     *,
+    excluded_spans: list[tuple[int, int]] | None = None,
     nlp: Any | None = None,
     context_model: str = DEFAULT_CONTEXT_MODEL,
     context_threshold: float = DEFAULT_CONTEXT_THRESHOLD,
@@ -68,6 +69,7 @@ def generate_proposals(
     version of the candidate as a suggestion for a new term.
     """
     nlp = nlp or load_language_model()
+    excluded_span_set = set(excluded_spans or [])
     # prevent concurrent access to the spaCy model and the context embedding model, which are not thread-safe
     with _PIPELINE_LOCK:
         document = {
@@ -77,7 +79,15 @@ def generate_proposals(
                 {
                     "id": question_id,
                     "question": text,
-                    "candidates": extract_question(text, nlp, load_stopwords(STOPWORDS_PATH)),
+                    "candidates": [
+                        candidate
+                        for candidate in extract_question(text, nlp, load_stopwords(STOPWORDS_PATH))
+                        if (
+                            to_utf16_offset(text, candidate["start"]),
+                            to_utf16_offset(text, candidate["end"]),
+                        )
+                        not in excluded_span_set
+                    ],
                 }
             ],
         }

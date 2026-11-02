@@ -10,6 +10,7 @@ from pydantic import Field
 class AnnotationProposalRequest(BaseModel):
     revision_id: UUID
     text: str = Field(min_length=1, max_length=20000)
+    exclude_annotated: bool = True
 
 
 class AnnotationProposalRequestDTO(PydanticDTO[AnnotationProposalRequest]):

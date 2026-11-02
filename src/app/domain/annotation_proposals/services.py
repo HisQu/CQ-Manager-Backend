@@ -48,12 +48,28 @@ class AnnotationProposalService:
             )
 
         glossary = await AnnotationProposalService._load_glossary(session, project_id)
+        excluded_spans: list[tuple[int, int]] = []
+        if data.exclude_annotated:
+            latest_annotation_version_id = await session.scalar(
+                select(AnnotationVersion.id)
+                .where(AnnotationVersion.question_version_id == revision.id)
+                .order_by(AnnotationVersion.version_number.desc())
+                .limit(1)
+            )
+            if latest_annotation_version_id is not None:
+                saved_passages = await session.execute(
+                    select(Passage.start, Passage.end).where(
+                        Passage.annotation_version_id == latest_annotation_version_id
+                    )
+                )
+                excluded_spans = [(start, end) for start, end in saved_passages.all()]
         try:
             result = await asyncio.to_thread(
                 generate_proposals,
                 data.text,
                 glossary,
                 str(question_id),
+                excluded_spans=excluded_spans,
             )
         except (ImportError, OSError, RuntimeError, ValueError) as error:
             raise HTTPException(
@@ -76,7 +92,11 @@ class AnnotationProposalService:
             question_id=question_id,
             question_version_id=revision.id,
             proposer_id=proposer_id,
-            matcher_metadata={"matcher": result["matcher"], "contextMatcher": result["context_matcher"]},
+            matcher_metadata={
+                "matcher": result["matcher"],
+                "contextMatcher": result["context_matcher"],
+                "excludeAnnotated": data.exclude_annotated,
+            },
         )
         session.add(run)
         await session.flush()
