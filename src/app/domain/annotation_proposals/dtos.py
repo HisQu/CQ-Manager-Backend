@@ -16,7 +16,16 @@ class AnnotationProposalRequestDTO(PydanticDTO[AnnotationProposalRequest]):
     config = DTOConfig(rename_strategy="camel")
 
 
+class AnnotationProposalReviewRequest(BaseModel):
+    reject: bool = False
+
+
+class AnnotationProposalReviewRequestDTO(PydanticDTO[AnnotationProposalReviewRequest]):
+    config = DTOConfig(rename_strategy="camel")
+
+
 class AnnotationCandidate(BaseModel):
+    proposal_id: UUID
     text: str
     start: int
     end: int
@@ -31,6 +40,7 @@ class AnnotationCandidate(BaseModel):
 class AnnotationProposalResponse(BaseModel):
     question_id: UUID
     revision_id: UUID
+    proposal_run_id: UUID | None
     candidates: list[AnnotationCandidate]
     matcher: dict[str, Any]
     context_matcher: dict[str, Any]

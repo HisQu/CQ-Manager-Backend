@@ -106,10 +106,22 @@ def generate_proposals(
         matches = candidate["match"].get("matches", [])
         if matches:
             chosen = terms_by_label[matches[0]["term"]]
-            suggestion = {"id": chosen["id"], "content": chosen["label"], "isNew": False}
+            suggestion = {
+                "id": chosen["id"],
+                "content": chosen["label"],
+                "definition": chosen.get("definition"),
+                "conceptIri": chosen.get("concept_iri"),
+                "isNew": False,
+            }
         else:
             normalized = normalize_unmatched_term(candidate["text"])
-            suggestion = {"id": None, "content": normalized, "isNew": True}
+            suggestion = {
+                "id": None,
+                "content": normalized,
+                "definition": None,
+                "conceptIri": None,
+                "isNew": True,
+            }
         proposals.append(
             {
                 **candidate,

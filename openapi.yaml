@@ -4942,6 +4942,11 @@ components:
         matcher:
           additionalProperties: {}
           type: object
+        proposalRunId:
+          oneOf:
+          - format: uuid
+            type: string
+          - type: 'null'
         questionId:
           format: uuid
           type: string
@@ -4969,6 +4974,9 @@ components:
             additionalProperties: {}
             type: object
           type: array
+        proposalId:
+          format: uuid
+          type: string
         rule:
           type: string
         start:
@@ -4989,12 +4997,116 @@ components:
       - lemma
       - matchStatus
       - matches
+      - proposalId
       - rule
       - start
       - suggestedTerm
       - text
       - tokens
       title: ProposeAnnotationCandidateResponseBody
+      type: object
+    ReviewAnnotationProposalReviewRequestRequestBody:
+      properties:
+        reject:
+          default: false
+          type: boolean
+      required: []
+      title: ReviewAnnotationProposalReviewRequestRequestBody
+      type: object
+    SaveAnnotationVersionAnnotationSetSaveDTORequestBody:
+      properties:
+        annotations:
+          items:
+            $ref: '#/components/schemas/SaveAnnotationVersionAnnotationSetSaveDTO_0AnnotationDTORequestBody'
+          type: array
+        baseAnnotationVersionId:
+          oneOf:
+          - format: uuid
+            type: string
+          - type: 'null'
+        proposalRunId:
+          oneOf:
+          - format: uuid
+            type: string
+          - type: 'null'
+      required:
+      - annotations
+      title: SaveAnnotationVersionAnnotationSetSaveDTORequestBody
+      type: object
+    SaveAnnotationVersionAnnotationSetSaveDTO_0AnnotationDTORequestBody:
+      properties:
+        conceptIri:
+          oneOf:
+          - type: string
+          - type: 'null'
+        definition:
+          oneOf:
+          - type: string
+          - type: 'null'
+        end:
+          exclusiveMinimum: 0.0
+          type: integer
+        passage:
+          type: string
+        start:
+          minimum: 0.0
+          type: integer
+        term:
+          type: string
+      required:
+      - end
+      - passage
+      - start
+      - term
+      title: SaveAnnotationVersionAnnotationSetSaveDTO_0AnnotationDTORequestBody
+      type: object
+    SaveAnnotationVersionAnnotationVersionReadResponseBody:
+      properties:
+        annotations:
+          items:
+            $ref: '#/components/schemas/SaveAnnotationVersionAnnotationVersionRead_0PassageReadResponseBody'
+          type: array
+        editorId:
+          format: uuid
+          type: string
+        id:
+          format: uuid
+          type: string
+        questionVersionId:
+          format: uuid
+          type: string
+        retainedFromAnnotationVersionId:
+          oneOf:
+          - format: uuid
+            type: string
+          - type: 'null'
+        versionNumber:
+          type: integer
+      required:
+      - annotations
+      - editorId
+      - id
+      - questionVersionId
+      - versionNumber
+      title: SaveAnnotationVersionAnnotationVersionReadResponseBody
+      type: object
+    SaveAnnotationVersionAnnotationVersionRead_0PassageReadResponseBody:
+      properties:
+        content:
+          type: string
+        end:
+          type: integer
+        id:
+          format: uuid
+          type: string
+        start:
+          type: integer
+      required:
+      - content
+      - end
+      - id
+      - start
+      title: SaveAnnotationVersionAnnotationVersionRead_0PassageReadResponseBody
       type: object
     QuestionConsolidationRole:
       enum:
@@ -7446,6 +7558,46 @@ paths:
           description: Request fulfilled, document follows
           headers: {}
       summary: Propose annotations for a question
+      tags:
+      - Annotation Proposals
+  /annotation-proposals/project/{project_id}/questions/{question_id}/runs/{run_id}/review:
+    put:
+      deprecated: false
+      description: Record whether proposed spans and terms were retained in the final staged annotation set.
+      operationId: AnnotationProposalsProjectProjectIdQuestionsQuestionIdRunsRunIdReviewReview
+      parameters:
+      - deprecated: false
+        in: path
+        name: project_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - deprecated: false
+        in: path
+        name: question_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - deprecated: false
+        in: path
+        name: run_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewAnnotationProposalReviewRequestRequestBody'
+        required: true
+      responses:
+        '204':
+          description: Request fulfilled, nothing follows
+          headers: {}
+      summary: Record annotation proposal review
       tags:
       - Annotation Proposals
   /comments:
@@ -10231,6 +10383,43 @@ paths:
                 type: object
           description: Bad request syntax or unsupported method
       summary: Get Passages by Question
+      tags:
+      - Terms
+  /terms/question/{question_id}/revisions/{revision_id}/annotations:
+    put:
+      deprecated: false
+      description: Stores the submitted annotation set as a new immutable snapshot.
+      operationId: TermsQuestionQuestionIdRevisionsRevisionIdAnnotationsSaveAnnotationVersion
+      parameters:
+      - deprecated: false
+        in: path
+        name: question_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - deprecated: false
+        in: path
+        name: revision_id
+        required: true
+        schema:
+          format: uuid
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveAnnotationVersionAnnotationSetSaveDTORequestBody'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaveAnnotationVersionAnnotationVersionReadResponseBody'
+          description: Request fulfilled, document follows
+          headers: {}
+      summary: Save an Annotation Version
       tags:
       - Terms
   /terms/remove/{question_id}:

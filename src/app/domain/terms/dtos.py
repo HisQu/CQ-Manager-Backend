@@ -49,6 +49,7 @@ class AnnotationDTO(BaseModel):
 
 class AnnotationSetSaveDTO(BaseModel):
     base_annotation_version_id: UUID | None = None
+    proposal_run_id: UUID | None = None
     annotations: list[AnnotationDTO]
 
 

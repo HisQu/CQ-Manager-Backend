@@ -258,6 +258,20 @@ class AnnotationService:
             if identity in seen_spans:
                 raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="Duplicate annotation occurrence.")
             seen_spans.add(identity)
+
+        if data.proposal_run_id is not None:
+            from domain.annotation_proposals.services import AnnotationProposalService
+
+            await AnnotationProposalService.record_review(
+                session,
+                project_id,
+                question_id,
+                data.proposal_run_id,
+                revision_id,
+                data.annotations,
+                editor_id,
+            )
+
         snapshot = AnnotationVersion(
             question_version_id=revision.id,
             version_number=latest_number + 1,
