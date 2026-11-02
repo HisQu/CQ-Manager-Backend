@@ -139,6 +139,24 @@ class AnnotationService:
         return model
 
     @staticmethod
+    async def term_for_annotation(
+        session: AsyncSession, project_id: UUID, annotation: AnnotationDTO
+    ) -> Term:
+        """Resolve an annotation's glossary term and apply any submitted metadata."""
+        term = await AnnotationService.get_or_create_term(
+            session,
+            project_id,
+            annotation.term,
+            annotation.definition,
+            annotation.concept_iri,
+        )
+        if "definition" in annotation.model_fields_set:
+            term.definition = annotation.definition
+        if "concept_iri" in annotation.model_fields_set:
+            term.concept_iri = annotation.concept_iri
+        return term
+
+    @staticmethod
     async def build_passages(
         session: AsyncSession, project_id: UUID, text: str, annotations: Sequence[AnnotationDTO]
     ) -> Sequence[Passage]:
@@ -150,9 +168,7 @@ class AnnotationService:
                 content=annotation.passage,
                 start=annotation.start,
                 end=annotation.end,
-                term=await AnnotationService.get_or_create_term(
-                    session, project_id, annotation.term, annotation.definition, annotation.concept_iri
-                ),
+                term=await AnnotationService.term_for_annotation(session, project_id, annotation),
             )
             for annotation in annotations
         ]
@@ -286,17 +302,7 @@ class AnnotationService:
         snapshot_id = snapshot.id
 
         for annotation in data.annotations:
-            term = await AnnotationService.get_or_create_term(
-                session,
-                project_id,
-                annotation.term,
-                annotation.definition,
-                annotation.concept_iri,
-            )
-            if "definition" in annotation.model_fields_set:
-                term.definition = annotation.definition
-            if "concept_iri" in annotation.model_fields_set:
-                term.concept_iri = annotation.concept_iri
+            term = await AnnotationService.term_for_annotation(session, project_id, annotation)
             session.add(
                 Passage(
                     content=annotation.passage,

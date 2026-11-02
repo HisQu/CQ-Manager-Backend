@@ -4924,13 +4924,8 @@ components:
         revisionId:
           format: uuid
           type: string
-        text:
-          maxLength: 20000
-          minLength: 1
-          type: string
       required:
       - revisionId
-      - text
       title: ProposeAnnotationProposalRequestRequestBody
       type: object
     ProposeAnnotationProposalResponseResponseBody:

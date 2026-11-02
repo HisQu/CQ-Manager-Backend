@@ -4,12 +4,9 @@ from uuid import UUID
 from lib.dto import BaseModel
 from litestar.contrib.pydantic import PydanticDTO
 from litestar.dto import DTOConfig
-from pydantic import Field
-
 
 class AnnotationProposalRequest(BaseModel):
     revision_id: UUID
-    text: str = Field(min_length=1, max_length=20000)
     exclude_annotated: bool = True
 
 

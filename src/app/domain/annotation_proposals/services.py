@@ -66,7 +66,7 @@ class AnnotationProposalService:
         try:
             result = await asyncio.to_thread(
                 generate_proposals,
-                data.text,
+                revision.question_string,
                 glossary,
                 str(question_id),
                 excluded_spans=excluded_spans,
