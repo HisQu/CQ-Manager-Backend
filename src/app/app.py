@@ -8,6 +8,7 @@ sql_plugin = AsyncSqlPlugin()
 from domain.accounts.authentication.middleware import AuthenticationMiddleware
 from domain.accounts.authentication.services import EncryptionService
 from domain.accounts.controllers import UserController
+from domain.annotation_proposals.controllers import AnnotationProposalController
 from domain.comments.controller import CommentController
 from domain.consolidations.controllers import ConsolidationController
 from domain.groups.controllers import GroupController
@@ -71,6 +72,7 @@ app = Litestar(
         ConsolidationController,
         CommentController,
         TermController,
+        AnnotationProposalController,
         TopicController,
         TagController,
     ],
