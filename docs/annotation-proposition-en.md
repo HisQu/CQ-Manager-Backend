@@ -4,7 +4,7 @@ Annotation proposals are generated in two stages. First, a machine learning mode
 
 We will use this question as a working example:
 
-![Example question in the annotation editor](image.png)
+![Example question in the annotation editor](assets/example-question.png)
 
 ## Part-of-speech tagging
 
@@ -12,7 +12,7 @@ First, we analyze the words in the question. A **part-of-speech (POS) tag** desc
 
 The language model uses these tags and the sentence structure to find [noun phrases](https://spacy.io/usage/linguistic-features#noun-chunks) and [named entities](https://spacy.io/usage/linguistic-features#named-entities), which we use as candidates for possible annotations. For the example question, the model extracted phrases including **Informationen**, **sozialen Herkunft**, **Geistlichen**, **kurialen Quellen**, and **soziale**.
 
-![POS tags and candidate phrases extracted from the example question](image-1.png)
+![POS tags and candidate phrases extracted from the example question](assets/pos-tags-and-candidates.png)
 
 ## Matching phrases to glossary terms
 
@@ -20,9 +20,9 @@ Next, each candidate phrase is compared with the project glossary and with phras
 
 The matching process first looks for the same wording, allowing for differences such as capitalization or extra spaces. If it does not find an exact match, it looks for a close spelling match based on a high [Jaro-Winkler-Similarity](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance). When neither gives a match, the system compares the words around the candidate with examples from annotations in other questions.
 
-If no suitable match is found, the candidate phrase itself is suggested as a new glossary term with light normalization (Singularization, remove punctation, whitespaces, ...).
+If no suitable match is found, the candidate phrase itself is suggested as a new glossary term. Leading and trailing whitespace and punctuation are removed.
 
-![Glossary term suggestions for the candidate phrases](image-2.png)
+![Glossary term suggestions for the candidate phrases](assets/glossary-term-suggestions.png)
 
 Here, the candidates **Geistlichen**, **sozialen Herkunft**, and **kurialen Quellen** were matched with their respective glossary terms based on high lexical similarity. For the other two candidates, no close lexical match was found, so the system suggested the next-best match based on context. This may make sense for **Informationen**, but the suggestion for **soziale** is probably a false positive. A reviewer must approve each proposal before it is saved, so a false positive is not automatically added as an annotation or glossary term.
 
